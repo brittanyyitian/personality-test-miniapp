@@ -1,0 +1,27 @@
+<view wx:if="{{assessment && question && piece}}" class="quiz-page" style="background: {{piece.questionBackground}};">
+  <view class="quiz-topbar">
+    <button class="quiz-back" bindtap="exitOrPrevious">{{current > 0 ? '上一题' : '退出'}}</button>
+    <view class="progress-track"><view class="progress-fill" style="width: {{progress}}%; background: {{piece.color}};"></view></view>
+    <view class="progress-text">{{progressText}}</view>
+  </view>
+
+  <view class="shape-stage shape-stage-{{phase}}">
+    <image class="quiz-shape" src="{{piece.image}}" mode="aspectFit" />
+  </view>
+
+  <view class="quiz-content">
+    <view class="quiz-question">{{question.text}}</view>
+    <view class="options">
+      <button
+        wx:for="{{options}}"
+        wx:key="value"
+        class="option {{selected === item.value ? 'option-selected' : ''}}"
+        style="border-color: {{selected === item.value ? piece.color : 'transparent'}};"
+        data-value="{{item.value}}"
+        bindtap="selectAnswer"
+        disabled="{{transitioning || finishing}}"
+        hover-class="option-pressed"
+      >{{item.label}}</button>
+    </view>
+  </view>
+</view>

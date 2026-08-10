@@ -1,0 +1,21 @@
+<view class="page sources-page">
+  <view class="eyebrow">知道我们为什么这样说</view>
+  <view class="serif title-xl sources-title">依据与使用边界</view>
+  <view class="sources-intro">理论和研究可以提供一张地图，但不能替你定义自己。每条结果都来自固定题目与规则，不由 AI 临时补写。</view>
+
+  <view class="source-list">
+    <view wx:for="{{sources}}" wx:key="id" class="source-item {{focus === item.id ? 'source-focus' : ''}}">
+      <view class="source-id">{{item.id}}</view>
+      <view class="serif source-title">{{item.title}}</view>
+      <view class="source-label">依据</view>
+      <view class="source-copy">{{item.basis}}</view>
+      <view class="source-label">局限</view>
+      <view class="source-copy">{{item.limit}}</view>
+    </view>
+  </view>
+
+  <view class="privacy-block">
+    <view class="serif privacy-title">你的数据</view>
+    <view>不登录也能完成测试。作答与结果默认保存在本机，不用于广告画像，也不会默认发送给 AI。</view>
+  </view>
+</view>

@@ -1,0 +1,24 @@
+.friend-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: calc(86rpx + env(safe-area-inset-top)) 54rpx calc(60rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  background: #fbf8f2;
+  color: #11110f;
+}
+
+.friend-doodle { position: absolute; pointer-events: none; }
+.friend-doodle-top { top: calc(-45rpx + env(safe-area-inset-top)); right: -112rpx; width: 360rpx; height: 360rpx; transform: rotate(15deg); }
+.friend-doodle-bottom { left: 150rpx; bottom: -196rpx; width: 470rpx; height: 470rpx; opacity: 0.62; transform: rotate(-8deg); }
+
+.friend-content { position: relative; z-index: 2; margin-top: 276rpx; }
+.friend-label { font-size: 54rpx; font-weight: 750; line-height: 1.25; letter-spacing: -3rpx; }
+.friend-result { margin-top: 8rpx; font-size: 58rpx; font-weight: 800; line-height: 1.3; letter-spacing: -4rpx; }
+.friend-question { margin-top: 68rpx; font-size: 54rpx; font-weight: 700; letter-spacing: -3rpx; }
+.friend-meta { margin-top: 48rpx; color: #8b877f; font-size: 27rpx; }
+
+.friend-actions { position: relative; z-index: 3; margin-top: auto; padding-bottom: 210rpx; }
+.friend-primary { width: 100%; min-height: 104rpx; border-radius: 56rpx; background: #090908; color: #fff; font-size: 30rpx; font-weight: 600; }
+.friend-later { width: 100%; margin-top: 28rpx; color: #a09b92; font-size: 25rpx; }

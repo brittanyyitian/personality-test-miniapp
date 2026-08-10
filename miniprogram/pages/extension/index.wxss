@@ -1,0 +1,9 @@
+.extension-page { display: flex; min-height: 100vh; flex-direction: column; }
+.extension-heading { margin-top: 12rpx; }
+.extension-lead { margin-top: 34rpx; color: #555450; font-size: 30rpx; line-height: 1.85; }
+.extension-mist { width: 180rpx; height: 180rpx; margin: 40rpx 0 12rpx -22rpx; }
+.extension-section-title { margin-top: 34rpx; font-size: 36rpx; }
+.extension-body { margin-top: 18rpx; color: #676660; font-size: 28rpx; line-height: 1.92; }
+.extension-action { margin-top: 54rpx; padding: 30rpx; border-radius: 32rpx; background: #f5f3f1; color: #4f4d49; font-size: 28rpx; line-height: 1.82; }
+.extension-spacer { flex: 1; min-height: 90rpx; }
+.extension-note { margin-top: 20rpx; text-align: center; }

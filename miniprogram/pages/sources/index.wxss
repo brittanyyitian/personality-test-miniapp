@@ -1,0 +1,11 @@
+.sources-title { margin-top: 14rpx; }
+.sources-intro { margin-top: 30rpx; color: #5d5c57; font-size: 29rpx; line-height: 1.8; }
+.source-list { margin-top: 54rpx; }
+.source-item { padding: 42rpx 0; border-bottom: 1rpx solid var(--line); }
+.source-focus { margin: 0 -24rpx; padding: 42rpx 24rpx; border-radius: 30rpx; background: #f2f5fa; }
+.source-id { color: var(--blue); font-size: 22rpx; }
+.source-title { margin-top: 6rpx; font-size: 36rpx; }
+.source-label { margin-top: 24rpx; font-size: 24rpx; font-weight: 600; }
+.source-copy { margin-top: 8rpx; color: #6a6964; font-size: 26rpx; line-height: 1.75; }
+.privacy-block { margin-top: 52rpx; padding: 34rpx; border-radius: 34rpx; background: #f1f1ee; color: #5c5b57; font-size: 26rpx; line-height: 1.75; }
+.privacy-title { margin-bottom: 12rpx; color: var(--ink); font-size: 34rpx; }

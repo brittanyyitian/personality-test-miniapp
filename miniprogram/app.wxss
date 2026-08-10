@@ -1,0 +1,123 @@
+page {
+  --ink: #181817;
+  --muted: #7d7c79;
+  --quiet: #a6a5a1;
+  --paper: #ffffff;
+  --surface: #ffffff;
+  --soft: #f4f4f1;
+  --line: rgba(26, 26, 24, 0.08);
+  --blue: #7095d4;
+  --coral: #db8278;
+  --green: #829d75;
+  --lavender: #9a86ba;
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: 30rpx;
+  line-height: 1.55;
+}
+
+view, text, button, input, textarea {
+  box-sizing: border-box;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button::after { border: 0; }
+
+.page {
+  min-height: 100vh;
+  padding: 56rpx 48rpx calc(64rpx + env(safe-area-inset-bottom));
+}
+
+.serif {
+  font-family: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
+  font-weight: 500;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 25rpx;
+  letter-spacing: 1rpx;
+}
+
+.title-xl {
+  margin-top: 12rpx;
+  font-size: 64rpx;
+  line-height: 1.18;
+  letter-spacing: -2rpx;
+}
+
+.title-lg {
+  font-size: 50rpx;
+  line-height: 1.28;
+  letter-spacing: -1rpx;
+}
+
+.section-title {
+  margin: 48rpx 0 20rpx;
+  font-size: 29rpx;
+  font-weight: 600;
+}
+
+.muted { color: var(--muted); }
+.quiet { color: var(--quiet); }
+
+.primary-button {
+  width: 100%;
+  min-height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 52rpx;
+  background: #0c0c0b;
+  color: #fff;
+  font-size: 31rpx;
+  font-weight: 500;
+}
+
+.primary-button[disabled] {
+  background: #d8d8d4;
+  color: #f7f7f5;
+}
+
+.secondary-button {
+  width: 100%;
+  min-height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 48rpx;
+  background: #f0f0ed;
+  color: #474744;
+}
+
+.footnote {
+  color: var(--quiet);
+  font-size: 23rpx;
+  line-height: 1.6;
+}
+
+.mist {
+  width: 72rpx;
+  height: 72rpx;
+  flex: 0 0 72rpx;
+  object-fit: contain;
+}
+
+.chevron {
+  margin-left: auto;
+  color: #aaa9a5;
+  font-size: 36rpx;
+  font-weight: 300;
+}

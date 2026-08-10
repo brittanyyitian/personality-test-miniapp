@@ -1,0 +1,19 @@
+.couple-title { margin-top: 16rpx; }
+.couple-intro { margin-top: 32rpx; color: #5c5b57; font-size: 29rpx; line-height: 1.8; }
+.code-box { width: 100%; padding: 28rpx; border-radius: 30rpx; background: #f1f1ee; text-align: left; }
+.code-text { display: block; max-height: 118rpx; overflow: hidden; color: #4f4e49; font-family: monospace; font-size: 20rpx; word-break: break-all; }
+.code-action { display: block; margin-top: 16rpx; color: var(--blue); font-size: 24rpx; }
+.code-note { margin-top: 12rpx; }
+.code-input { width: 100%; min-height: 220rpx; margin-bottom: 26rpx; padding: 26rpx; border-radius: 30rpx; background: #f1f1ee; font-size: 24rpx; }
+.empty-state { margin: 70rpx 0; text-align: center; }
+.empty-state image { width: 180rpx; height: 180rpx; }
+.empty-title { margin-top: 24rpx; font-size: 34rpx; }
+.empty-copy { margin-top: 12rpx; color: var(--muted); font-size: 26rpx; }
+.report-cards { margin-top: 50rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.report-card { padding: 34rpx; border-radius: 34rpx; background: #fff; }
+.report-title { font-size: 34rpx; }
+.report-body { margin-top: 16rpx; color: #62615d; font-size: 27rpx; line-height: 1.82; }
+.rule-id { margin-top: 18rpx; color: #b0afaa; font-size: 20rpx; }
+.couple-action { margin-top: 30rpx; padding: 34rpx; border-radius: 34rpx; background: #eef3f8; color: #536070; font-size: 28rpx; line-height: 1.8; }
+.couple-invite { width: 100%; min-height: 96rpx; margin-top: 24rpx; border-radius: 50rpx; background: #11110f; color: #fff; font-size: 28rpx; font-weight: 650; }
+.report-note { margin-top: 24rpx; text-align: center; }

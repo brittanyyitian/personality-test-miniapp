@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+project.private.config.json
+*.log
+
+# 本地临时处理文件，不属于小程序交付物
+tmp/

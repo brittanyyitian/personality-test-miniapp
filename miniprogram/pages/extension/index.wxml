@@ -1,0 +1,18 @@
+<view wx:if="{{page && result}}" class="page extension-page">
+  <view class="eyebrow">{{page.eyebrow}}</view>
+  <view class="serif title-xl extension-heading">{{page.title}}</view>
+  <view class="extension-lead">{{page.lead}}</view>
+
+  <image class="extension-mist" src="/assets/mist-coral.png" mode="aspectFit" />
+
+  <view wx:for="{{page.sections}}" wx:key="title">
+    <view class="serif extension-section-title">{{item.title}}</view>
+    <view class="extension-body">{{item.body}}</view>
+  </view>
+
+  <view class="extension-action">{{page.action}}</view>
+
+  <view class="extension-spacer"></view>
+  <button class="primary-button" bindtap="backToResult">回到完整结果</button>
+  <view class="footnote extension-note">这是一种基于当前结果的理解，不替你定义关系。</view>
+</view>

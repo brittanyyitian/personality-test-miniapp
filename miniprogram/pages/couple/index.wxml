@@ -1,0 +1,47 @@
+<view class="page couple-page">
+  <block wx:if="{{!report}}">
+    <view class="eyebrow">双方主动分享</view>
+    <view class="serif title-xl couple-title">两个人的相处地图</view>
+    <view class="couple-intro">不算匹配百分比，也不预测未来。这里只把相似看作共同语言，把差异看作需要翻译的地方。</view>
+
+    <block wx:if="{{hasResults}}">
+      <view class="section-title">我的结果码</view>
+      <button class="code-box" bindtap="copyCode">
+        <text class="code-text">{{shareCode}}</text>
+        <text class="code-action">复制</text>
+      </button>
+      <view class="footnote code-note">只包含必要的结构化分数和版本，不包含逐题答案。</view>
+      <button class="couple-invite" open-type="share">邀请对方拼进来</button>
+
+      <view class="section-title">或者输入对方的结果码</view>
+      <textarea class="code-input" maxlength="1200" placeholder="粘贴对方主动分享的结果码" value="{{inputCode}}" bindinput="updateCode" />
+      <button class="primary-button" disabled="{{!inputCode}}" bindtap="createReport">生成相处地图</button>
+    </block>
+
+    <block wx:else>
+      <view class="empty-state">
+        <image src="/assets/mist-blue.png" mode="aspectFit" />
+        <view class="serif empty-title">先补齐两份基础结果</view>
+        <view class="empty-copy">双方都需要完成认知偏好和依恋倾向，才能生成有内容的相处地图。</view>
+      </view>
+      <button wx:if="{{!readiness.cognitive}}" class="primary-button" data-id="cognitive" bindtap="goAssessment">完成 16 型人格偏好</button>
+      <button wx:if="{{!readiness.attachment}}" class="secondary-button" data-id="attachment" bindtap="goAssessment">完成依恋倾向</button>
+    </block>
+  </block>
+
+  <block wx:else>
+    <view class="eyebrow">组合结果</view>
+    <view class="serif title-xl couple-title">{{report.title}}</view>
+    <view class="couple-intro">{{report.summary}}</view>
+    <view class="report-cards">
+      <view wx:for="{{report.cards}}" wx:key="ruleId" class="report-card">
+        <view class="serif report-title">{{item.title}}</view>
+        <view class="report-body">{{item.body}}</view>
+        <view class="rule-id">{{item.ruleId}}</view>
+      </view>
+    </view>
+    <view class="couple-action">{{report.action}}</view>
+    <view class="footnote report-note">差异不等于不适合；真实互动比人格组合更重要。</view>
+    <button class="secondary-button" open-type="share">邀请另一个人拼进来</button>
+  </block>
+</view>

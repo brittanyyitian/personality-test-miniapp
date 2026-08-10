@@ -1,0 +1,43 @@
+<view class="home-page">
+  <view class="home-header">
+    <view class="home-kicker">我的拼图</view>
+    <view class="home-title">你，由很多面组成。</view>
+  </view>
+
+  <view class="puzzle-cluster" aria-label="我的性格拼图">
+    <button
+      wx:for="{{pieces}}"
+      wx:key="id"
+      class="puzzle-piece piece-{{index}} {{item.done ? 'piece-done' : 'piece-pending'}}"
+      data-id="{{item.id}}"
+      data-result-id="{{item.resultId}}"
+      bindtap="openPiece"
+      hover-class="piece-pressed"
+      aria-label="{{item.name}} {{item.done ? item.keyword : '未完成'}}"
+    >
+      <image class="piece-art" src="{{item.image}}" mode="aspectFit" />
+      <view class="piece-copy">
+        <text class="piece-name">{{item.name}}</text>
+        <text wx:if="{{item.done}}" class="piece-keyword">{{item.keyword}}</text>
+        <text wx:else class="piece-status">点击开始</text>
+      </view>
+    </button>
+  </view>
+
+  <view class="puzzle-progress">
+    <text>已拼出 </text>
+    <text class="progress-number">{{completedCount}}</text>
+    <text> / 5 块</text>
+  </view>
+
+  <view wx:if="{{recommendation}}" class="explore-section">
+    <view class="explore-title">继续探索</view>
+    <button class="recommend-card" bindtap="openRecommendation" hover-class="recommend-pressed">
+      <view class="recommend-copy">
+        <view class="recommend-question">{{recommendation.title}}？</view>
+        <view class="recommend-duration">{{recommendation.duration}}</view>
+      </view>
+      <view class="recommend-arrow">→</view>
+    </button>
+  </view>
+</view>

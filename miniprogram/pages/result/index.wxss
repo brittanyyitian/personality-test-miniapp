@@ -1,0 +1,137 @@
+.result-page { min-height: 100vh; color: #11110f; }
+
+.reveal-screen {
+  min-height: 100vh;
+  padding: calc(88rpx + env(safe-area-inset-top)) 54rpx calc(56rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fbf8f2;
+  text-align: center;
+}
+.reveal-title { font-size: 52rpx; font-weight: 780; letter-spacing: -3rpx; }
+.reveal-shape { width: 430rpx; height: 430rpx; margin-top: 78rpx; animation: piece-in 620ms cubic-bezier(.18,.8,.2,1) both; }
+.reveal-piece-name { margin-top: 16rpx; color: #68635b; font-size: 25rpx; }
+.reveal-result { margin-top: 18rpx; font-size: 43rpx; font-weight: 760; letter-spacing: -2rpx; }
+.reveal-note { margin-top: 78rpx; color: #555148; font-size: 28rpx; }
+.reveal-button { width: 100%; min-height: 100rpx; margin-top: auto; border-radius: 54rpx; background: #090908; color: #fff; font-size: 29rpx; }
+@keyframes piece-in { from { opacity: 0; transform: scale(.68) rotate(-12deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+
+.core-screen {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: calc(172rpx + env(safe-area-inset-top)) 48rpx calc(56rpx + env(safe-area-inset-bottom));
+  background: #fbf8f2;
+}
+.core-hero-shape { position: absolute; top: calc(-100rpx + env(safe-area-inset-top)); right: -102rpx; width: 430rpx; height: 430rpx; transform: rotate(10deg); }
+.core-piece-label { color: #24221e; font-size: 24rpx; letter-spacing: 1rpx; }
+.core-title { max-width: 590rpx; margin-top: 124rpx; font-size: 64rpx; font-weight: 820; line-height: 1.14; letter-spacing: -5rpx; }
+.core-summary { max-width: 610rpx; margin-top: 34rpx; color: #504c44; font-size: 28rpx; line-height: 1.65; }
+
+.metric-section { margin-top: 54rpx; }
+.metric-section-title { margin-bottom: 28rpx; font-size: 30rpx; font-weight: 720; letter-spacing: -1rpx; }
+.metric-list { margin-top: 0; }
+.metric-row + .metric-row { margin-top: 34rpx; }
+.metric-head { display: flex; align-items: center; justify-content: space-between; font-size: 27rpx; font-weight: 620; }
+.metric-value { font-size: 30rpx; font-weight: 700; }
+.metric-track { height: 14rpx; margin-top: 15rpx; overflow: hidden; border-radius: 12rpx; background: #e8e3d9; }
+.metric-fill { height: 100%; border-radius: inherit; }
+.metric-fill-0 { background: #b69aef; }
+.metric-fill-1 { background: #edadd1; }
+.metric-fill-2 { background: #4d9a61; }
+.metric-fill-3 { background: #f1b63b; }
+.metric-fill-4 { background: #4b83df; }
+.result-kind-relationship .metric-fill { background: #f47716; }
+.result-kind-attachment .metric-fill { background: #a989df; }
+.result-kind-cognitive .metric-fill { background: #e8ad18; }
+.result-kind-social .metric-fill { background: #4b83df; }
+
+.story-section { margin-top: 70rpx; }
+.story-eyebrow { color: #8f887d; font-size: 22rpx; font-weight: 620; letter-spacing: 1rpx; }
+.story-heading { max-width: 610rpx; margin-top: 13rpx; font-size: 40rpx; font-weight: 780; line-height: 1.28; letter-spacing: -2rpx; }
+.story-lead { margin-top: 26rpx; padding: 30rpx 32rpx; border-radius: 30rpx; color: #46423b; font-size: 27rpx; line-height: 1.78; }
+.story-blocks { margin-top: 24rpx; }
+.story-block { position: relative; display: flex; gap: 22rpx; padding: 30rpx 28rpx; }
+.story-marker { flex: none; min-width: 66rpx; color: #8a857c; font-size: 22rpx; font-weight: 720; line-height: 1.45; }
+.story-copy { min-width: 0; }
+.story-title { font-size: 29rpx; font-weight: 700; line-height: 1.45; }
+.story-body { margin-top: 13rpx; color: #625e56; font-size: 26rpx; line-height: 1.78; }
+
+/* 恋爱模式：用一条纵向关系轨迹呈现支点、循环和行动。 */
+.story-relationship .story-lead { background: #fff0e5; }
+.story-relationship .story-blocks { position: relative; padding-left: 12rpx; }
+.story-relationship .story-blocks::before { content: ''; position: absolute; top: 34rpx; bottom: 34rpx; left: 45rpx; width: 2rpx; background: rgba(244,119,22,.22); }
+.story-relationship .story-block { padding-left: 8rpx; }
+.story-relationship .story-marker { position: relative; z-index: 1; width: 74rpx; min-width: 74rpx; height: 50rpx; display: flex; align-items: center; justify-content: center; border-radius: 26rpx; background: #f47716; color: #fff; }
+.story-relationship .story-copy { padding-bottom: 18rpx; }
+
+/* 依恋模式：像一组触发—保护—误读—需要的关系提示。 */
+.story-attachment .story-lead { background: #f2ebfb; }
+.story-attachment .story-block { margin-top: 16rpx; border-radius: 28rpx; background: rgba(255,255,255,.76); }
+.story-attachment .story-marker { color: #8669bd; }
+.story-attachment .story-block-protect { margin-left: 28rpx; }
+.story-attachment .story-block-misread { margin-right: 28rpx; }
+.story-attachment .story-block-need { border: 1rpx solid rgba(134,105,189,.18); background: #f7f1ff; }
+
+/* 人格底色：外在、内在与压力反差用卡片矩阵阅读。 */
+.story-bigfive .story-lead { background: #eaf4e8; }
+.trait-spectrum { margin-top: 20rpx; padding: 26rpx 28rpx; border-radius: 28rpx; background: rgba(255,255,255,.76); }
+.trait-row + .trait-row { margin-top: 22rpx; }
+.trait-head { display: flex; justify-content: space-between; color: #4d5f50; font-size: 23rpx; }
+.trait-track { height: 9rpx; margin-top: 9rpx; overflow: hidden; border-radius: 8rpx; background: #dce9dc; }
+.trait-fill { height: 100%; border-radius: inherit; background: #3f9a5f; }
+.story-bigfive .story-blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; }
+.story-bigfive .story-block { min-height: 270rpx; display: block; padding: 26rpx; border-radius: 28rpx; background: rgba(255,255,255,.78); }
+.story-bigfive .story-marker { color: #3f8f59; }
+.story-bigfive .story-title { margin-top: 12rpx; }
+.story-bigfive .story-body { font-size: 24rpx; line-height: 1.72; }
+.story-bigfive .story-block-growth { grid-column: 1 / span 2; min-height: auto; background: #eaf4e8; }
+
+/* 思考模式：编号流程强调先后顺序。 */
+.story-cognitive .story-lead { background: #fff3ce; }
+.story-cognitive .story-block { border-bottom: 1rpx solid rgba(20,20,18,.08); }
+.story-cognitive .story-marker { color: #b47c00; font-size: 28rpx; }
+.story-cognitive .story-block:last-child { border-bottom: 0; }
+
+/* 社交模式：不同场景像交替出现的对话片段。 */
+.story-social .story-lead { background: #e8eefc; }
+.story-social .story-block { margin-top: 18rpx; border-radius: 32rpx 32rpx 32rpx 8rpx; background: #eef3ff; }
+.story-social .story-block:nth-child(even) { margin-left: 34rpx; border-radius: 32rpx 32rpx 8rpx 32rpx; background: rgba(255,255,255,.82); }
+.story-social .story-marker { color: #3f70c5; }
+
+.mini-puzzle { margin-top: 56rpx; display: flex; align-items: center; gap: 4rpx; }
+.mini-piece { width: 74rpx; height: 74rpx; margin-left: -4rpx; }
+.mini-piece-done { opacity: 1; }
+.mini-piece-pending { opacity: 0.12; }
+.core-progress { margin-top: 19rpx; color: #4e4a42; font-size: 25rpx; }
+.core-progress text { color: #f47716; font-size: 28rpx; font-weight: 720; }
+
+.core-actions { margin-top: 48rpx; }
+.result-primary, .result-secondary { width: 100%; min-height: 102rpx; border-radius: 54rpx; font-size: 29rpx; font-weight: 600; }
+.result-primary { background: #090908; color: #fff; }
+.result-secondary { margin-top: 20rpx; border: 1rpx solid rgba(20,20,18,.10); background: rgba(255,255,255,.72); color: #171613; }
+.result-couple { width: 100%; margin-top: 24rpx; padding: 18rpx 12rpx; color: #5f6470; font-size: 25rpx; text-decoration: underline; text-underline-offset: 7rpx; }
+.result-source { width: 100%; margin-top: 28rpx; color: #9a958d; font-size: 22rpx; }
+
+.share-screen {
+  min-height: 100vh;
+  padding: calc(40rpx + env(safe-area-inset-top)) 48rpx calc(52rpx + env(safe-area-inset-bottom));
+  background: #eee2f4;
+}
+.share-back { color: #716a74; font-size: 22rpx; text-align: left; }
+.share-heading { margin-top: 42rpx; font-size: 32rpx; font-weight: 700; }
+.share-card { position: relative; height: 640rpx; margin-top: 30rpx; overflow: hidden; padding: 50rpx 50rpx; border-radius: 38rpx; background: #fffefa; box-shadow: 0 28rpx 70rpx rgba(90, 66, 106, .10); }
+.share-piece-label { color: #858078; font-size: 20rpx; letter-spacing: 1rpx; }
+.share-card-shape { position: absolute; top: -26rpx; right: -90rpx; width: 300rpx; height: 300rpx; transform: rotate(9deg); }
+.share-card-title { max-width: 430rpx; margin-top: 48rpx; font-size: 51rpx; font-weight: 800; line-height: 1.22; letter-spacing: -3rpx; }
+.share-card-summary { max-width: 490rpx; margin-top: 46rpx; color: #4f4a43; font-size: 27rpx; line-height: 1.7; }
+.share-mini-puzzle { position: absolute; left: 48rpx; bottom: 50rpx; display: flex; gap: 2rpx; }
+.share-mini-piece { width: 66rpx; height: 66rpx; }
+.share-mini-done { opacity: 1; }
+.share-mini-pending { opacity: .11; }
+.share-invite { margin-top: 38rpx; font-size: 31rpx; font-weight: 650; line-height: 1.55; }
+.share-actions { margin-top: 34rpx; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18rpx; }
+.share-action { min-height: 96rpx; border-radius: 48rpx; background: rgba(255,255,255,.78); color: #38333b; font-size: 22rpx; }
+.share-home { width: 100%; min-height: 96rpx; margin-top: 26rpx; border-radius: 50rpx; background: #0a090a; color: #fff; font-size: 28rpx; }
+.share-canvas { position: fixed; top: 0; left: -3000px; pointer-events: none; }

@@ -1,0 +1,46 @@
+<view class="page inspiration-page">
+  <block wx:if="{{!card}}">
+    <view class="eyebrow">塔罗式意象卡 · 非占卜</view>
+    <view class="serif title-xl inspiration-title">此刻，你更想看见什么？</view>
+    <view class="choice-list">
+      <button
+        wx:for="{{choices}}"
+        wx:key="key"
+        class="choice {{selected === item.key ? 'choice-selected' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="choose"
+      >
+        <image class="choice-mist" src="{{index === 0 ? '/assets/mist-coral.png' : index === 1 ? '/assets/mist-lavender.png' : '/assets/mist-blue.png'}}" mode="aspectFit" />
+        <text class="serif">{{item.title}}</text>
+      </button>
+    </view>
+    <view class="inspiration-spacer"></view>
+    <button class="primary-button" disabled="{{!selected}}" bindtap="draw">抽一张塔罗</button>
+    <view class="footnote inspiration-note">象征性自我反思，不预测未来、感情结局或运势。</view>
+  </block>
+
+  <block wx:else>
+    <view class="eyebrow">今日意象 · {{card.id}}</view>
+    <view class="card-face">
+      <image class="tarot-art" src="/assets/tarot-card-art.jpg" mode="aspectFill" />
+      <view class="card-content">
+        <view class="card-symbol">{{card.symbol}}</view>
+        <view class="serif card-title">{{card.title}}</view>
+        <view class="serif card-line">{{card.face}}</view>
+      </view>
+    </view>
+
+    <view class="reflection-label">也留意这一面</view>
+    <view class="reflection-copy">{{card.shadow}}</view>
+    <view class="reflection-label">留给你的问题</view>
+    <view class="serif reflection-question">{{card.reflection}}</view>
+    <view class="action-card">
+      <view class="reflection-label action-label">今天可以</view>
+      <view class="reflection-copy">{{card.action}}</view>
+    </view>
+    <textarea class="note-input" maxlength="300" placeholder="写下此刻想到的内容…" value="{{note}}" bindinput="updateNote" />
+    <button class="primary-button" bindtap="saveNote">{{saved ? '已保存在本机' : '保存这一刻'}}</button>
+    <button class="redraw" bindtap="draw">{{redrawUsed ? '今天已经重抽过一次' : '再抽一次'}}</button>
+    <view class="footnote inspiration-note">塔罗式意象卡，不预测未来。文字默认只保存在本机。</view>
+  </block>
+</view>

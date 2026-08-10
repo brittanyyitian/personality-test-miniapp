@@ -1,0 +1,16 @@
+<view wx:if="{{assessment && piece}}" class="friend-page">
+  <image class="friend-doodle friend-doodle-top" src="{{piece.image}}" mode="aspectFit" />
+  <image class="friend-doodle friend-doodle-bottom" src="{{piece.image}}" mode="aspectFit" />
+
+  <view class="friend-content">
+    <view class="friend-label">TA 拼出了</view>
+    <view class="friend-result">「{{friendResult}}」</view>
+    <view class="friend-question">那你呢？</view>
+    <view class="friend-meta">{{assessment.duration}}</view>
+  </view>
+
+  <view class="friend-actions">
+    <button class="friend-primary" bindtap="start">我也测测</button>
+    <button class="friend-later" bindtap="goHome">先看看我的拼图</button>
+  </view>
+</view>
