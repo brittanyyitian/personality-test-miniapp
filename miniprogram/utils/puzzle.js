@@ -41,6 +41,8 @@ const PIECES = [
   }
 ];
 
+const { RESULT_VISUALS } = require('../data/result-visuals');
+
 const METRIC_LABELS = {
   anxiety: '回应敏感',
   avoidance: '独立倾向',
@@ -65,6 +67,26 @@ const METRIC_LABELS = {
 
 function getPiece(id) {
   return PIECES.find((piece) => piece.id === id) || null;
+}
+
+function getResultVisual(result) {
+  if (!result || !result.assessmentId || !result.typeCode) return null;
+  const assessmentVisuals = RESULT_VISUALS[result.assessmentId];
+  const visual = assessmentVisuals ? assessmentVisuals[result.typeCode] || null : null;
+  if (!visual || !Array.isArray(visual.tendencyAxes)) return visual;
+  return {
+    ...visual,
+    tendencies: visual.tendencyAxes.map((axis) => ({
+      label: axis.label,
+      percent: clamp(50 + (Number(result.scores && result.scores[axis.key]) || 0) * 50 * axis.direction),
+      tone: axis.tone
+    }))
+  };
+}
+
+function getResultHeroAsset(result) {
+  const visual = getResultVisual(result);
+  return visual ? { kicker: visual.kicker, title: visual.title, hero: visual.hero } : null;
 }
 
 function clamp(value) {
@@ -257,6 +279,8 @@ function buildHighlights(result, maxLength) {
 module.exports = {
   PIECES,
   getPiece,
+  getResultVisual,
+  getResultHeroAsset,
   resultKeyword,
   buildMetrics,
   buildResultStory,

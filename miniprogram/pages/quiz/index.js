@@ -166,7 +166,7 @@ Page({
     this.setData({ finishing: true });
     const returnQuery = this.returnTarget === 'couple' ? '&return=couple' : '';
     wx.redirectTo({
-      url: `/pages/result/index?id=${encodeURIComponent(this.savedResultId)}${returnQuery}`,
+      url: `/result-package/pages/result/index?id=${encodeURIComponent(this.savedResultId)}${returnQuery}`,
       fail: () => {
         this.submitting = false;
         this.setData({ finishing: false, transitioning: false });

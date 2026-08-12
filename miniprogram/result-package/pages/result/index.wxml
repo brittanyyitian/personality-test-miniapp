@@ -1,0 +1,172 @@
+<view wx:if="{{result && piece}}" class="result-page result-stage-{{stage}} result-kind-{{result.assessmentId}}">
+  <view wx:if="{{stage === 'reveal'}}" class="reveal-screen" bindtap="showCore">
+    <view class="reveal-title">拼图 +1</view>
+    <image class="reveal-shape" src="{{piece.image}}" mode="aspectFit" />
+    <view class="reveal-piece-name">{{piece.name}}</view>
+    <view class="reveal-result">{{displayTitle}}</view>
+    <view class="reveal-note">越来越了解自己了！</view>
+    <button class="reveal-button" bindtap="showCore">看看这一块</button>
+  </view>
+
+  <view wx:if="{{stage === 'core'}}" class="core-screen {{visual ? 'core-screen-illustrated' : ''}}">
+    <block wx:if="{{visual}}">
+      <view class="poster-kicker {{visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}}">{{visual.kicker}}</view>
+      <image class="poster-hero" src="{{visual.hero}}" mode="widthFix" />
+
+      <view class="poster-quote">
+        <view class="poster-quote-mark">“</view>
+        <view>{{visual.quote}}</view>
+      </view>
+
+      <view class="poster-traits">
+        <view wx:for="{{visual.traits}}" wx:key="label" class="poster-trait poster-tone-{{item.tone}}">
+          <view class="poster-trait-label">{{item.label}}</view>
+          <view class="poster-trait-detail">{{item.detail}}</view>
+        </view>
+      </view>
+
+      <view class="poster-tags-panel">
+        <view class="poster-tags-head">
+          <view>✱ 你在人群里的标签</view>
+          <text>最像你的三种已经点亮</text>
+        </view>
+        <view class="poster-tags-grid">
+          <view wx:for="{{visual.tags}}" wx:key="label" class="poster-tag-card {{item.tone ? 'poster-tag-card-' + item.tone : ''}}">
+            <view class="poster-tag-face poster-tag-face-{{item.face}}">
+              <view class="poster-face-eye poster-face-eye-left"></view>
+              <view class="poster-face-eye poster-face-eye-right"></view>
+              <view class="poster-face-nose"></view>
+              <view class="poster-face-mouth"></view>
+            </view>
+            <text class="poster-tag-label">{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="poster-tendencies">
+        <view class="poster-section-symbol">{{visual.tendencyTitle || '关系倾向'}}</view>
+        <view class="poster-tendency-list">
+          <view wx:for="{{visual.tendencies}}" wx:key="label" class="poster-tendency">
+            <view class="poster-tendency-label">{{item.label}}</view>
+            <view class="poster-tendency-track"><view class="poster-tendency-fill poster-fill-{{item.tone}}" style="width: {{item.percent}}%;"></view></view>
+            <view class="poster-tendency-value">{{item.percent}}%</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="illustrated-puzzle-panel">
+        <view class="illustrated-panel-head">
+          <view>✱ 你的人格拼图进度</view>
+          <text>已完成 {{completedCount}} / 5</text>
+        </view>
+        <view class="illustrated-puzzle-list">
+          <view wx:for="{{pieces}}" wx:key="id" class="illustrated-puzzle-item">
+            <image class="{{item.done ? 'done' : 'pending'}}" src="{{item.image}}" mode="aspectFit" />
+            <text>{{item.name}}</text>
+            <text class="illustrated-puzzle-state">{{item.done ? (item.keyword || '已完成') : '待解锁'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="poster-friend-tags">
+        <view class="poster-friend-label">朋友眼中的你</view>
+        <view class="poster-friend-list">
+          <text wx:for="{{visual.friendTags}}" wx:key="*this" class="poster-friend-tag poster-friend-tag-{{index}}">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="poster-notes">
+        <view class="poster-notes-identity">
+          <image class="poster-notes-icon" src="{{visual.aiIcon}}" mode="aspectFit" />
+          <view class="poster-notes-label">AI 看到的你</view>
+        </view>
+        <view class="poster-notes-list">
+          <view wx:for="{{visual.notes}}" wx:key="*this" class="poster-note">{{item}}</view>
+        </view>
+      </view>
+
+      <view class="illustrated-actions">
+        <button class="illustrated-primary" bindtap="showShare">分享我的结果</button>
+        <button class="illustrated-secondary" bindtap="continueNext">{{nextActionText}}</button>
+        <button wx:if="{{!returnToCouple}}" class="illustrated-link" bindtap="openCouple">拼入对方，看看我们怎么相处</button>
+        <button class="illustrated-source" bindtap="openSources">依据与边界</button>
+      </view>
+    </block>
+
+    <block wx:else>
+      <image class="core-hero-shape" src="{{piece.image}}" mode="aspectFit" />
+      <view class="core-piece-label">PIECE {{pieceNumber < 10 ? '0' + pieceNumber : pieceNumber}}</view>
+      <view class="core-title">{{displayTitle}}</view>
+      <view class="core-summary">{{resonance}}</view>
+
+      <view class="metric-section">
+        <view class="metric-section-title">{{story.metricsTitle}}</view>
+        <view class="metric-list">
+        <view wx:for="{{metrics}}" wx:key="key" class="metric-row">
+          <view class="metric-head">
+            <text>{{item.label}}</text>
+            <text class="metric-value">{{item.percent}}%</text>
+          </view>
+          <view class="metric-track"><view class="metric-fill metric-fill-{{index}}" style="width: {{item.percent}}%;"></view></view>
+        </view>
+        </view>
+      </view>
+
+      <view wx:if="{{story && story.blocks.length}}" class="story-section story-{{story.id}}">
+        <view class="story-eyebrow">{{story.eyebrow}}</view>
+        <view class="story-heading">{{story.heading}}</view>
+        <view class="story-lead">{{story.lead}}</view>
+        <view wx:if="{{story.id === 'bigfive'}}" class="trait-spectrum">
+          <view wx:for="{{story.dimensions}}" wx:key="key" class="trait-row">
+            <view class="trait-head"><text>{{item.label}}</text><text>{{item.percent}}%</text></view>
+            <view class="trait-track"><view class="trait-fill" style="width: {{item.percent}}%;"></view></view>
+          </view>
+        </view>
+        <view class="story-blocks">
+          <view wx:for="{{story.blocks}}" wx:key="marker" class="story-block story-block-{{item.kind}}">
+            <view class="story-marker">{{item.marker}}</view>
+            <view class="story-copy">
+              <view class="story-title">{{item.title}}</view>
+              <view class="story-body">{{item.body}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="mini-puzzle">
+        <image wx:for="{{pieces}}" wx:key="id" class="mini-piece {{item.done ? 'mini-piece-done' : 'mini-piece-pending'}}" src="{{item.image}}" mode="aspectFit" />
+      </view>
+      <view class="core-progress"><text>{{completedCount}} 块</text>的你，已经被拼出来。</view>
+
+      <view class="core-actions">
+        <button class="result-primary" bindtap="showShare">分享我的结果</button>
+        <button class="result-secondary" bindtap="continueNext">{{nextActionText}}</button>
+        <button wx:if="{{!returnToCouple}}" class="result-couple" bindtap="openCouple">拼入对方，看看我们怎么相处</button>
+        <button class="result-source" bindtap="openSources">依据与边界</button>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{stage === 'share'}}" class="share-screen">
+    <button class="share-back" bindtap="showCore">返回结果</button>
+    <view class="share-heading">这是我的一块</view>
+    <view class="share-card">
+      <view class="share-piece-label">PIECE {{pieceNumber < 10 ? '0' + pieceNumber : pieceNumber}}</view>
+      <image class="share-card-shape" src="{{piece.image}}" mode="aspectFit" />
+      <view class="share-card-title">{{displayTitle}}</view>
+      <view class="share-card-summary">{{resonance}}</view>
+      <view class="share-mini-puzzle">
+        <image wx:for="{{pieces}}" wx:key="id" class="share-mini-piece {{item.done ? 'share-mini-done' : 'share-mini-pending'}}" src="{{item.image}}" mode="aspectFit" />
+      </view>
+    </view>
+    <view class="share-invite">你会拼出什么？<br />来试试吧！</view>
+    <view class="share-actions">
+      <button class="share-action" bindtap="savePoster">保存图片</button>
+      <button class="share-action" open-type="share">微信好友</button>
+      <button class="share-action" open-type="share">发给朋友</button>
+    </view>
+    <button class="share-home" bindtap="goHome">回到我的拼图</button>
+  </view>
+
+  <canvas canvas-id="sharePoster" class="share-canvas" style="width:750px;height:1334px;"></canvas>
+</view>

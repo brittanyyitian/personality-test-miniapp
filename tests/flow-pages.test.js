@@ -98,7 +98,7 @@ test('全部拼完的核心结果把继续动作收口到首页', () => {
     scores: {}
   }));
   memory.set('mind_results_v1', results);
-  const page = instantiate(loadPage('miniprogram/pages/result/index.js'));
+  const page = instantiate(loadPage('miniprogram/result-package/pages/result/index.js'));
   page.onLoad({ id: 'relationship_0', view: 'core' });
   assert.equal(page.data.nextPiece, null);
   assert.equal(page.data.nextActionText, '回到我的拼图');
@@ -108,7 +108,7 @@ test('全部拼完的核心结果把继续动作收口到首页', () => {
 });
 
 test('朋友圈回流转到 intro，intro 连点只进入同一测试一次', () => {
-  const resultPage = instantiate(loadPage('miniprogram/pages/result/index.js'));
+  const resultPage = instantiate(loadPage('miniprogram/result-package/pages/result/index.js'));
   resultPage.onLoad({ id: 'social', from: 'share', name: encodeURIComponent('小范围话痨') });
   assert.match(calls.redirectTo[0], /^\/pages\/intro\/index\?id=social&from=share&name=/);
 

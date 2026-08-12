@@ -8,8 +8,9 @@ global.wx = {
   removeStorageSync(key) { memory.delete(key); }
 };
 
-const { getPiece, buildMetrics, buildResultStory, firstSentence, buildHighlights } = require('../miniprogram/utils/puzzle');
+const { getPiece, getResultVisual, getResultHeroAsset, buildMetrics, buildResultStory, firstSentence, buildHighlights } = require('../miniprogram/utils/puzzle');
 const { assessments } = require('../miniprogram/data/assessments');
+const { typeTitles } = require('../miniprogram/data/assessments');
 const { scoreAssessment } = require('../miniprogram/utils/scoring');
 const { getResults, getResult, saveResult, getDraft } = require('../miniprogram/utils/storage');
 
@@ -17,6 +18,65 @@ test.beforeEach(() => memory.clear());
 
 test('未知测评不会被误映射成第一块拼图', () => {
   assert.equal(getPiece('unknown'), null);
+});
+
+test('SPARK 使用慢性撤退者海报模板，未配置的社交结果保持默认模板', () => {
+  const sparkVisual = getResultVisual({ assessmentId: 'social', typeCode: 'SPARK' });
+  assert.equal(sparkVisual.title, '慢性撤退者');
+  assert.equal(sparkVisual.template, 'illustrated-poster');
+  assert.equal(sparkVisual.hero, '/assets/result-chronic-retreater.webp');
+  assert.equal(sparkVisual.aiIcon, '/assets/result-ai-observer.webp');
+  assert.equal(sparkVisual.traits.length, 4);
+  assert.equal(sparkVisual.tags.length, 9);
+  assert.equal(sparkVisual.tendencies.length, 4);
+  assert.equal(sparkVisual.friendTags.length, 5);
+  assert.equal(getResultVisual({ assessmentId: 'social', typeCode: 'ROOM' }), null);
+});
+
+test('INTJ 静默构图者复用完整海报模板并登记头图', () => {
+  const hero = getResultHeroAsset({ assessmentId: 'cognitive', typeCode: 'INTJ' });
+  assert.equal(hero.title, '静默构图者');
+  assert.equal(hero.hero, '/result-package/assets/result-cognitive-intj-hero.webp');
+  const visual = getResultVisual({ assessmentId: 'cognitive', typeCode: 'INTJ' });
+  const sparkVisual = getResultVisual({ assessmentId: 'social', typeCode: 'SPARK' });
+  assert.equal(visual.template, 'illustrated-poster');
+  assert.equal(visual.template, sparkVisual.template);
+  assert.equal(visual.hero, '/result-package/assets/result-cognitive-intj-hero.webp');
+  assert.equal(visual.tags.length, 9);
+  ['traits', 'tags', 'tendencies', 'friendTags', 'notes'].forEach((key) => {
+    assert.equal(Array.isArray(visual[key]), true, key);
+    assert.equal(Array.isArray(sparkVisual[key]), true, key);
+  });
+});
+
+test('16 种认知结果全部复用同一模板并关联独立头图', () => {
+  Object.entries(typeTitles).forEach(([typeCode, title]) => {
+    const scores = {
+      EI: typeCode[0] === 'E' ? 0.6 : -0.6,
+      NS: typeCode[1] === 'N' ? 0.6 : -0.6,
+      TF: typeCode[2] === 'T' ? 0.6 : -0.6,
+      JP: typeCode[3] === 'J' ? 0.6 : -0.6
+    };
+    const visual = getResultVisual({ assessmentId: 'cognitive', typeCode, scores });
+    assert.equal(visual.template, 'illustrated-poster', typeCode);
+    assert.equal(visual.title, title, typeCode);
+    assert.equal(visual.hero, `/result-package/assets/result-cognitive-${typeCode.toLowerCase()}-hero.webp`, typeCode);
+    assert.equal(visual.traits.length, 4, typeCode);
+    assert.equal(visual.tags.length, 9, typeCode);
+    assert.equal(visual.tendencies.length, 4, typeCode);
+    assert.equal(visual.friendTags.length, 5, typeCode);
+    assert.equal(visual.notes.length, 3, typeCode);
+    visual.tendencies.forEach((item) => assert.equal(item.percent, 80, `${typeCode}:${item.label}`));
+  });
+});
+
+test('16 种认知头图都会让人格类型提示只出现一次', () => {
+  const embeddedKickers = new Set(['INTJ', 'INTP', 'ENFP', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP']);
+  Object.keys(typeTitles).forEach((typeCode) => {
+    const visual = getResultVisual({ assessmentId: 'cognitive', typeCode, scores: {} });
+    assert.equal(visual.kicker, '你的人格类型是', typeCode);
+    assert.equal(visual.heroIncludesKicker, embeddedKickers.has(typeCode), typeCode);
+  });
 });
 
 test('缺少共鸣文案时不会生成单独句号', () => {

@@ -1,6 +1,6 @@
-const { getResult, getResults, getLatestByAssessment } = require('../../utils/storage');
-const { PIECES, getPiece, resultKeyword, buildMetrics, buildResultStory } = require('../../utils/puzzle');
-const { getCoupleReadiness } = require('../../utils/couple');
+const { getResult, getResults, getLatestByAssessment } = require('../../../utils/storage');
+const { PIECES, getPiece, getResultVisual, resultKeyword, buildMetrics, buildResultStory } = require('../../../utils/puzzle');
+const { getCoupleReadiness } = require('../../../utils/couple');
 
 function isKnownAssessment(id) {
   return PIECES.some((piece) => piece.id === id);
@@ -54,6 +54,7 @@ Page({
   data: {
     result: null,
     piece: null,
+    visual: null,
     pieces: [],
     metrics: [],
     story: null,
@@ -99,7 +100,8 @@ Page({
     const coupleNext = !readiness.cognitive
       ? PIECES.find((piece) => piece.id === 'cognitive')
       : !readiness.attachment ? PIECES.find((piece) => piece.id === 'attachment') : null;
-    const displayTitle = resultKeyword(result) || '新的一面';
+    const visual = getResultVisual(result);
+    const displayTitle = (visual && visual.title) || resultKeyword(result) || '新的一面';
     const resonanceSource = String(result.summary || result.shareLine || '').trim();
     const resonance = resonanceSource
       ? (resonanceSource.length > 118 ? `${resonanceSource.slice(0, 118)}…` : resonanceSource)
@@ -108,6 +110,7 @@ Page({
     this.setData({
       result,
       piece: getPiece(result.assessmentId),
+      visual,
       pieces,
       metrics: buildMetrics(result),
       story: buildResultStory(result),

@@ -3,11 +3,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { assessments, homeSections, inspirationCards } = require('../miniprogram/data/assessments');
+const { RESULT_VISUALS } = require('../miniprogram/data/result-visuals');
 const { getFollowupQuestions, scoreAssessment } = require('../miniprogram/utils/scoring');
 const { createShareCode, parseShareCode, compactResult, createCoupleReport } = require('../miniprogram/utils/couple');
 
 const root = path.resolve(__dirname, '..');
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg' };
+const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 const posterFiles = new Map();
 
 const sendJson = (response, status, value) => {
@@ -31,7 +32,7 @@ http.createServer(async (request, response) => {
   const pathname = new URL(request.url, 'http://local').pathname;
 
   if (pathname === '/api/catalog' && request.method === 'GET') {
-    sendJson(response, 200, { assessments, homeSections, inspirationCards });
+    sendJson(response, 200, { assessments, homeSections, inspirationCards, resultVisuals: RESULT_VISUALS });
     return;
   }
 

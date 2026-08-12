@@ -38,7 +38,24 @@ const persistResult = (result) => {
   return record;
 };
 
-const asset = (path) => path ? path.replace('/assets/', '/miniprogram/assets/') : '';
+const asset = (path) => {
+  if (!path) return '';
+  if (path.startsWith('/result-package/')) return `/miniprogram${path}`;
+  return path.replace('/assets/', '/miniprogram/assets/');
+};
+const clampPercent = (value) => Math.max(4, Math.min(96, Math.round(Number(value) || 0)));
+const resultVisual = (result) => {
+  const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[result?.typeCode] || null;
+  if (!visual || !Array.isArray(visual.tendencyAxes)) return visual;
+  return {
+    ...visual,
+    tendencies: visual.tendencyAxes.map((axis) => ({
+      label: axis.label,
+      percent: clampPercent(50 + (Number(result.scores?.[axis.key]) || 0) * 50 * axis.direction),
+      tone: axis.tone
+    }))
+  };
+};
 const puzzlePieces = [
   { id: 'relationship', name: '恋爱模式', image: '/assets/doodle-relationship.png', color: '#f47716', background: '#fff9f2' },
   { id: 'attachment', name: '依恋模式', image: '/assets/doodle-attachment.png', color: '#b69aef', background: '#fbf7ff' },
@@ -409,9 +426,11 @@ const resultCollection = () => puzzlePieces.map((piece) => ({ ...piece, result: 
 const renderResult = (stage = 'core') => {
   const result = state.result;
   if (!result) return renderHome();
-  setRoute('result', result.id || result.assessmentId);
+  const previewType = new URLSearchParams(location.search).get('preview');
+  if (!previewType) setRoute('result', result.id || result.assessmentId);
   const piece = pieceFor(result.assessmentId);
-  const title = resultKeyword(result) || '新的一面';
+  const visual = resultVisual(result);
+  const title = visual?.title || resultKeyword(result) || '新的一面';
   const resonanceSource = String(result.summary || result.shareLine || '').trim();
   const resonance = resonanceSource
     ? (resonanceSource.length > 118 ? `${resonanceSource.slice(0, 118)}…` : resonanceSource)
@@ -438,8 +457,34 @@ const renderResult = (stage = 'core') => {
 
   const metrics = resultMetrics(result);
   const story = resultStory(result);
+  if (visual) {
+    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId}`;
+    app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
+      <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
+      <section class="poster-quote"><b>“</b><p>${escapeHtml(visual.quote)}</p></section>
+      <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
+      <section class="poster-tags-panel"><div class="poster-tags-head"><h2>✱ 你在人群里的标签</h2><span>最像你的三种已经点亮</span></div><div class="poster-tags-grid">${visual.tags.map((item) => `<article class="poster-tag-card ${item.tone ? `poster-tag-card-${escapeHtml(item.tone)}` : ''}"><span class="poster-tag-face poster-tag-face-${escapeHtml(item.face)}"><i class="poster-face-eye poster-face-eye-left"></i><i class="poster-face-eye poster-face-eye-right"></i><i class="poster-face-nose"></i><i class="poster-face-mouth"></i></span><b>${escapeHtml(item.label)}</b></article>`).join('')}</div></section>
+      <section class="poster-tendencies"><h2>${escapeHtml(visual.tendencyTitle || '关系倾向')}</h2><div>${visual.tendencies.map((item) => `<article class="poster-tendency"><span>${escapeHtml(item.label)}</span><i><em class="poster-fill-${escapeHtml(item.tone)}" style="width:${item.percent}%"></em></i><b>${item.percent}%</b></article>`).join('')}</div></section>
+      <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
+      <section class="poster-friend-tags"><h2>朋友眼中的你</h2><div>${visual.friendTags.map((item, index) => `<span class="poster-friend-tag poster-friend-tag-${index}">${escapeHtml(item)}</span>`).join('')}</div></section>
+      <section class="poster-notes"><div class="poster-notes-identity"><img src="${asset(visual.aiIcon)}" alt="AI 观察员" /><h2>AI 看到的你</h2></div><ul>${visual.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
+      <div class="illustrated-actions"><button class="illustrated-primary" type="button" data-action="share">分享我的结果</button><button class="illustrated-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="illustrated-link" type="button" data-action="couple">拼入对方，看看我们怎么相处</button>'}<button class="illustrated-source" type="button" data-action="sources">依据与边界</button></div>`;
+    bind('[data-action="share"]', renderShare);
+    bind('[data-action="next"]', () => {
+      if (state.returnToCouple) {
+        if (coupleNext) return startAssessment(coupleNext, { returnToCouple: true });
+        state.returnToCouple = false;
+        return renderCouple();
+      }
+      return next ? startAssessment(next.id) : renderHome();
+    });
+    bind('[data-action="couple"]', () => { state.returnToCouple = false; renderCouple(); });
+    bind('[data-action="sources"]', renderSources);
+    return;
+  }
   app.className = `screen core-result-screen result-kind-${result.assessmentId}`;
-  app.innerHTML = `<img class="core-hero-shape" src="${asset(piece.image)}" alt="" /><p class="core-piece-label">PIECE ${String(pieceNumber).padStart(2, '0')}</p><h1>${escapeHtml(title)}</h1><p class="core-resonance">${escapeHtml(resonance)}</p>
+  app.innerHTML = `<img class="core-hero-shape" src="${asset(piece.image)}" alt="" /><p class="core-piece-label">PIECE ${String(pieceNumber).padStart(2, '0')}</p><h1>${escapeHtml(title)}</h1>
+    <p class="core-resonance">${escapeHtml(resonance)}</p>
     <section class="metric-section"><h2>${escapeHtml(story.metricsTitle)}</h2><div class="metric-list">${metrics.map((metric, index) => `<div class="metric-row"><div><span>${escapeHtml(metric.label)}</span><b>${metric.percent}%</b></div><i><em class="metric-${index}" style="width:${metric.percent}%"></em></i></div>`).join('')}</div></section>
     <section class="result-story story-${story.id}"><p class="story-eyebrow">${escapeHtml(story.eyebrow)}</p><h2>${escapeHtml(story.heading)}</h2><p class="story-lead">${escapeHtml(story.lead)}</p>${story.id === 'bigfive' ? `<div class="trait-spectrum">${story.dimensions.map((item) => `<div class="trait-row"><div><span>${escapeHtml(item.label)}</span><b>${item.percent}%</b></div><i><em style="width:${item.percent}%"></em></i></div>`).join('')}</div>` : ''}<div class="story-blocks">${story.blocks.map((item) => `<article class="story-block story-block-${item.kind}"><span class="story-marker">${escapeHtml(item.marker)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>
     <div class="mini-puzzle">${collection.map((item) => `<img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${item.name}" />`).join('')}</div><p class="core-progress"><b>${completed} 块</b>的你，已经被拼出来。</p>
@@ -458,17 +503,18 @@ const renderResult = (stage = 'core') => {
 };
 
 const shareLink = () => {
+  const visual = resultVisual(state.result);
   const url = new URL(location.origin + location.pathname);
   url.searchParams.set('view', 'intro');
   url.searchParams.set('id', state.result.assessmentId);
-  url.searchParams.set('name', resultKeyword(state.result) || '新的一面');
+  url.searchParams.set('name', visual?.title || resultKeyword(state.result) || '新的一面');
   return url.toString();
 };
 
 const renderShare = () => {
   const result = state.result;
   const piece = pieceFor(result.assessmentId);
-  const title = resultKeyword(result) || '新的一面';
+  const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
   const resonance = firstSentence(result.summary || result.shareLine);
   const collection = resultCollection();
   const pieceNumber = puzzlePieces.findIndex((item) => item.id === result.assessmentId) + 1;
@@ -494,7 +540,7 @@ const renderPoster = async () => {
   app.className = 'screen web-poster-screen';
   app.innerHTML = '<p class="poster-loading">正在生成你的拼图卡片…</p>';
   const posterData = await createResultPoster(result);
-  const title = resultKeyword(result) || '人格拼图';
+  const title = resultVisual(result)?.title || resultKeyword(result) || '人格拼图';
   const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格拼图.png` });
   app.innerHTML = `<button class="share-back" type="button" data-action="share">返回分享</button><h1>保存这块拼图</h1><p class="poster-hint">长按图片保存，或使用下方按钮下载。</p><img class="poster-preview" src="${posterData}" alt="${escapeHtml(title)}拼图卡片" /><a class="doodle-black-button poster-download" href="${download.url}" download="${escapeHtml(title)}-人格拼图.png">下载图片</a>`;
   bind('[data-action="share"]', renderShare);
@@ -612,7 +658,45 @@ const boot = async () => {
     const query = new URLSearchParams(location.search);
     const view = query.get('view');
     const id = query.get('id');
+    const previewType = query.get('preview');
     state.couplePartnerCode = query.get('code') || '';
+    if (view === 'result' && state.catalog.resultVisuals?.cognitive?.[previewType]) {
+      const storedCognitive = state.results.find((result) => result.assessmentId === 'cognitive');
+      const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
+      const signs = {
+        EI: previewType[0] === 'E' ? 0.72 : -0.72,
+        NS: previewType[1] === 'N' ? 0.76 : -0.76,
+        TF: previewType[2] === 'T' ? 0.68 : -0.68,
+        JP: previewType[3] === 'J' ? 0.7 : -0.7
+      };
+      const previewResult = storedCognitive ? {
+        ...storedCognitive,
+        id: `preview-cognitive-${previewType.toLowerCase()}`,
+        typeCode: previewType,
+        typeName: previewVisual.title,
+        title: `${previewType} · ${previewVisual.title}`,
+        scores: signs
+      } : {
+        id: `preview-cognitive-${previewType.toLowerCase()}`,
+        assessmentId: 'cognitive',
+        typeCode: previewType,
+        typeName: previewVisual.title,
+        title: `${previewType} · ${previewVisual.title}`,
+        summary: previewVisual.quote,
+        shareLine: previewVisual.quote,
+        scores: signs,
+        sections: [
+          { title: '你的思考顺序', body: previewVisual.quote },
+          { title: '心里真正发生的', body: previewVisual.notes[0] },
+          { title: '压力下的思维反转', body: previewVisual.notes[1] },
+          { title: '关系里容易被误会的地方', body: previewVisual.notes[2] },
+          { title: '让思考恢复流动', body: '把此刻最重要的方向拆成一个可以验证的小步骤，会更容易继续前进。' }
+        ]
+      };
+      state.result = previewResult;
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];
+      return renderResult('core');
+    }
     if (view === 'intro' && state.catalog.assessments[id]) {
       state.assessment = state.catalog.assessments[id];
       return renderIntro();

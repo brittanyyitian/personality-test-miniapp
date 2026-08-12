@@ -46,7 +46,7 @@ Page({
       const resultQuery = resultId
         ? `id=${encodeURIComponent(resultId)}`
         : `assessment=${encodeURIComponent(id)}`;
-      wx.navigateTo({ url: `/pages/result/index?${resultQuery}&view=core` });
+      wx.navigateTo({ url: `/result-package/pages/result/index?${resultQuery}&view=core` });
       return;
     }
     wx.navigateTo({ url: `/pages/quiz/index?id=${encodeURIComponent(id)}` });

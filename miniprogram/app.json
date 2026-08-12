@@ -3,11 +3,19 @@
     "pages/home/index",
     "pages/intro/index",
     "pages/quiz/index",
-    "pages/result/index",
     "pages/extension/index",
     "pages/inspiration/index",
     "pages/couple/index",
     "pages/sources/index"
+  ],
+  "subpackages": [
+    {
+      "root": "result-package",
+      "name": "results",
+      "pages": [
+        "pages/result/index"
+      ]
+    }
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",
