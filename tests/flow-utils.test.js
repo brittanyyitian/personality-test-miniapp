@@ -66,8 +66,51 @@ test('16 种认知结果全部复用同一模板并关联独立头图', () => {
     assert.equal(visual.tendencies.length, 4, typeCode);
     assert.equal(visual.friendTags.length, 5, typeCode);
     assert.equal(visual.notes.length, 3, typeCode);
+    assert.equal(visual.analysis.length, 6, typeCode);
     visual.tendencies.forEach((item) => assert.equal(item.percent, 80, `${typeCode}:${item.label}`));
   });
+});
+
+test('16 种认知结果拥有独立六段画像，不能退化成四字母通用拼接', () => {
+  const profiles = Object.keys(typeTitles).map((typeCode) => {
+    const visual = getResultVisual({ assessmentId: 'cognitive', typeCode, scores: {} });
+    assert.deepEqual(visual.analysis.map((item) => item.title), ['核心驱动力', '内在矛盾', '压力反转', '关系误读', '被理解方式', '恢复建议'], typeCode);
+    visual.analysis.forEach((item) => assert.ok(item.body.length >= 45, `${typeCode}/${item.title} 内容过短`));
+    return visual.analysis.map((item) => item.body).join('|');
+  });
+  assert.equal(new Set(profiles).size, 16);
+});
+
+test('illustrated 画像优先接入正式 insights、sections 与 deepDive', () => {
+  const result = {
+    assessmentId: 'cognitive', typeCode: 'INTJ', scores: {},
+    insights: [
+      { title: '压力一来，你可能会反过来', body: '来自正式 insights 的压力分析，会随本次答案变化。' },
+      { title: '关系里容易被误会的地方', body: '来自正式 insights 的关系误读，会随本次答案变化。' },
+      { title: '更适合你的调整方式', body: '来自正式 insights 的恢复建议，会随本次答案变化。' }
+    ],
+    sections: [{ title: '容易卡住的时刻', body: '来自正式 sections 的当次卡点。' }],
+    deepDive: { body: '来自正式 deepDive 的核心功能组合。', sections: [] }
+  };
+  const analysis = getResultVisual(result).analysis;
+  assert.match(analysis[0].body, /正式 deepDive/);
+  assert.match(analysis[1].body, /正式 sections/);
+  assert.match(analysis[2].body, /正式 insights/);
+  assert.match(analysis[3].body, /正式 insights/);
+  assert.match(analysis[5].body, /正式 insights/);
+});
+
+test('16 种预览强度各不相同且方向符合类型', () => {
+  const vectors = Object.keys(typeTitles).map((typeCode) => {
+    const visual = getResultVisual({ assessmentId: 'cognitive', typeCode, scores: {} });
+    const scores = visual.previewScores;
+    assert.equal(Math.sign(scores.EI), typeCode[0] === 'E' ? 1 : -1, typeCode);
+    assert.equal(Math.sign(scores.NS), typeCode[1] === 'N' ? 1 : -1, typeCode);
+    assert.equal(Math.sign(scores.TF), typeCode[2] === 'T' ? 1 : -1, typeCode);
+    assert.equal(Math.sign(scores.JP), typeCode[3] === 'J' ? 1 : -1, typeCode);
+    return Object.values(scores).join(',');
+  });
+  assert.equal(new Set(vectors).size, 16);
 });
 
 test('16 种认知头图都会让人格类型提示只出现一次', () => {

@@ -44,11 +44,47 @@ const asset = (path) => {
   return path.replace('/assets/', '/miniprogram/assets/');
 };
 const clampPercent = (value) => Math.max(4, Math.min(96, Math.round(Number(value) || 0)));
+const findVisualSection = (sections, patterns) => sections.find((section) => patterns.some((pattern) => pattern.test(section.title))) || null;
+const illustratedAnalysis = (result, visual) => {
+  if (!visual?.analysisProfile) return [];
+  const normalize = (items) => (Array.isArray(items) ? items : [])
+    .filter((item) => item?.body)
+    .map((item) => ({ title: String(item.title || ''), body: String(item.body || '').trim() }));
+  const insights = normalize(result.insights);
+  const sections = normalize(result.sections);
+  const deepSections = normalize(result.deepDive?.sections);
+  const profile = visual.analysisProfile;
+  const core = String(result.deepDive?.body || '').trim()
+    || findVisualSection(deepSections, [/一起工作/, /顺起来/])?.body
+    || findVisualSection(sections, [/自然的样子/, /两个细节/, /思考顺序/])?.body
+    || profile.driver;
+  const tension = findVisualSection(sections, [/容易卡住/, /生活节奏/])?.body;
+  const stress = findVisualSection(insights, [/压力/, /反过来/])?.body
+    || findVisualSection(deepSections, [/压力/])?.body;
+  const misread = findVisualSection(insights, [/误会/, /误读/])?.body
+    || findVisualSection(sections, [/关系里的你/])?.body;
+  const recovery = findVisualSection(insights, [/调整/, /恢复/])?.body
+    || findVisualSection(deepSections, [/平衡/, /恢复/])?.body;
+  const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
+    ? `${profile.conflict} ${tension}`
+    : profile.conflict;
+  return [
+    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
+    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
+    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
+    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
+    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
+    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+  ];
+};
 const resultVisual = (result) => {
   const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[result?.typeCode] || null;
-  if (!visual || !Array.isArray(visual.tendencyAxes)) return visual;
+  if (!visual) return null;
+  const analysis = illustratedAnalysis(result, visual);
+  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? { ...visual, analysis } : visual;
   return {
     ...visual,
+    analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
       percent: clampPercent(50 + (Number(result.scores?.[axis.key]) || 0) * 50 * axis.direction),
@@ -465,6 +501,7 @@ const renderResult = (stage = 'core') => {
       <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
       <section class="poster-tags-panel"><div class="poster-tags-head"><h2>✱ 你在人群里的标签</h2><span>最像你的三种已经点亮</span></div><div class="poster-tags-grid">${visual.tags.map((item) => `<article class="poster-tag-card ${item.tone ? `poster-tag-card-${escapeHtml(item.tone)}` : ''}"><span class="poster-tag-face poster-tag-face-${escapeHtml(item.face)}"><i class="poster-face-eye poster-face-eye-left"></i><i class="poster-face-eye poster-face-eye-right"></i><i class="poster-face-nose"></i><i class="poster-face-mouth"></i></span><b>${escapeHtml(item.label)}</b></article>`).join('')}</div></section>
       <section class="poster-tendencies"><h2>${escapeHtml(visual.tendencyTitle || '关系倾向')}</h2><div>${visual.tendencies.map((item) => `<article class="poster-tendency"><span>${escapeHtml(item.label)}</span><i><em class="poster-fill-${escapeHtml(item.tone)}" style="width:${item.percent}%"></em></i><b>${item.percent}%</b></article>`).join('')}</div></section>
+      ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>TYPE NOTES · ${escapeHtml(result.typeCode || '')}</p><h2>不止四个字母，<br>这是你的内在运作方式</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
       <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
       <section class="poster-friend-tags"><h2>朋友眼中的你</h2><div>${visual.friendTags.map((item, index) => `<span class="poster-friend-tag poster-friend-tag-${index}">${escapeHtml(item)}</span>`).join('')}</div></section>
       <section class="poster-notes"><div class="poster-notes-identity"><img src="${asset(visual.aiIcon)}" alt="AI 观察员" /><h2>AI 看到的你</h2></div><ul>${visual.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
@@ -661,22 +698,9 @@ const boot = async () => {
     const previewType = query.get('preview');
     state.couplePartnerCode = query.get('code') || '';
     if (view === 'result' && state.catalog.resultVisuals?.cognitive?.[previewType]) {
-      const storedCognitive = state.results.find((result) => result.assessmentId === 'cognitive');
       const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
-      const signs = {
-        EI: previewType[0] === 'E' ? 0.72 : -0.72,
-        NS: previewType[1] === 'N' ? 0.76 : -0.76,
-        TF: previewType[2] === 'T' ? 0.68 : -0.68,
-        JP: previewType[3] === 'J' ? 0.7 : -0.7
-      };
-      const previewResult = storedCognitive ? {
-        ...storedCognitive,
-        id: `preview-cognitive-${previewType.toLowerCase()}`,
-        typeCode: previewType,
-        typeName: previewVisual.title,
-        title: `${previewType} · ${previewVisual.title}`,
-        scores: signs
-      } : {
+      const previewProfile = previewVisual.analysisProfile;
+      const previewResult = {
         id: `preview-cognitive-${previewType.toLowerCase()}`,
         assessmentId: 'cognitive',
         typeCode: previewType,
@@ -684,14 +708,28 @@ const boot = async () => {
         title: `${previewType} · ${previewVisual.title}`,
         summary: previewVisual.quote,
         shareLine: previewVisual.quote,
-        scores: signs,
+        scores: previewVisual.previewScores,
+        insights: [
+          { title: '别人先看到的你', body: previewVisual.quote },
+          { title: '你心里真正发生的', body: previewProfile.driver },
+          { title: '压力一来，你可能会反过来', body: previewProfile.stress },
+          { title: '关系里容易被误会的地方', body: previewProfile.misread },
+          { title: '更适合你的调整方式', body: previewProfile.recovery }
+        ],
         sections: [
-          { title: '你的思考顺序', body: previewVisual.quote },
-          { title: '心里真正发生的', body: previewVisual.notes[0] },
-          { title: '压力下的思维反转', body: previewVisual.notes[1] },
-          { title: '关系里容易被误会的地方', body: previewVisual.notes[2] },
-          { title: '让思考恢复流动', body: '把此刻最重要的方向拆成一个可以验证的小步骤，会更容易继续前进。' }
-        ]
+          { title: '你自然的样子', body: previewProfile.driver },
+          { title: '你习惯的生活节奏', body: previewProfile.conflict },
+          { title: '关系里的你', body: previewProfile.misread },
+          { title: '容易卡住的时刻', body: previewProfile.conflict }
+        ],
+        deepDive: {
+          body: previewProfile.driver,
+          sections: [
+            { title: '它们怎样一起工作', body: previewProfile.driver },
+            { title: '压力大时可能发生什么', body: previewProfile.stress },
+            { title: '让自己更平衡一点', body: previewProfile.recovery }
+          ]
+        }
       };
       state.result = previewResult;
       state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];

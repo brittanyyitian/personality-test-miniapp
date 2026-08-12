@@ -238,6 +238,17 @@
 .poster-fill-yellow { background: #e8ad20; }
 .poster-fill-green { background: #4c9768; }
 .poster-fill-purple { background: #8566a0; }
+.poster-analysis { margin-top: 22rpx; overflow: hidden; border: 1rpx solid rgba(68,55,31,.12); border-radius: 32rpx; background: #fffdf7; }
+.poster-analysis-head { padding: 32rpx 32rpx 30rpx; color: #fff9e9; background: #202d25; }
+.poster-analysis-head text { display: block; margin-bottom: 16rpx; color: #f6bd2c; font-size: 15rpx; font-weight: 800; letter-spacing: 3rpx; }
+.poster-analysis-head view { font-size: 34rpx; font-weight: 850; line-height: 1.18; letter-spacing: -1rpx; }
+.poster-analysis-list { padding: 8rpx 28rpx 22rpx; }
+.poster-analysis-card { padding: 28rpx 0; display: grid; grid-template-columns: 52rpx 1fr; gap: 18rpx; border-bottom: 1rpx dashed rgba(52,45,34,.16); }
+.poster-analysis-card:last-child { border-bottom: 0; }
+.poster-analysis-index { width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; border: 1rpx solid #ef412c; border-radius: 50%; color: #ef412c; font-size: 16rpx; font-weight: 850; }
+.poster-analysis-title { color: #20221e; font-size: 24rpx; font-weight: 850; }
+.poster-analysis-body { margin-top: 10rpx; color: #575046; font-size: 19rpx; line-height: 1.7; }
+.poster-analysis-recovery .poster-analysis-index { border-color: #31805e; color: #31805e; }
 .poster-friend-tags { margin-top: 18rpx; padding: 24rpx; display: grid; grid-template-columns: 146rpx 1fr; gap: 14rpx; align-items: center; border: 1rpx solid rgba(68,55,31,.10); border-radius: 26rpx; background: rgba(255,255,255,.86); }
 .poster-friend-label { font-size: 21rpx; font-weight: 800; }
 .poster-friend-list { display: flex; flex-wrap: wrap; gap: 8rpx; }

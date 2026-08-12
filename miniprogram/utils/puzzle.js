@@ -69,13 +69,56 @@ function getPiece(id) {
   return PIECES.find((piece) => piece.id === id) || null;
 }
 
+function findAnalysisSection(sections, patterns) {
+  return sections.find((section) => patterns.some((pattern) => pattern.test(section.title))) || null;
+}
+
+function illustratedAnalysis(result, visual) {
+  if (!visual || !visual.analysisProfile) return [];
+  const profile = visual.analysisProfile;
+  const insights = Array.isArray(result.insights) ? result.insights : [];
+  const sections = Array.isArray(result.sections) ? result.sections : [];
+  const deepSections = Array.isArray(result.deepDive && result.deepDive.sections) ? result.deepDive.sections : [];
+  const normalized = (items) => items
+    .filter((item) => item && item.body)
+    .map((item) => ({ title: String(item.title || ''), body: String(item.body || '').trim() }));
+  const insightItems = normalized(insights);
+  const sectionItems = normalized(sections);
+  const deepItems = normalized(deepSections);
+  const core = String(result.deepDive && result.deepDive.body || '').trim()
+    || (findAnalysisSection(deepItems, [/一起工作/, /顺起来/]) || {}).body
+    || (findAnalysisSection(sectionItems, [/自然的样子/, /两个细节/, /思考顺序/]) || {}).body
+    || profile.driver;
+  const tension = (findAnalysisSection(sectionItems, [/容易卡住/, /生活节奏/]) || {}).body;
+  const stress = (findAnalysisSection(insightItems, [/压力/, /反过来/])
+    || findAnalysisSection(deepItems, [/压力/]) || {}).body;
+  const misread = (findAnalysisSection(insightItems, [/误会/, /误读/])
+    || findAnalysisSection(sectionItems, [/关系里的你/]) || {}).body;
+  const recovery = (findAnalysisSection(insightItems, [/调整/, /恢复/])
+    || findAnalysisSection(deepItems, [/平衡/, /恢复/]) || {}).body;
+  const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
+    ? `${profile.conflict} ${tension}`
+    : profile.conflict;
+  return [
+    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
+    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
+    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
+    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
+    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
+    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+  ];
+}
+
 function getResultVisual(result) {
   if (!result || !result.assessmentId || !result.typeCode) return null;
   const assessmentVisuals = RESULT_VISUALS[result.assessmentId];
   const visual = assessmentVisuals ? assessmentVisuals[result.typeCode] || null : null;
-  if (!visual || !Array.isArray(visual.tendencyAxes)) return visual;
+  if (!visual) return null;
+  const analysis = illustratedAnalysis(result, visual);
+  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? { ...visual, analysis } : visual;
   return {
     ...visual,
+    analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
       percent: clamp(50 + (Number(result.scores && result.scores[axis.key]) || 0) * 50 * axis.direction),
@@ -281,6 +324,7 @@ module.exports = {
   getPiece,
   getResultVisual,
   getResultHeroAsset,
+  illustratedAnalysis,
   resultKeyword,
   buildMetrics,
   buildResultStory,

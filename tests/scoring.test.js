@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 const { assessments, inspirationCards } = require('../miniprogram/data/assessments');
 const { scoreAssessment, getFollowupQuestions } = require('../miniprogram/utils/scoring');
+const { getResultVisual } = require('../miniprogram/utils/puzzle');
 const { createShareCode, parseShareCode, compactResult, createCoupleReport, getCoupleReadiness } = require('../miniprogram/utils/couple');
 
 test('每个正式测试都能用完整答案得到结构化长结果', () => {
@@ -62,6 +63,7 @@ test('16 种类型都有独立的功能组合、四字母解释和八维分布',
   const questions = assessments.cognitive.questions;
   const ids = questions.map((question) => question.id);
   const combinations = new Set();
+  const contentProfiles = new Set();
   Object.entries(stacks).forEach(([expected, stack]) => {
     const preference = { Se: 2, Si: 2, Ne: 2, Ni: 2, Te: 2, Ti: 2, Fe: 2, Fi: 2 };
     preference[stack[0]] = 5;
@@ -77,9 +79,13 @@ test('16 种类型都有独立的功能组合、四字母解释和八维分布',
     assert.equal(result.deepDive.coreFunctions.length, 2);
     assert.equal(result.deepDive.functionDistribution.length, 8);
     assert.ok(result.deepDive.sections.length >= 4);
+    const visual = getResultVisual(result);
+    assert.equal(visual.analysis.length, 6);
+    contentProfiles.add(visual.analysis.map((item) => item.body).join('|'));
     combinations.add(result.deepDive.title);
   });
   assert.equal(combinations.size, 16);
+  assert.equal(contentProfiles.size, 16);
 });
 
 test('八功能题量平衡，四组同向功能都有取舍题', () => {

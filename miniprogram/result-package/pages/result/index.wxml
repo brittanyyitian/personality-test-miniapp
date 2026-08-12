@@ -54,6 +54,23 @@
         </view>
       </view>
 
+      <view wx:if="{{visual.analysis && visual.analysis.length}}" class="poster-analysis">
+        <view class="poster-analysis-head">
+          <text>TYPE NOTES · {{result.typeCode}}</text>
+          <view>不止四个字母，</view>
+          <view>这是你的内在运作方式</view>
+        </view>
+        <view class="poster-analysis-list">
+          <view wx:for="{{visual.analysis}}" wx:key="key" class="poster-analysis-card poster-analysis-{{item.key}}">
+            <text class="poster-analysis-index">{{item.index}}</text>
+            <view class="poster-analysis-copy">
+              <view class="poster-analysis-title">{{item.title}}</view>
+              <view class="poster-analysis-body">{{item.body}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
       <view class="illustrated-puzzle-panel">
         <view class="illustrated-panel-head">
           <view>✱ 你的人格拼图进度</view>

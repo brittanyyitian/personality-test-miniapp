@@ -635,6 +635,17 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .poster-fill-yellow { background: #e8ad20; }
 .poster-fill-green { background: #4c9768; }
 .poster-fill-purple { background: #8566a0; }
+.poster-analysis { margin-top: 12px; overflow: hidden; border: 1px solid rgba(68,55,31,.12); border-radius: 18px; background: #fffdf7; }
+.poster-analysis-head { padding: 18px 18px 17px; color: #fff9e9; background: #202d25; }
+.poster-analysis-head p { margin: 0 0 9px; color: #f6bd2c; font-size: 8px; font-weight: 800; letter-spacing: .18em; }
+.poster-analysis-head h2 { margin: 0; font-size: 19px; font-weight: 850; line-height: 1.18; letter-spacing: -.5px; }
+.poster-analysis-list { padding: 4px 16px 13px; }
+.poster-analysis-card { padding: 16px 0; display: grid; grid-template-columns: 29px 1fr; gap: 10px; border-bottom: 1px dashed rgba(52,45,34,.16); }
+.poster-analysis-card:last-child { border-bottom: 0; }
+.poster-analysis-card > span { width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; border: 1px solid #ef412c; border-radius: 50%; color: #ef412c; font-size: 9px; font-weight: 850; }
+.poster-analysis-card h3 { margin: 0; color: #20221e; font-size: 13px; font-weight: 850; }
+.poster-analysis-card p { margin: 6px 0 0; color: #575046; font-size: 10.5px; line-height: 1.7; }
+.poster-analysis-recovery > span { border-color: #31805e; color: #31805e; }
 .poster-friend-tags { margin-top: 10px; padding: 13px 14px; display: grid; grid-template-columns: 82px 1fr; gap: 8px; align-items: center; border: 1px solid rgba(68,55,31,.1); border-radius: 15px; background: rgba(255,255,255,.86); }
 .poster-friend-tags h2 { margin: 0; font-size: 11px; }
 .poster-friend-tags > div { display: flex; flex-wrap: wrap; gap: 5px; }
