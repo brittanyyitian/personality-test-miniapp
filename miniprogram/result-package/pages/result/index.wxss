@@ -194,13 +194,13 @@
 .poster-quote-mark { position: absolute; top: 12rpx; left: 28rpx; color: #ef412c; font-family: Georgia, serif; font-size: 60rpx; line-height: 1; }
 .poster-quote > view:last-child { color: #27231e; font-size: 24rpx; font-weight: 620; line-height: 1.55; }
 .poster-traits { margin-top: 18rpx; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10rpx; }
-.poster-trait { min-width: 0; min-height: 188rpx; padding: 22rpx 16rpx 18rpx; border: 1rpx solid currentColor; border-radius: 22rpx; background: rgba(255,255,255,.42); }
+.poster-trait { min-width: 0; min-height: 188rpx; padding: 22rpx 16rpx 18rpx; border: 1rpx solid #ddd4c6; border-radius: 22rpx; background: #fffcf6; }
 .poster-trait-label { font-size: 24rpx; font-weight: 850; line-height: 1.15; }
 .poster-trait-detail { margin-top: 15rpx; color: #4d473f; font-size: 17rpx; line-height: 1.52; }
-.poster-tone-red { color: #e84b35; background: #fff0e9; }
-.poster-tone-yellow { color: #d49a00; background: #fff7dc; }
-.poster-tone-green { color: #31805e; background: #eaf5e9; }
-.poster-tone-purple { color: #755590; background: #f1eafa; }
+.poster-tone-red { color: #c95746; }
+.poster-tone-yellow { color: #996b00; }
+.poster-tone-green { color: #42775d; }
+.poster-tone-purple { color: #705c83; }
 .poster-tags-panel { margin-top: 18rpx; padding: 26rpx 22rpx 22rpx; border-radius: 26rpx; background: rgba(255,255,255,.38); }
 .poster-tags-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; color: #ef412c; font-size: 23rpx; font-weight: 830; }
 .poster-tags-head text { color: #8d867a; font-size: 16rpx; font-weight: 500; white-space: nowrap; }
@@ -239,8 +239,8 @@
 .poster-fill-green { background: #4c9768; }
 .poster-fill-purple { background: #8566a0; }
 .poster-analysis { margin-top: 22rpx; overflow: hidden; border: 1rpx solid rgba(68,55,31,.12); border-radius: 32rpx; background: #fffdf7; }
-.poster-analysis-head { padding: 32rpx 32rpx 30rpx; color: #fff9e9; background: #202d25; }
-.poster-analysis-head text { display: block; margin-bottom: 16rpx; color: #f6bd2c; font-size: 15rpx; font-weight: 800; letter-spacing: 3rpx; }
+.poster-analysis-head { padding: 32rpx 32rpx 30rpx; color: #3d3028; background: #f7ded1; }
+.poster-analysis-head text { display: block; margin-bottom: 16rpx; color: #e84b35; font-size: 15rpx; font-weight: 800; letter-spacing: 3rpx; }
 .poster-analysis-head view { font-size: 34rpx; font-weight: 850; line-height: 1.18; letter-spacing: -1rpx; }
 .poster-analysis-list { padding: 8rpx 28rpx 22rpx; }
 .poster-analysis-card { padding: 28rpx 0; display: grid; grid-template-columns: 52rpx 1fr; gap: 18rpx; border-bottom: 1rpx dashed rgba(52,45,34,.16); }
@@ -274,22 +274,24 @@
 
 .share-screen {
   min-height: 100vh;
-  padding: calc(40rpx + env(safe-area-inset-top)) 48rpx calc(52rpx + env(safe-area-inset-bottom));
-  background: #eee2f4;
+  padding: calc(36rpx + env(safe-area-inset-top)) 44rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #fff8e8;
 }
-.share-back { color: #716a74; font-size: 22rpx; text-align: left; }
-.share-heading { margin-top: 42rpx; font-size: 32rpx; font-weight: 700; }
-.share-card { position: relative; height: 640rpx; margin-top: 30rpx; overflow: hidden; padding: 50rpx 50rpx; border-radius: 38rpx; background: #fffefa; box-shadow: 0 28rpx 70rpx rgba(90, 66, 106, .10); }
-.share-piece-label { color: #858078; font-size: 20rpx; letter-spacing: 1rpx; }
-.share-card-shape { position: absolute; top: -26rpx; right: -90rpx; width: 300rpx; height: 300rpx; transform: rotate(9deg); }
-.share-card-title { max-width: 430rpx; margin-top: 48rpx; font-size: 51rpx; font-weight: 800; line-height: 1.22; letter-spacing: -3rpx; }
-.share-card-summary { max-width: 490rpx; margin-top: 46rpx; color: #4f4a43; font-size: 27rpx; line-height: 1.7; }
-.share-mini-puzzle { position: absolute; left: 48rpx; bottom: 50rpx; display: flex; gap: 2rpx; }
-.share-mini-piece { width: 66rpx; height: 66rpx; }
-.share-mini-done { opacity: 1; }
-.share-mini-pending { opacity: .11; }
-.share-invite { margin-top: 38rpx; font-size: 31rpx; font-weight: 650; line-height: 1.55; }
-.share-actions { margin-top: 34rpx; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18rpx; }
-.share-action { min-height: 96rpx; border-radius: 48rpx; background: rgba(255,255,255,.78); color: #38333b; font-size: 22rpx; }
-.share-home { width: 100%; min-height: 96rpx; margin-top: 26rpx; border-radius: 50rpx; background: #0a090a; color: #fff; font-size: 28rpx; }
+.share-back { padding: 8rpx 0; color: #71695e; font-size: 22rpx; text-align: left; }
+.share-title-row { margin-top: 32rpx; display: flex; align-items: flex-end; justify-content: space-between; gap: 24rpx; }
+.share-eyebrow { margin-bottom: 10rpx; color: #e94b35; font-size: 17rpx; font-weight: 800; letter-spacing: 4rpx; }
+.share-heading { font-size: 38rpx; font-weight: 820; line-height: 1.28; letter-spacing: -1rpx; }
+.share-type-code { min-width: 76rpx; padding: 12rpx 16rpx 10rpx; border-radius: 12rpx; background: #f7decf; color: #694f42; font-size: 20rpx; font-weight: 800; text-align: center; letter-spacing: 2rpx; }
+.share-help { margin-top: 14rpx; color: #857c70; font-size: 21rpx; }
+.share-poster-frame { min-height: 1120rpx; margin-top: 28rpx; overflow: hidden; border-radius: 28rpx; background: #fffdf8; box-shadow: 0 28rpx 70rpx rgba(93,72,41,.13); }
+.share-poster-preview { width: 100%; display: block; }
+.share-poster-loading { min-height: 1120rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24rpx; color: #756d62; font-size: 22rpx; }
+.share-loading-dot { width: 48rpx; height: 48rpx; border: 6rpx solid rgba(233,75,53,.16); border-top-color: #e94b35; border-radius: 50%; animation: share-spin .8s linear infinite; }
+@keyframes share-spin { to { transform: rotate(360deg); } }
+.share-actions { margin-top: 28rpx; display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; }
+.share-action { min-height: 94rpx; border: 1rpx solid rgba(78,66,49,.12); border-radius: 26rpx; background: rgba(255,255,255,.78); color: #38332d; font-size: 23rpx; }
+.share-action-primary { border-color: #11110f; background: #11110f; color: #fffaf0; font-weight: 700; }
+.share-action-full { border-color: #e94b35; background: #e94b35; color: #fffaf0; font-weight: 700; }
+.share-action-friend { grid-column: 1 / -1; }
+.share-home { width: 100%; min-height: 70rpx; margin-top: 18rpx; border: 0; background: transparent; color: #8b8276; font-size: 22rpx; }
 .share-canvas { position: fixed; top: 0; left: -3000px; pointer-events: none; }

@@ -276,7 +276,266 @@ const loadPosterImage = (src) => new Promise((resolve) => {
   image.src = asset(src);
 });
 
+const drawPosterRoundRect = (context, x, y, width, height, radius, fill) => {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+  context.closePath();
+  context.fillStyle = fill;
+  context.fill();
+};
+
+const drawPosterImageContain = (context, image, x, y, width, height) => {
+  if (!image) return;
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = image.naturalWidth * scale;
+  const drawHeight = image.naturalHeight * scale;
+  context.drawImage(image, x + ((width - drawWidth) / 2), y + ((height - drawHeight) / 2), drawWidth, drawHeight);
+};
+
+const createIllustratedPoster = async (result, visual) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 750;
+  canvas.height = 1334;
+  const context = canvas.getContext('2d');
+  const heroImage = await loadPosterImage(visual.hero);
+  const title = visual.title || resultKeyword(result) || '新的一面';
+  const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
+  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83' };
+
+  context.fillStyle = '#fff8e8';
+  context.fillRect(0, 0, 750, 1334);
+  context.fillStyle = 'rgba(240, 73, 50, .05)';
+  context.beginPath();
+  context.arc(652, 88, 170, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = 'rgba(247, 196, 35, .08)';
+  context.beginPath();
+  context.arc(70, 560, 220, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = '#776f62';
+  context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`PERSONALITY PUZZLE · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+  context.fillStyle = '#e94b35';
+  context.fillRect(42, 62, 56, 6);
+
+  drawPosterImageContain(context, heroImage, 30, 76, 690, 630);
+
+  drawPosterRoundRect(context, 42, 720, 666, 164, 30, 'rgba(255, 253, 248, .96)');
+  context.fillStyle = '#ef4934';
+  context.font = '700 58px Georgia, serif';
+  context.fillText('“', 72, 778);
+  context.fillStyle = '#2f2b25';
+  context.font = '600 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  drawPosterText(context, quote, 122, 774, 530, 43, 3);
+
+  const traits = Array.isArray(visual.traits) ? visual.traits.slice(0, 4) : [];
+  traits.forEach((trait, index) => {
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const x = 42 + (column * 339);
+    const y = 906 + (row * 126);
+    drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
+    context.fillStyle = toneColors[trait.tone] || '#685f54';
+    context.fillRect(x, y, 7, 108);
+    context.font = '700 24px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(String(trait.label || ''), x + 25, y + 39);
+    context.fillStyle = '#615a50';
+    context.font = '19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    drawPosterText(context, trait.detail, x + 25, y + 72, 276, 28, 2);
+  });
+
+  context.fillStyle = '#26231f';
+  context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`我是「${title}」`, 42, 1210);
+  context.fillStyle = '#777063';
+  context.font = '21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 1248);
+  drawPosterRoundRect(context, 42, 1276, 666, 2, 1, 'rgba(74, 65, 53, .16)');
+  context.fillStyle = '#e94b35';
+  context.font = '700 19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('人格拼图', 42, 1310);
+  context.fillStyle = '#777063';
+  context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('分享给朋友，看看你会拼出什么', 468, 1310);
+  return canvas.toDataURL('image/png');
+};
+
+const createIllustratedFullReport = async (result, visual) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 750;
+  canvas.height = 4200;
+  const context = canvas.getContext('2d');
+  const collection = resultCollection();
+  const images = await Promise.all([visual.hero, ...collection.map((item) => item.image), visual.aiIcon].map(loadPosterImage));
+  const [heroImage, ...restImages] = images;
+  const aiImage = restImages.pop();
+  const puzzleImages = restImages;
+  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83' };
+  const completed = collection.filter((item) => item.result).length;
+
+  context.fillStyle = '#fff8e8';
+  context.fillRect(0, 0, 750, 4200);
+  context.fillStyle = 'rgba(240,73,50,.045)';
+  context.beginPath();
+  context.arc(640, 130, 210, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = 'rgba(247,196,35,.07)';
+  context.beginPath();
+  context.arc(70, 670, 250, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = '#776f62';
+  context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`FULL PERSONALITY REPORT · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+  context.fillStyle = '#e94b35';
+  context.fillRect(42, 62, 72, 6);
+  drawPosterImageContain(context, heroImage, 30, 78, 690, 570);
+
+  drawPosterRoundRect(context, 42, 668, 666, 166, 30, 'rgba(255,253,248,.96)');
+  context.fillStyle = '#ef4934';
+  context.font = '700 58px Georgia, serif';
+  context.fillText('“', 72, 728);
+  context.fillStyle = '#2f2b25';
+  context.font = '600 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  drawPosterText(context, visual.quote || result.summary || result.shareLine, 122, 724, 530, 43, 3);
+
+  (visual.traits || []).slice(0, 4).forEach((trait, index) => {
+    const x = 42 + ((index % 2) * 339);
+    const y = 858 + (Math.floor(index / 2) * 126);
+    drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
+    context.fillStyle = toneColors[trait.tone] || '#685f54';
+    context.fillRect(x, y, 7, 108);
+    context.font = '700 24px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(String(trait.label || ''), x + 25, y + 39);
+    context.fillStyle = '#615a50';
+    context.font = '19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    drawPosterText(context, trait.detail, x + 25, y + 72, 276, 28, 2);
+  });
+
+  drawPosterRoundRect(context, 42, 1122, 666, 350, 30, '#fffdf8');
+  context.fillStyle = '#27231f';
+  context.font = '700 30px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(visual.tendencyTitle || '人格维度', 72, 1172);
+  (visual.tendencies || []).slice(0, 4).forEach((item, index) => {
+    const y = 1220 + (index * 58);
+    context.fillStyle = '#595248';
+    context.font = '20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(String(item.label || ''), 72, y + 17);
+    drawPosterRoundRect(context, 226, y, 360, 16, 8, '#ece7dc');
+    drawPosterRoundRect(context, 226, y, 360 * (Number(item.percent) / 100), 16, 8, toneColors[item.tone] || '#685f54');
+    context.fillStyle = '#27231f';
+    context.font = '700 20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(`${item.percent}%`, 614, y + 17);
+  });
+
+  drawPosterRoundRect(context, 42, 1500, 666, 154, 30, '#f7ded1');
+  context.fillStyle = '#e84b35';
+  context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
+  context.fillStyle = '#3d3028';
+  context.font = '800 34px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('不止四个字母，这是你的内在运作方式', 72, 1602);
+  (visual.analysis || []).slice(0, 6).forEach((item, index) => {
+    const y = 1678 + (index * 232);
+    drawPosterRoundRect(context, 42, y, 666, 212, 25, '#fffdf8');
+    context.strokeStyle = index === 5 ? '#31805e' : '#e84b35';
+    context.lineWidth = 2;
+    context.beginPath();
+    context.arc(83, y + 44, 25, 0, Math.PI * 2);
+    context.stroke();
+    context.fillStyle = index === 5 ? '#31805e' : '#e84b35';
+    context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(item.index, 71, y + 50);
+    context.fillStyle = '#28241f';
+    context.font = '700 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(String(item.title || ''), 126, y + 49);
+    context.fillStyle = '#5a5349';
+    context.font = '20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    drawPosterText(context, item.body, 126, y + 87, 530, 30, 5);
+  });
+
+  drawPosterRoundRect(context, 42, 3090, 666, 236, 30, '#fffdf8');
+  context.fillStyle = '#28241f';
+  context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('✱ 你的人格拼图进度', 72, 3140);
+  context.fillStyle = '#82796d';
+  context.font = '19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`已完成 ${completed} / 5`, 572, 3140);
+  collection.forEach((item, index) => {
+    const x = 54 + (index * 132);
+    drawPosterImageContain(context, puzzleImages[index], x, 3160, 100, 94);
+    context.fillStyle = '#37322c';
+    context.font = '700 16px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.textAlign = 'center';
+    context.fillText(item.name, x + 50, 3269);
+    context.fillStyle = item.result ? '#e84b35' : '#a39b90';
+    context.font = '14px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    context.fillText(item.result ? '已完成' : '待解锁', x + 50, 3295);
+  });
+  context.textAlign = 'left';
+
+  drawPosterRoundRect(context, 42, 3354, 666, 166, 30, '#fffdf8');
+  context.fillStyle = '#28241f';
+  context.font = '700 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('朋友眼中的你', 72, 3402);
+  let chipX = 72;
+  let chipY = 3430;
+  (visual.friendTags || []).slice(0, 5).forEach((tag, index) => {
+    context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    const width = Math.ceil(context.measureText(tag).width) + 34;
+    if (chipX + width > 674) { chipX = 72; chipY += 48; }
+    drawPosterRoundRect(context, chipX, chipY, width, 36, 18, ['#fff0e9', '#fff7dc', '#eaf5e9', '#f1eafa', '#fbe8e8'][index] || '#f5f0e8');
+    context.fillStyle = ['#c95746', '#996b00', '#42775d', '#705c83', '#b65d65'][index] || '#655e54';
+    context.fillText(tag, chipX + 17, chipY + 25);
+    chipX += width + 10;
+  });
+
+  drawPosterRoundRect(context, 42, 3548, 666, 330, 30, '#fffdf8');
+  drawPosterImageContain(context, aiImage, 68, 3582, 120, 88);
+  context.fillStyle = '#244937';
+  context.font = '700 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('AI 看到的你', 72, 3698);
+  (visual.notes || []).slice(0, 3).forEach((note, index) => {
+    const y = 3598 + (index * 86);
+    context.fillStyle = '#31805e';
+    context.beginPath();
+    context.arc(226, y + 7, 4, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = '#484239';
+    context.font = '20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    drawPosterText(context, note, 244, y + 14, 420, 31, 2);
+  });
+
+  context.fillStyle = '#28241f';
+  context.font = '700 31px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`我是「${visual.title || resultKeyword(result)}」`, 42, 3980);
+  context.fillStyle = '#777063';
+  context.font = '21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 4020);
+  context.fillStyle = 'rgba(74,65,53,.16)';
+  context.fillRect(42, 4056, 666, 2);
+  context.fillStyle = '#e94b35';
+  context.font = '700 20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('人格拼图 · 完整报告', 42, 4100);
+  context.fillStyle = '#777063';
+  context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText('分享给朋友，看看你会拼出什么', 468, 4100);
+  return canvas.toDataURL('image/png');
+};
+
 const createResultPoster = async (result) => {
+  const visual = resultVisual(result);
+  if (visual) return createIllustratedPoster(result, visual);
   const canvas = document.createElement('canvas');
   canvas.width = 750;
   canvas.height = 1334;
@@ -499,7 +758,6 @@ const renderResult = (stage = 'core') => {
       <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
       <section class="poster-quote"><b>“</b><p>${escapeHtml(visual.quote)}</p></section>
       <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
-      <section class="poster-tags-panel"><div class="poster-tags-head"><h2>✱ 你在人群里的标签</h2><span>最像你的三种已经点亮</span></div><div class="poster-tags-grid">${visual.tags.map((item) => `<article class="poster-tag-card ${item.tone ? `poster-tag-card-${escapeHtml(item.tone)}` : ''}"><span class="poster-tag-face poster-tag-face-${escapeHtml(item.face)}"><i class="poster-face-eye poster-face-eye-left"></i><i class="poster-face-eye poster-face-eye-right"></i><i class="poster-face-nose"></i><i class="poster-face-mouth"></i></span><b>${escapeHtml(item.label)}</b></article>`).join('')}</div></section>
       <section class="poster-tendencies"><h2>${escapeHtml(visual.tendencyTitle || '关系倾向')}</h2><div>${visual.tendencies.map((item) => `<article class="poster-tendency"><span>${escapeHtml(item.label)}</span><i><em class="poster-fill-${escapeHtml(item.tone)}" style="width:${item.percent}%"></em></i><b>${item.percent}%</b></article>`).join('')}</div></section>
       ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>TYPE NOTES · ${escapeHtml(result.typeCode || '')}</p><h2>不止四个字母，<br>这是你的内在运作方式</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
       <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
@@ -548,39 +806,59 @@ const shareLink = () => {
   return url.toString();
 };
 
-const renderShare = () => {
+const renderShare = async () => {
   const result = state.result;
-  const piece = pieceFor(result.assessmentId);
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
-  const resonance = firstSentence(result.summary || result.shareLine);
-  const collection = resultCollection();
-  const pieceNumber = puzzlePieces.findIndex((item) => item.id === result.assessmentId) + 1;
-  setRoute('share', result.id || result.assessmentId);
+  const previewType = String(result.id || '').startsWith('preview-cognitive-') ? result.typeCode : '';
+  setRoute('share', result.id || result.assessmentId, { preview: previewType });
   app.className = 'screen web-share-screen';
-  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><h1>这是我的一块</h1><section class="web-share-card"><small>PIECE ${String(pieceNumber).padStart(2, '0')}</small><img src="${asset(piece.image)}" alt="" /><h2>${escapeHtml(title)}</h2><p>${escapeHtml(resonance)}</p><div class="share-mini-puzzle">${collection.map((item) => `<img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="" />`).join('')}</div></section><p class="share-invite">你会拼出什么？<br>来试试吧！</p><div class="web-share-actions"><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="save-poster">保存图片</button><button type="button" data-action="system-share">发给朋友</button></div><button class="doodle-black-button share-home" type="button" data-action="home">回到我的拼图</button>`;
+  app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-loading"><i></i><p>正在生成你的人格海报…</p></div>';
+  bind('[data-action="result"]', () => renderResult('core'));
+  const posterData = await createResultPoster(result);
+  if (!app.classList.contains('web-share-screen')) return;
+  const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
+  if (!app.classList.contains('web-share-screen')) return;
+  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(result.typeCode || '')}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${download.url}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
   bind('[data-action="result"]', () => renderResult('core'));
   bind('[data-action="home"]', renderHome);
-  bind('[data-action="save-poster"]', renderPoster);
+  let fullReportDownload = null;
+  bind('[data-action="full-report"]', async (event) => {
+    const button = event.currentTarget;
+    const visual = resultVisual(result);
+    if (!visual || button.disabled) return;
+    button.disabled = true;
+    button.textContent = '正在生成完整报告…';
+    try {
+      if (!fullReportDownload) {
+        const reportData = await createIllustratedFullReport(result, visual);
+        fullReportDownload = await api('/api/poster', { dataUrl: reportData, filename: `${title}-完整人格报告.png` });
+      }
+      const anchor = document.createElement('a');
+      anchor.href = fullReportDownload.url;
+      anchor.download = `${title}-完整人格报告.png`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      button.textContent = '再次保存完整报告';
+    } catch (error) {
+      button.textContent = '重新生成完整报告';
+      window.alert(error.message || '完整报告生成失败，请再试一次');
+    } finally {
+      button.disabled = false;
+    }
+  });
   bind('[data-action="copy-link"]', async () => {
     try { await navigator.clipboard.writeText(shareLink()); window.alert('链接已复制'); } catch (error) { window.prompt('复制这条分享链接', shareLink()); }
   });
   bind('[data-action="system-share"]', async () => {
-    const data = { title: `我拼出了「${title}」`, text: `我拼出了「${title}」，那你呢？`, url: shareLink() };
+    const data = { title: `我是「${title}」`, text: `我拼出了「${title}」，那你呢？`, url: shareLink() };
     if (navigator.share) { try { await navigator.share(data); return; } catch (error) { if (error?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(shareLink()); window.alert('分享链接已复制'); } catch (error) { window.prompt('复制这条分享链接', shareLink()); }
   });
 };
 
 const renderPoster = async () => {
-  const result = state.result;
-  setRoute('poster', result.id || result.assessmentId);
-  app.className = 'screen web-poster-screen';
-  app.innerHTML = '<p class="poster-loading">正在生成你的拼图卡片…</p>';
-  const posterData = await createResultPoster(result);
-  const title = resultVisual(result)?.title || resultKeyword(result) || '人格拼图';
-  const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格拼图.png` });
-  app.innerHTML = `<button class="share-back" type="button" data-action="share">返回分享</button><h1>保存这块拼图</h1><p class="poster-hint">长按图片保存，或使用下方按钮下载。</p><img class="poster-preview" src="${posterData}" alt="${escapeHtml(title)}拼图卡片" /><a class="doodle-black-button poster-download" href="${download.url}" download="${escapeHtml(title)}-人格拼图.png">下载图片</a>`;
-  bind('[data-action="share"]', renderShare);
+  renderShare();
 };
 
 const renderExtension = (kind) => {
@@ -695,9 +973,10 @@ const boot = async () => {
     const query = new URLSearchParams(location.search);
     const view = query.get('view');
     const id = query.get('id');
-    const previewType = query.get('preview');
+    const previewIdMatch = String(id || '').match(/^preview-cognitive-([a-z]{4})$/i);
+    const previewType = String(query.get('preview') || previewIdMatch?.[1] || '').toUpperCase();
     state.couplePartnerCode = query.get('code') || '';
-    if (view === 'result' && state.catalog.resultVisuals?.cognitive?.[previewType]) {
+    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.cognitive?.[previewType]) {
       const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
       const previewProfile = previewVisual.analysisProfile;
       const previewResult = {
@@ -733,6 +1012,8 @@ const boot = async () => {
       };
       state.result = previewResult;
       state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];
+      if (view === 'share') return renderShare();
+      if (view === 'poster') return renderPoster();
       return renderResult('core');
     }
     if (view === 'intro' && state.catalog.assessments[id]) {

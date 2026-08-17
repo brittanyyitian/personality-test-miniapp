@@ -20,7 +20,7 @@ const readJson = (request) => new Promise((resolve, reject) => {
   let raw = '';
   request.on('data', (chunk) => {
     raw += chunk;
-    if (raw.length > 3 * 1024 * 1024) reject(new Error('Request too large'));
+    if (raw.length > 12 * 1024 * 1024) reject(new Error('Request too large'));
   });
   request.on('end', () => {
     try { resolve(raw ? JSON.parse(raw) : {}); } catch (error) { reject(error); }
@@ -64,7 +64,7 @@ http.createServer(async (request, response) => {
       const match = String(body.dataUrl || '').match(/^data:image\/png;base64,(.+)$/);
       if (!match) throw new Error('Invalid poster');
       const data = Buffer.from(match[1], 'base64');
-      if (!data.length || data.length > 2 * 1024 * 1024) throw new Error('Poster too large');
+      if (!data.length || data.length > 8 * 1024 * 1024) throw new Error('Poster too large');
       const token = crypto.randomUUID();
       const filename = String(body.filename || '人格拼图.png').replace(/[\\/\r\n]/g, '-').slice(0, 80);
       posterFiles.set(token, { data, filename, createdAt: Date.now() });

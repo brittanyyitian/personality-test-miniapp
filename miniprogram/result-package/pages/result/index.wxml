@@ -25,24 +25,6 @@
         </view>
       </view>
 
-      <view class="poster-tags-panel">
-        <view class="poster-tags-head">
-          <view>✱ 你在人群里的标签</view>
-          <text>最像你的三种已经点亮</text>
-        </view>
-        <view class="poster-tags-grid">
-          <view wx:for="{{visual.tags}}" wx:key="label" class="poster-tag-card {{item.tone ? 'poster-tag-card-' + item.tone : ''}}">
-            <view class="poster-tag-face poster-tag-face-{{item.face}}">
-              <view class="poster-face-eye poster-face-eye-left"></view>
-              <view class="poster-face-eye poster-face-eye-right"></view>
-              <view class="poster-face-nose"></view>
-              <view class="poster-face-mouth"></view>
-            </view>
-            <text class="poster-tag-label">{{item.label}}</text>
-          </view>
-        </view>
-      </view>
-
       <view class="poster-tendencies">
         <view class="poster-section-symbol">{{visual.tendencyTitle || '关系倾向'}}</view>
         <view class="poster-tendency-list">
@@ -166,24 +148,29 @@
 
   <view wx:if="{{stage === 'share'}}" class="share-screen">
     <button class="share-back" bindtap="showCore">返回结果</button>
-    <view class="share-heading">这是我的一块</view>
-    <view class="share-card">
-      <view class="share-piece-label">PIECE {{pieceNumber < 10 ? '0' + pieceNumber : pieceNumber}}</view>
-      <image class="share-card-shape" src="{{piece.image}}" mode="aspectFit" />
-      <view class="share-card-title">{{displayTitle}}</view>
-      <view class="share-card-summary">{{resonance}}</view>
-      <view class="share-mini-puzzle">
-        <image wx:for="{{pieces}}" wx:key="id" class="share-mini-piece {{item.done ? 'share-mini-done' : 'share-mini-pending'}}" src="{{item.image}}" mode="aspectFit" />
+    <view class="share-title-row">
+      <view>
+        <view class="share-eyebrow">SHARE YOUR PIECE</view>
+        <view class="share-heading">保存并分享这张人格海报</view>
+      </view>
+      <view class="share-type-code">{{result.typeCode}}</view>
+    </view>
+    <view class="share-help">长按海报也可以直接保存到相册。</view>
+    <view class="share-poster-frame">
+      <image wx:if="{{sharePosterPath}}" class="share-poster-preview" src="{{sharePosterPath}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
+      <view wx:else class="share-poster-loading">
+        <view class="share-loading-dot"></view>
+        <text>{{sharePosterLoading ? '正在生成你的人格海报…' : '海报生成失败，请返回重试'}}</text>
       </view>
     </view>
-    <view class="share-invite">你会拼出什么？<br />来试试吧！</view>
     <view class="share-actions">
-      <button class="share-action" bindtap="savePoster">保存图片</button>
-      <button class="share-action" open-type="share">微信好友</button>
-      <button class="share-action" open-type="share">发给朋友</button>
+      <button class="share-action share-action-primary" bindtap="savePoster">保存分享海报</button>
+      <button wx:if="{{visual}}" class="share-action share-action-full" loading="{{fullReportLoading}}" bindtap="saveFullReport">保存完整报告</button>
+      <button class="share-action share-action-friend" open-type="share">发给朋友</button>
     </view>
     <button class="share-home" bindtap="goHome">回到我的拼图</button>
   </view>
 
   <canvas canvas-id="sharePoster" class="share-canvas" style="width:750px;height:1334px;"></canvas>
+  <canvas canvas-id="fullReportPoster" class="share-canvas" style="width:750px;height:4200px;"></canvas>
 </view>
