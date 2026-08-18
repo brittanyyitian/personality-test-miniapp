@@ -183,7 +183,34 @@ test('关系安全感反向题参与确定性评分', () => {
   const high = scoreAssessment('attachment', assessments.attachment.questions.map((question) => question.reverse ? 1 : 5));
   assert.equal(high.rawScores.anxiety, 5);
   assert.equal(high.rawScores.avoidance, 5);
-  assert.equal(high.title, '一边想确认，一边想退开');
+  assert.equal(high.title, '恐惧—回避型依恋');
+  assert.equal(high.typeCode, 'fearful-avoidant');
+  assert.match(high.summary, /怕失去，也怕靠得太近/);
+});
+
+test('依恋二维结果明确映射四种核心依恋倾向', () => {
+  const answersFor = (anxietyHigh, avoidanceHigh) => assessments.attachment.questions.map((question) => {
+    const high = question.dimension === 'anxiety' ? anxietyHigh : avoidanceHigh;
+    return question.reverse ? (high ? 1 : 5) : (high ? 5 : 1);
+  });
+  const secure = scoreAssessment('attachment', answersFor(false, false));
+  const anxious = scoreAssessment('attachment', answersFor(true, false));
+  const avoidant = scoreAssessment('attachment', answersFor(false, true));
+  const fearful = scoreAssessment('attachment', answersFor(true, true));
+  assert.deepEqual(
+    [secure.typeCode, anxious.typeCode, avoidant.typeCode, fearful.typeCode],
+    ['secure', 'anxious', 'avoidant', 'fearful-avoidant']
+  );
+  assert.deepEqual(
+    [secure.title, anxious.title, avoidant.title, fearful.title],
+    ['安全型依恋', '焦虑型依恋', '回避型依恋', '恐惧—回避型依恋']
+  );
+});
+
+test('依恋结果页指标直接使用标准化百分比，不会二次换算', () => {
+  const result = scoreAssessment('attachment', assessments.attachment.questions.map((question) => question.reverse ? 5 : 1));
+  const metrics = getResultVisual(result) ? [] : require('../miniprogram/utils/puzzle').buildMetrics(result);
+  assert.deepEqual(metrics.map((item) => item.percent), [4, 4, 96]);
 });
 
 test('依恋倾向为 24 题，二维各 12 题且六个侧面各四题', () => {
@@ -211,6 +238,22 @@ test('恋爱状态为 20 题，五个关系资源各四题且各有反向题', (
   });
   assert.deepEqual(Object.values(dimensions).sort(), Array(5).fill(4));
   assert.deepEqual(Object.values(reversed).sort(), Array(5).fill(1));
+});
+
+test('恋爱状态同时组合整体状态、支点和两处风险', () => {
+  const assessment = assessments.relationship;
+  const scoresFor = { commitment: 5, appreciation: 4, response: 2, repair: 1, trust: 1 };
+  const answers = assessment.questions.map((question) => {
+    const target = scoresFor[question.dimension];
+    return question.reverse ? 6 - target : target;
+  });
+  const result = scoreAssessment('relationship', answers);
+  assert.equal(result.typeCode, 'depleted');
+  assert.equal(result.title, '冲突之后，连接很难安全地回来');
+  assert.deepEqual(result.metricKeys, ['commitment', 'trust', 'repair']);
+  assert.match(result.insights[0].body, /共同投入/);
+  assert.match(result.insights[0].body, /信任与边界/);
+  assert.match(result.insights[0].body, /冲突修复/);
 });
 
 test('SBTI 使用 24 道题且低分化答案不会被硬塞进某种人设', () => {

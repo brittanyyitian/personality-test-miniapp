@@ -20,16 +20,9 @@ test('未知测评不会被误映射成第一块拼图', () => {
   assert.equal(getPiece('unknown'), null);
 });
 
-test('SPARK 使用慢性撤退者海报模板，未配置的社交结果保持默认模板', () => {
+test('社交结果不再误用慢性撤退者海报模板', () => {
   const sparkVisual = getResultVisual({ assessmentId: 'social', typeCode: 'SPARK' });
-  assert.equal(sparkVisual.title, '慢性撤退者');
-  assert.equal(sparkVisual.template, 'illustrated-poster');
-  assert.equal(sparkVisual.hero, '/assets/result-chronic-retreater.webp');
-  assert.equal(sparkVisual.aiIcon, '/assets/result-ai-observer.webp');
-  assert.equal(sparkVisual.traits.length, 4);
-  assert.equal(sparkVisual.tags.length, 9);
-  assert.equal(sparkVisual.tendencies.length, 4);
-  assert.equal(sparkVisual.friendTags.length, 5);
+  assert.equal(sparkVisual, null);
   assert.equal(getResultVisual({ assessmentId: 'social', typeCode: 'ROOM' }), null);
 });
 
@@ -38,14 +31,11 @@ test('INTJ 静默构图者复用完整海报模板并登记头图', () => {
   assert.equal(hero.title, '静默构图者');
   assert.equal(hero.hero, '/result-package/assets/result-cognitive-intj-hero.webp');
   const visual = getResultVisual({ assessmentId: 'cognitive', typeCode: 'INTJ' });
-  const sparkVisual = getResultVisual({ assessmentId: 'social', typeCode: 'SPARK' });
   assert.equal(visual.template, 'illustrated-poster');
-  assert.equal(visual.template, sparkVisual.template);
   assert.equal(visual.hero, '/result-package/assets/result-cognitive-intj-hero.webp');
   assert.equal(visual.tags.length, 9);
   ['traits', 'tags', 'tendencies', 'friendTags', 'notes'].forEach((key) => {
     assert.equal(Array.isArray(visual[key]), true, key);
-    assert.equal(Array.isArray(sparkVisual[key]), true, key);
   });
 });
 

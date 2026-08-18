@@ -109,6 +109,24 @@ test('全部拼完的核心结果把继续动作收口到首页', () => {
   page.onUnload();
 });
 
+test('结果页可以重新测当前拼图且不会先删除旧结果', () => {
+  const result = {
+    id: 'attachment_0',
+    assessmentId: 'attachment',
+    title: '安全型依恋',
+    summary: '这是一段能用于核心结果展示的共鸣文案。',
+    scores: { anxiety: 20, avoidance: 20 }
+  };
+  memory.set('mind_results_v1', [result]);
+  const page = instantiate(loadPage('miniprogram/result-package/pages/result/index.js'));
+  page.onLoad({ id: result.id, view: 'core' });
+  page.restartAssessment();
+  page.restartAssessment();
+  assert.deepEqual(calls.redirectTo, ['/pages/quiz/index?id=attachment']);
+  assert.equal(memory.get('mind_results_v1').length, 1);
+  page.onUnload();
+});
+
 test('朋友圈回流转到 intro，intro 连点只进入同一测试一次', () => {
   const resultPage = instantiate(loadPage('miniprogram/result-package/pages/result/index.js'));
   resultPage.onLoad({ id: 'social', from: 'share', name: encodeURIComponent('小范围话痨') });

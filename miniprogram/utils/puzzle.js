@@ -164,8 +164,8 @@ function buildMetrics(result) {
   if (result.assessmentId === 'attachment') {
     const anxiety = Number(result.scores && result.scores.anxiety) || 0;
     const avoidance = Number(result.scores && result.scores.avoidance) || 0;
-    const anxietyPercent = ((anxiety - 1) / 4) * 100;
-    const avoidancePercent = ((avoidance - 1) / 4) * 100;
+    const anxietyPercent = anxiety;
+    const avoidancePercent = avoidance;
     return [
       { key: 'anxiety', label: METRIC_LABELS.anxiety, percent: clamp(anxietyPercent) },
       { key: 'avoidance', label: METRIC_LABELS.avoidance, percent: clamp(avoidancePercent) },
@@ -173,7 +173,10 @@ function buildMetrics(result) {
     ];
   }
 
-  const entries = Object.entries(result.scores || {});
+  const scoreEntries = Object.entries(result.scores || {});
+  const entries = Array.isArray(result.metricKeys) && result.metricKeys.length
+    ? result.metricKeys.map((key) => [key, result.scores && result.scores[key]]).filter(([, value]) => value !== undefined)
+    : scoreEntries;
   return entries.slice(0, 3).map(([key, raw]) => {
     let percent = Number(raw) || 0;
     if (result.assessmentId === 'bigfive' || result.assessmentId === 'relationship') {
@@ -189,7 +192,7 @@ const STORY_CONFIG = {
   relationship: {
     eyebrow: '关系不是一张成绩单',
     heading: '这段关系里，正在发生什么',
-    metricsTitle: '支撑这段关系的三个信号',
+    metricsTitle: '这段关系最关键的三个信号',
     blocks: [
       ['支点', '你们还拥有的底气', 'support'],
       ['循环', '最容易反复的相处模式', 'cycle'],

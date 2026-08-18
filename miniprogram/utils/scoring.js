@@ -509,6 +509,18 @@ const attachmentProfiles = {
   high_high: ['一边想确认，一边想退开', '关系对你很重要，但真正靠近时，你也可能感到紧张。你想知道对方是否还在，又担心暴露需要后失去主动。', '这不是你故意让人猜，而是两种保护方式同时出现：怕失去，也怕受伤。', '先不急着解决整段关系，只说清楚这一刻更需要什么。一个具体请求更容易被接住。']
 };
 
+const attachmentStyleProfiles = {
+  low_low: { typeCode: 'secure', typeName: '安全型依恋', profileName: '能安心靠近，也保有自己' },
+  mid_low: { typeCode: 'secure-anxious', typeName: '安全型偏焦虑', profileName: '愿意靠近，也会在意回应' },
+  high_low: { typeCode: 'anxious', typeName: '焦虑型依恋', profileName: '越重要，越需要确认连接' },
+  low_mid: { typeCode: 'secure-avoidant', typeName: '安全型偏回避', profileName: '相信连接，也习惯先靠自己' },
+  mid_mid: { typeCode: 'contextual', typeName: '情境敏感型', profileName: '安全感会改变靠近的距离' },
+  high_mid: { typeCode: 'anxious-mixed', typeName: '焦虑型偏矛盾', profileName: '想靠近，也怕自己太需要' },
+  low_high: { typeCode: 'avoidant', typeName: '回避型依恋', profileName: '独立让你更有安全感' },
+  mid_high: { typeCode: 'avoidant-sensitive', typeName: '回避型偏敏感', profileName: '需要空间，也在意被理解' },
+  high_high: { typeCode: 'fearful-avoidant', typeName: '恐惧—回避型依恋', profileName: '怕失去，也怕靠得太近' }
+};
+
 function attachmentExtensions(anxiety, avoidance, profile) {
   const seeksReply = anxiety >= 3.5;
   const needsSpace = avoidance >= 3.5;
@@ -583,11 +595,16 @@ function scoreAttachment(answers) {
   const avoidance = round(mean(grouped.avoidance));
   const aBand = band(anxiety);
   const vBand = band(avoidance);
-  const profile = attachmentProfiles[`${aBand}_${vBand}`];
+  const profileKey = `${aBand}_${vBand}`;
+  const profile = attachmentProfiles[profileKey];
+  const style = attachmentStyleProfiles[profileKey];
   const neutralCount = answers.filter((value) => Number(value) === 3).length;
   const mostlyNeutral = neutralCount / answers.length >= 0.6;
   const centered = anxiety >= 2.8 && anxiety <= 3.2 && avoidance >= 2.8 && avoidance <= 3.2;
-  const title = mostlyNeutral || centered ? '会随关系情境变化' : profile[0];
+  const resultStyle = mostlyNeutral
+    ? { typeCode: 'unclear', typeName: '依恋倾向暂未分开', profileName: '这次的答案更接近“看关系和情境”' }
+    : style;
+  const title = resultStyle.typeName;
   const anxietyFacet = ['rejection', 'reassurance', 'worth'].sort((a, b) => facets[b] - facets[a])[0];
   const avoidanceFacet = ['openness', 'dependence', 'closeness'].sort((a, b) => facets[b] - facets[a])[0];
   const seeksReply = anxiety >= 3.5;
@@ -621,19 +638,25 @@ function scoreAttachment(answers) {
         ? '你真正需要的是不被逼着立刻打开，同时也知道关系不会因为你暂时安静就被撤走。'
         : '你真正需要的是彼此都能直接表达：想靠近时可以靠近，需要空间时也不用靠失联来争取。';
   const insights = [
-    { title: '这不是矫情，也不是冷淡', body: `${profile[2]} 这通常是一套在关系里学会的保护方式，不等于你永远只能这样回应。` },
-    { title: '一个很像你的瞬间', body: scenario },
-    { title: '你最容易掉进去的循环', body: loop },
+    { title: `你的主要倾向：${resultStyle.typeName}`, body: `你更接近“${resultStyle.profileName}”。${profile[1]} 依恋类型是对两条连续维度的便捷概括，不是不可改变的身份。` },
+    { title: '一个很像你的瞬间', body: `${scenario} 从这次回答看，你对“${attachmentFacetCopy[anxietyFacet].split('。')[0]}”尤其敏感。` },
+    { title: '你最容易掉进去的循环', body: `${loop} 你更常用的保护方式是：${attachmentFacetCopy[avoidanceFacet]}` },
     { title: '别人可能误会你的地方', body: misread },
-    { title: '你真正需要的关系信号', body: need }
+    { title: '你真正需要的关系信号', body: need },
+    { title: `焦虑侧面最敏感：${attachmentFacetCopy[anxietyFacet].split('。')[0]}`, body: attachmentFacetCopy[anxietyFacet] },
+    { title: `回避侧面最敏感：${attachmentFacetCopy[avoidanceFacet].split('。')[0]}`, body: attachmentFacetCopy[avoidanceFacet] }
   ];
   return {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
     title,
-    tags: [anxiety >= 3.5 ? '在意回应' : '能相信连接', avoidance >= 3.5 ? '需要空间' : '愿意靠近', centered ? '看关系情境' : '认真对待关系'],
-    summary: mostlyNeutral ? '这次有不少答案落在“看情况”。这也许说明，关系对象和当时的安全感会明显影响你的反应。' : profile[1],
+    typeCode: resultStyle.typeCode,
+    typeName: resultStyle.typeName,
+    profileName: resultStyle.profileName,
+    tags: [resultStyle.profileName, anxiety >= 3.5 ? '更在意回应' : '更能相信连接', avoidance >= 3.5 ? '更需要空间' : '更愿意靠近'],
+    summary: mostlyNeutral ? '这次有不少答案落在“看情况”，暂时不足以归入某一种清晰倾向。关系对象、关系阶段和当时的安全感，可能都会明显改变你的反应。' : `你更接近“${resultStyle.profileName}”。${profile[1]}`,
     sections: [
+      { title: '你的依恋类型怎样理解', body: `${resultStyle.typeName}表示你当前在依恋焦虑与依恋回避两条轴上的相对位置。它描述这段重要关系中更常出现的反应，不是对你一生的定型。` },
       { title: '你自然的样子', body: profile[1] },
       { title: '这份反应在保护什么', body: profile[2] },
       { title: '最容易触发你的地方', body: attachmentFacetCopy[anxietyFacet] },
@@ -645,7 +668,7 @@ function scoreAttachment(answers) {
     insights,
     reminder: profile[3],
     extensions: attachmentExtensions(anxiety, avoidance, profile),
-    shareLine: `${title}｜${profile[1].split('。')[0]}。`,
+    shareLine: `${title}｜${resultStyle.profileName}。`,
     scores: { anxiety: round(((anxiety - 1) / 4) * 100, 1), avoidance: round(((avoidance - 1) / 4) * 100, 1) },
     rawScores: { anxiety, avoidance },
     rawFacets: facets,
@@ -653,7 +676,7 @@ function scoreAttachment(answers) {
     map: { x: Math.round(((avoidance - 1) / 4) * 100), y: Math.round(((5 - anxiety) / 4) * 100) },
     confidence: mostlyNeutral ? '目前不清晰' : centered ? '边界接近' : '可供参考',
     boundaryFlags: centered ? ['centered'] : [],
-    ruleIds: [`RS_A_${aBand.toUpperCase()}_V_${vBand.toUpperCase()}`, `RS_AF_${anxietyFacet.toUpperCase()}`, `RS_VF_${avoidanceFacet.toUpperCase()}`],
+    ruleIds: [`RS_STYLE_${resultStyle.typeCode.toUpperCase().replace(/-/g, '_')}`, `RS_A_${aBand.toUpperCase()}_V_${vBand.toUpperCase()}`, `RS_AF_${anxietyFacet.toUpperCase()}`, `RS_VF_${avoidanceFacet.toUpperCase()}`],
     evidenceId: assessment.evidenceId,
     version: assessment.version,
     tone: assessment.tone
@@ -856,6 +879,40 @@ const relationshipModules = {
   }
 };
 
+const relationshipPairOrder = ['commitment', 'appreciation', 'response', 'repair', 'trust'];
+
+const relationshipStrengthPairs = {
+  commitment_appreciation: '像队友，也看得见彼此',
+  commitment_response: '一起承担，也接得住情绪',
+  commitment_repair: '遇到问题，仍愿意并肩回来',
+  commitment_trust: '既站在一起，也保有边界',
+  appreciation_response: '被看见，也能被接住',
+  appreciation_repair: '有温度，也愿意把话说回来',
+  appreciation_trust: '欣赏彼此，也能安心做自己',
+  response_repair: '情绪有回应，冲突也能回来',
+  response_trust: '能说真话，也能保留空间',
+  repair_trust: '有分歧，也不会失去安全'
+};
+
+const relationshipStrainPairs = {
+  commitment_appreciation: '付出很多，却越来越不像队友',
+  commitment_response: '一起生活，却常常各自承受',
+  commitment_repair: '愿意继续，但改变没有真正落地',
+  commitment_trust: '想走下去，安全感却跟不上',
+  appreciation_response: '彼此在意，却总在需要时错过',
+  appreciation_repair: '失望在累积，感谢越来越少',
+  appreciation_trust: '在意还在，安心感却变薄了',
+  response_repair: '情绪出现了，却很难真正收尾',
+  response_trust: '想被理解，也怕说出真实感受',
+  repair_trust: '冲突之后，连接很难安全地回来'
+};
+
+function relationshipPairKey(keys) {
+  return keys.slice(0, 2)
+    .sort((a, b) => relationshipPairOrder.indexOf(a) - relationshipPairOrder.indexOf(b))
+    .join('_');
+}
+
 function relationshipExtensions(scores, strongest, weakest) {
   const strongCopy = relationshipModules[strongest][band(scores[strongest])];
   const weakCopy = relationshipModules[weakest][band(scores[weakest])];
@@ -914,6 +971,7 @@ function scoreRelationship(answers) {
   const strongest = ordered[0];
   const weakest = ordered[ordered.length - 1];
   const secondWeakest = ordered[ordered.length - 2];
+  const secondStrongest = ordered[1];
   const fragileTitles = {
     commitment: '有连接，也像是一个人在扛',
     appreciation: '有在意，却不总能被看见',
@@ -929,16 +987,29 @@ function scoreRelationship(answers) {
     trust: '安全与边界正在消耗关系'
   };
   let title;
+  let stateCode;
+  let stateName;
   let summary;
   if (!lows.length && highs.length >= 2) {
-    title = `${relationshipModules[strongest].label}正在托住你们`;
-    summary = `你们并不是没有摩擦，而是很多时候还找得到彼此。尤其在“${relationshipModules[strongest].label}”上，你能感到关系不是只靠自己维持。`;
-  } else if (lows.length <= 1) {
-    title = fragileTitles[weakest];
-    summary = `这段关系里有真实的连接，也有一个地方正在消耗你：你最不确定的是“${relationshipModules[weakest].label}”。它不必被放大成“不合适”，但值得被两个人认真看见。`;
+    stateCode = 'resourced';
+    stateName = '关系有底气';
+    title = relationshipStrengthPairs[relationshipPairKey([strongest, secondStrongest])];
+    summary = `这段关系目前有不止一个支点。最稳的是“${relationshipModules[strongest].label}”与“${relationshipModules[secondStrongest].label}”；同时，“${relationshipModules[weakest].label}”仍是更值得照顾的一处。`;
+  } else if (!lows.length) {
+    stateCode = 'developing';
+    stateName = '有基础，也有待确认';
+    title = `相处有基础，${relationshipModules[weakest].label}还需要更确定`;
+    summary = `五个关系维度都没有明显落入低位，但支点还不算非常稳定。你们最能依靠“${relationshipModules[strongest].label}”，最容易出现不确定的是“${relationshipModules[weakest].label}”。`;
+  } else if (lows.length === 1) {
+    stateCode = 'fragile';
+    stateName = '有连接，也有消耗';
+    title = `${fragileTitles[weakest]}，但${relationshipModules[strongest].label}还在`;
+    summary = `这段关系不是只有好或不好。“${relationshipModules[strongest].label}”仍在托住你们，但“${relationshipModules[weakest].label}”已经形成清楚的消耗，需要从感受进入双方能观察到的行动。`;
   } else {
-    title = depletedTitles[weakest];
-    summary = `你可能已经花了不少力气维持这段关系，尤其在“${relationshipModules[weakest].label}”上。现在更重要的是分清：哪些可以通过沟通调整，哪些必须由双方一起投入。`;
+    stateCode = 'depleted';
+    stateName = '多处资源正在消耗';
+    title = relationshipStrainPairs[relationshipPairKey([weakest, secondWeakest])] || depletedTitles[weakest];
+    summary = `你可能已经花了不少力气维持这段关系。“${relationshipModules[weakest].label}”和“${relationshipModules[secondWeakest].label}”同时落在低位；现在更重要的是分清哪些可以协商，哪些必须由双方一起投入。`;
   }
   const weakLabel = relationshipModules[weakest].label;
   const strongLabel = relationshipModules[strongest].label;
@@ -960,7 +1031,7 @@ function scoreRelationship(answers) {
     trust: '把边界说成双方都能执行的约定，再看它是否长期一致；安全感不能靠临时查证维持。'
   }[weakest];
   const insights = [
-    { title: '这段关系不是只有好或不好', body: `目前最能托住你的是“${strongLabel}”，最容易消耗你的是“${weakLabel}”。两件事可以同时存在：你们有真实连接，也确实有一个需要被共同处理的地方。` },
+    { title: `整体状态：${stateName}`, body: `目前最能托住你的是“${strongLabel}”，最容易消耗你的是“${weakLabel}”，第二处需要留意的是“${relationshipModules[secondWeakest].label}”。这三件事可以同时存在，不需要把关系压成一个好或坏的结论。` },
     { title: '你们还拥有的底气', body: relationshipModules[strongest][band(scores[strongest])] },
     { title: '最容易反复的相处循环', body: relationshipLoop },
     { title: '你可能已经做了很多', body: effortCopy },
@@ -970,7 +1041,10 @@ function scoreRelationship(answers) {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
     title,
-    tags: [`${relationshipModules[strongest].label}较稳`, `${relationshipModules[weakest].label}需照顾`, '最近一个月'],
+    typeCode: stateCode,
+    typeName: stateName,
+    profileName: title,
+    tags: [stateName, `${relationshipModules[strongest].label}较稳`, `${relationshipModules[weakest].label}需照顾`],
     summary,
     sections: [
       { title: '最稳的一处', body: relationshipModules[strongest][band(scores[strongest])] },
@@ -983,11 +1057,12 @@ function scoreRelationship(answers) {
     extensions: relationshipExtensions(scores, strongest, weakest),
     shareLine: `${title}｜最稳的是${relationshipModules[strongest].label}，最需要照顾的是${relationshipModules[weakest].label}。`,
     scores,
+    metricKeys: [strongest, weakest, secondWeakest],
     scoreLabels: { x: '共同投入', x2: '彼此看见', y: '情绪回应', y2: '冲突修复' },
     map: { x: Math.round(((scores.appreciation - 1) / 4) * 100), y: Math.round(((5 - scores.response) / 4) * 100) },
     confidence: '最近一个月的自我观察',
     boundaryFlags: [],
-    ruleIds: ordered.map((key) => `RC_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`),
+    ruleIds: [`RC_STATE_${stateCode.toUpperCase()}`, `RC_PAIR_${relationshipPairKey(stateCode === 'resourced' ? [strongest, secondStrongest] : [weakest, secondWeakest]).toUpperCase()}`, ...ordered.map((key) => `RC_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`)],
     evidenceId: assessment.evidenceId,
     version: assessment.version,
     tone: assessment.tone

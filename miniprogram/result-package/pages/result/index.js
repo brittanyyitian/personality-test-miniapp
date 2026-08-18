@@ -219,6 +219,20 @@ Page({
     wx.reLaunch({ url: '/pages/home/index' });
   },
 
+  restartAssessment() {
+    const result = this.data.result;
+    if (!result || !isKnownAssessment(result.assessmentId) || this.restarting) return;
+    this.restarting = true;
+    const returnQuery = this.data.returnToCouple ? '&return=couple' : '';
+    wx.redirectTo({
+      url: `/pages/quiz/index?id=${encodeURIComponent(result.assessmentId)}${returnQuery}`,
+      fail: () => {
+        this.restarting = false;
+        wx.showToast({ title: '暂时无法重新测试', icon: 'none' });
+      }
+    });
+  },
+
   openCouple() {
     wx.navigateTo({ url: '/pages/couple/index' });
   },

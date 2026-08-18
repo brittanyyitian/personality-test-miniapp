@@ -129,15 +129,18 @@ const resultMetrics = (result) => {
   if (result.assessmentId === 'attachment') {
     const anxiety = Number(result.scores?.anxiety) || 0;
     const avoidance = Number(result.scores?.avoidance) || 0;
-    const anxietyPercent = ((anxiety - 1) / 4) * 100;
-    const avoidancePercent = ((avoidance - 1) / 4) * 100;
+    const anxietyPercent = anxiety;
+    const avoidancePercent = avoidance;
     return [
       { label: metricLabels.anxiety, percent: clamp(anxietyPercent) },
       { label: metricLabels.avoidance, percent: clamp(avoidancePercent) },
       { label: metricLabels.security, percent: clamp(100 - ((anxietyPercent + avoidancePercent) / 2)) }
     ];
   }
-  const entries = Object.entries(result.scores || {});
+  const scoreEntries = Object.entries(result.scores || {});
+  const entries = Array.isArray(result.metricKeys) && result.metricKeys.length
+    ? result.metricKeys.map((key) => [key, result.scores?.[key]]).filter(([, value]) => value !== undefined)
+    : scoreEntries;
   return entries.slice(0, 3).map(([key, raw]) => {
     let percent = Number(raw) || 0;
     if (['bigfive', 'relationship'].includes(result.assessmentId)) percent = ((percent - 1) / 4) * 100;
@@ -157,7 +160,7 @@ const resultHighlights = (result, limit = 240) => {
 };
 const resultStoryConfig = {
   relationship: {
-    eyebrow: '关系不是一张成绩单', heading: '这段关系里，正在发生什么', metricsTitle: '支撑这段关系的三个信号',
+    eyebrow: '关系不是一张成绩单', heading: '这段关系里，正在发生什么', metricsTitle: '这段关系最关键的三个信号',
     blocks: [['支点', '你们还拥有的底气', 'support'], ['循环', '最容易反复的相处模式', 'cycle'], ['你的感受', '你可能已经做了很多', 'effort'], ['下一步', '接下来要看行动', 'action']]
   },
   attachment: {
@@ -765,7 +768,7 @@ const renderResult = (stage = 'core') => {
       <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
       <section class="poster-friend-tags"><h2>朋友眼中的你</h2><div>${visual.friendTags.map((item, index) => `<span class="poster-friend-tag poster-friend-tag-${index}">${escapeHtml(item)}</span>`).join('')}</div></section>
       <section class="poster-notes"><div class="poster-notes-identity"><img src="${asset(visual.aiIcon)}" alt="AI 观察员" /><h2>AI 看到的你</h2></div><ul>${visual.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
-      <div class="illustrated-actions"><button class="illustrated-primary" type="button" data-action="share">分享我的结果</button><button class="illustrated-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="illustrated-link" type="button" data-action="couple">拼入对方，看看我们怎么相处</button>'}<button class="illustrated-source" type="button" data-action="sources">依据与边界</button></div>`;
+      <div class="illustrated-actions"><button class="illustrated-primary" type="button" data-action="share">分享我的结果</button><button class="illustrated-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="illustrated-link" type="button" data-action="couple"><b>把 TA 拼进来</b><small>看看你们哪里同频，哪里容易错频道</small></button>'}<div class="illustrated-utility"><button class="illustrated-restart" type="button" data-action="restart">重新测这一块</button><i></i><button class="illustrated-source" type="button" data-action="sources">依据与边界</button></div></div>`;
     bind('[data-action="share"]', renderShare);
     bind('[data-action="next"]', () => {
       if (state.returnToCouple) {
@@ -776,6 +779,7 @@ const renderResult = (stage = 'core') => {
       return next ? startAssessment(next.id) : renderHome();
     });
     bind('[data-action="couple"]', () => { state.returnToCouple = false; renderCouple(); });
+    bind('[data-action="restart"]', () => startAssessment(result.assessmentId, { returnToCouple: state.returnToCouple }));
     bind('[data-action="sources"]', renderSources);
     return;
   }
@@ -785,7 +789,7 @@ const renderResult = (stage = 'core') => {
     <section class="metric-section"><h2>${escapeHtml(story.metricsTitle)}</h2><div class="metric-list">${metrics.map((metric, index) => `<div class="metric-row"><div><span>${escapeHtml(metric.label)}</span><b>${metric.percent}%</b></div><i><em class="metric-${index}" style="width:${metric.percent}%"></em></i></div>`).join('')}</div></section>
     <section class="result-story story-${story.id}"><p class="story-eyebrow">${escapeHtml(story.eyebrow)}</p><h2>${escapeHtml(story.heading)}</h2><p class="story-lead">${escapeHtml(story.lead)}</p>${story.id === 'bigfive' ? `<div class="trait-spectrum">${story.dimensions.map((item) => `<div class="trait-row"><div><span>${escapeHtml(item.label)}</span><b>${item.percent}%</b></div><i><em style="width:${item.percent}%"></em></i></div>`).join('')}</div>` : ''}<div class="story-blocks">${story.blocks.map((item) => `<article class="story-block story-block-${item.kind}"><span class="story-marker">${escapeHtml(item.marker)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>
     <div class="mini-puzzle">${collection.map((item) => `<img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${item.name}" />`).join('')}</div><p class="core-progress"><b>${completed} 块</b>的你，已经被拼出来。</p>
-    <div class="core-actions"><button class="doodle-black-button" type="button" data-action="share">分享我的结果</button><button class="core-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="core-couple" type="button" data-action="couple">拼入对方，看看我们怎么相处</button>'}<button class="core-source" type="button" data-action="sources">依据与边界</button></div>`;
+    <div class="core-actions"><button class="doodle-black-button" type="button" data-action="share">分享我的结果</button><button class="core-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="core-couple" type="button" data-action="couple"><b>把 TA 拼进来</b><small>看看你们哪里同频，哪里容易错频道</small></button>'}<div class="core-utility"><button class="core-restart" type="button" data-action="restart">重新测这一块</button><i></i><button class="core-source" type="button" data-action="sources">依据与边界</button></div></div>`;
   bind('[data-action="share"]', renderShare);
   bind('[data-action="next"]', () => {
     if (state.returnToCouple) {
@@ -796,6 +800,7 @@ const renderResult = (stage = 'core') => {
     return next ? startAssessment(next.id) : renderHome();
   });
   bind('[data-action="couple"]', () => { state.returnToCouple = false; renderCouple(); });
+  bind('[data-action="restart"]', () => startAssessment(result.assessmentId, { returnToCouple: state.returnToCouple }));
   bind('[data-action="sources"]', renderSources);
 };
 

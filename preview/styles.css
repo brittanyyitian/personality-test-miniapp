@@ -505,10 +505,15 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .mini-puzzle img.pending, .share-mini-puzzle img.pending { opacity: .12; }
 .core-progress { margin: 8px 0 0; color: #4e4a42; font-size: 13px; }
 .core-progress b { color: #f47716; font-size: 15px; }
-.core-actions { margin-top: 30px; }
+.core-actions { margin-top: 28px; padding-top: 4px; }
 .core-secondary { width: 100%; min-height: 56px; margin-top: 11px; border: 1px solid rgba(20,20,18,.1); border-radius: 30px; background: rgba(255,255,255,.72); font-size: 15px; cursor: pointer; }
-.core-couple { width: 100%; margin-top: 12px; padding: 11px 8px; border: 0; background: transparent; color: #666b76; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
-.core-source { width: 100%; margin-top: 15px; padding: 8px; border: 0; background: transparent; color: #99938a; font-size: 11px; cursor: pointer; }
+.core-couple { width: 100%; min-height: 70px; margin-top: 11px; padding: 14px 17px; border: 1px solid rgba(104,91,145,.1); border-radius: 18px; background: #f1edf9; color: #3f3657; text-align: left; cursor: pointer; }
+.core-couple b, .core-couple small { display: block; }
+.core-couple b { font-size: 14px; }
+.core-couple small { margin-top: 5px; color: #7c748c; font-size: 11px; line-height: 1.4; }
+.core-utility { min-height: 42px; margin-top: 7px; display: flex; align-items: center; justify-content: center; }
+.core-restart, .core-source { width: auto; min-width: 110px; margin: 0; padding: 8px 12px; border: 0; background: transparent; color: #99938a; font-size: 11px; cursor: pointer; }
+.core-utility > i { width: 1px; height: 12px; background: rgba(57,50,42,.14); }
 
 /* 素材驱动结果模板：SPARK 先作为社交类型的视觉样板。 */
 .illustrated-result-screen {
@@ -574,9 +579,14 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .illustrated-primary, .illustrated-secondary { width: 100%; min-height: 56px; border-radius: 30px; font-size: 15px; font-weight: 680; cursor: pointer; }
 .illustrated-primary { border: 0; background: #11100e; color: #fff; }
 .illustrated-secondary { margin-top: 9px; border: 1px solid rgba(20,20,18,.1); background: rgba(255,255,255,.84); color: #171613; }
-.illustrated-link, .illustrated-source { width: 100%; border: 0; background: transparent; cursor: pointer; }
-.illustrated-link { margin-top: 10px; padding: 10px 7px; color: #68626f; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
-.illustrated-source { margin-top: 10px; color: #9a958d; font-size: 11px; }
+.illustrated-link, .illustrated-restart, .illustrated-source { border: 0; cursor: pointer; }
+.illustrated-link { width: 100%; min-height: 64px; margin-top: 9px; padding: 12px 15px; border-radius: 15px; background: rgba(255,255,255,.14); text-align: left; }
+.illustrated-link b, .illustrated-link small { display: block; }
+.illustrated-link b { font-size: 13px; }
+.illustrated-link small { margin-top: 4px; font-size: 10px; line-height: 1.4; opacity: .78; }
+.illustrated-utility { min-height: 38px; margin-top: 4px; display: flex; align-items: center; justify-content: center; }
+.illustrated-restart, .illustrated-source { width: auto; min-width: 104px; margin: 0; padding: 7px 10px; background: transparent; font-size: 10px; }
+.illustrated-utility > i { width: 1px; height: 11px; background: currentColor; opacity: .24; }
 
 /* 人格结果页唯一母版：不同类型只替换数据与主视觉素材。 */
 .illustrated-result-screen {
@@ -666,7 +676,7 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .illustrated-actions { margin-top: 10px; padding: 15px 13px 12px; border-radius: 18px; background: #ef3f27; }
 .illustrated-primary { background: #0d0d0c; }
 .illustrated-secondary { background: #fff9ed; }
-.illustrated-link, .illustrated-source { color: rgba(255,255,255,.82); }
+.illustrated-link, .illustrated-restart, .illustrated-source { color: rgba(255,255,255,.86); }
 
 .web-share-screen { min-height: 100vh; padding: 24px 24px 34px; background: #fff8e8; }
 .share-back { padding: 5px 0; border: 0; background: transparent; color: #71695e; font-size: 12px; cursor: pointer; }

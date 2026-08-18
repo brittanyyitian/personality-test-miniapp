@@ -107,12 +107,17 @@
 .core-progress { margin-top: 19rpx; color: #4e4a42; font-size: 25rpx; }
 .core-progress text { color: #f47716; font-size: 28rpx; font-weight: 720; }
 
-.core-actions { margin-top: 48rpx; }
+.core-actions { margin-top: 46rpx; padding-top: 8rpx; }
 .result-primary, .result-secondary { width: 100%; min-height: 102rpx; border-radius: 54rpx; font-size: 29rpx; font-weight: 600; }
 .result-primary { background: #090908; color: #fff; }
 .result-secondary { margin-top: 20rpx; border: 1rpx solid rgba(20,20,18,.10); background: rgba(255,255,255,.72); color: #171613; }
-.result-couple { width: 100%; margin-top: 24rpx; padding: 18rpx 12rpx; color: #5f6470; font-size: 25rpx; text-decoration: underline; text-underline-offset: 7rpx; }
-.result-source { width: 100%; margin-top: 28rpx; color: #9a958d; font-size: 22rpx; }
+.result-couple { width: 100%; min-height: 128rpx; margin-top: 20rpx; padding: 25rpx 30rpx; border: 1rpx solid rgba(104,91,145,.10); border-radius: 30rpx; background: #f1edf9; text-align: left; }
+.result-couple-title, .result-couple-note { display: block; }
+.result-couple-title { color: #3f3657; font-size: 27rpx; font-weight: 720; }
+.result-couple-note { margin-top: 8rpx; color: #7c748c; font-size: 21rpx; line-height: 1.4; }
+.result-utility { min-height: 74rpx; margin-top: 16rpx; display: flex; align-items: center; justify-content: center; }
+.result-restart, .result-source { width: auto; min-width: 190rpx; margin: 0; padding: 16rpx 22rpx; color: #969087; font-size: 21rpx; }
+.result-utility-divider { width: 1rpx; height: 22rpx; background: rgba(57,50,42,.14); }
 
 /* 素材驱动结果模板：SPARK 先作为社交类型的视觉样板。 */
 .core-screen-illustrated {
@@ -182,8 +187,13 @@
 .illustrated-primary, .illustrated-secondary { width: 100%; min-height: 102rpx; border-radius: 54rpx; font-size: 28rpx; font-weight: 680; }
 .illustrated-primary { background: #11100e; color: #fff; }
 .illustrated-secondary { margin-top: 16rpx; border: 1rpx solid rgba(20,20,18,.10); background: rgba(255,255,255,.84); color: #171613; }
-.illustrated-link { width: 100%; margin-top: 18rpx; padding: 18rpx 12rpx; color: #68626f; font-size: 24rpx; text-decoration: underline; text-underline-offset: 7rpx; }
-.illustrated-source { width: 100%; margin-top: 20rpx; color: #9a958d; font-size: 21rpx; }
+.illustrated-link { width: 100%; min-height: 116rpx; margin-top: 16rpx; padding: 22rpx 28rpx; border-radius: 25rpx; background: rgba(255,255,255,.14); text-align: left; }
+.illustrated-link-title, .illustrated-link-note { display: block; }
+.illustrated-link-title { font-size: 25rpx; font-weight: 750; }
+.illustrated-link-note { margin-top: 7rpx; font-size: 19rpx; line-height: 1.4; opacity: .78; }
+.illustrated-utility { min-height: 68rpx; margin-top: 8rpx; display: flex; align-items: center; justify-content: center; }
+.illustrated-restart, .illustrated-source { width: auto; min-width: 180rpx; margin: 0; padding: 14rpx 20rpx; font-size: 20rpx; }
+.illustrated-utility-divider { width: 1rpx; height: 20rpx; background: currentColor; opacity: .24; }
 
 /* 人格结果页唯一母版：不同类型只替换数据与主视觉素材。 */
 .core-screen-illustrated { padding: calc(46rpx + env(safe-area-inset-top)) 36rpx calc(52rpx + env(safe-area-inset-bottom)); background: #fff7e4; }
@@ -270,7 +280,7 @@
 .illustrated-actions { margin-top: 18rpx; padding: 26rpx 22rpx 20rpx; border-radius: 30rpx; background: #ef3f27; }
 .illustrated-primary { background: #0d0d0c; }
 .illustrated-secondary { background: #fff9ed; }
-.illustrated-link, .illustrated-source { color: rgba(255,255,255,.82); }
+.illustrated-link, .illustrated-restart, .illustrated-source { color: rgba(255,255,255,.86); }
 
 .share-screen {
   min-height: 100vh;

@@ -87,8 +87,15 @@
       <view class="illustrated-actions">
         <button class="illustrated-primary" bindtap="showShare">分享我的结果</button>
         <button class="illustrated-secondary" bindtap="continueNext">{{nextActionText}}</button>
-        <button wx:if="{{!returnToCouple}}" class="illustrated-link" bindtap="openCouple">拼入对方，看看我们怎么相处</button>
-        <button class="illustrated-source" bindtap="openSources">依据与边界</button>
+        <button wx:if="{{!returnToCouple}}" class="illustrated-link" bindtap="openCouple">
+          <text class="illustrated-link-title">把 TA 拼进来</text>
+          <text class="illustrated-link-note">看看你们哪里同频，哪里容易错频道</text>
+        </button>
+        <view class="illustrated-utility">
+          <button class="illustrated-restart" bindtap="restartAssessment">重新测这一块</button>
+          <view class="illustrated-utility-divider"></view>
+          <button class="illustrated-source" bindtap="openSources">依据与边界</button>
+        </view>
       </view>
     </block>
 
@@ -140,8 +147,15 @@
       <view class="core-actions">
         <button class="result-primary" bindtap="showShare">分享我的结果</button>
         <button class="result-secondary" bindtap="continueNext">{{nextActionText}}</button>
-        <button wx:if="{{!returnToCouple}}" class="result-couple" bindtap="openCouple">拼入对方，看看我们怎么相处</button>
-        <button class="result-source" bindtap="openSources">依据与边界</button>
+        <button wx:if="{{!returnToCouple}}" class="result-couple" bindtap="openCouple">
+          <text class="result-couple-title">把 TA 拼进来</text>
+          <text class="result-couple-note">看看你们哪里同频，哪里容易错频道</text>
+        </button>
+        <view class="result-utility">
+          <button class="result-restart" bindtap="restartAssessment">重新测这一块</button>
+          <view class="result-utility-divider"></view>
+          <button class="result-source" bindtap="openSources">依据与边界</button>
+        </view>
       </view>
     </block>
   </view>

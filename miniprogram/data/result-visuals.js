@@ -220,33 +220,9 @@ function cognitiveVisual(typeCode, definition) {
 
 const cognitive = Object.fromEntries(Object.entries(cognitiveTypes).map(([code, definition]) => [code, cognitiveVisual(code, definition)]));
 
-const social = {
-  SPARK: {
-    template: 'illustrated-poster',
-    kicker: '你的人格类型是',
-    title: '慢性撤退者',
-    hero: '/assets/result-chronic-retreater.webp',
-    aiIcon: '/assets/result-ai-observer.webp',
-    quote: '你不是突然不喜欢一个人。你只是在一次次小失望里，安静地把期待收回来。',
-    traits: [
-      { label: '慢热', detail: '熟起来前冷淡，熟起来后才走心。', tone: 'red' },
-      { label: '高敏感', detail: '能察觉很多细节，但很少说出来。', tone: 'yellow' },
-      { label: '边界强', detail: '不轻易越界，也不喜欢被打扰。', tone: 'green' },
-      { label: '容易胡思乱想', detail: '想太多是日常，但表面依旧平静。', tone: 'purple' }
-    ],
-    tags: ['自动开场王', '气氛升温器', '接话不冷场', '组局发起人', '现场梗很多', '分享欲在线', '越熟越能聊', '散场后省电', '也需要回应'].map((label, index) => ({ label, face: tagFaces[index], tone: index === 0 ? 'yellow' : index === 1 ? 'blue' : index === 2 ? 'coral' : '' })),
-    tendencyTitle: '关系倾向',
-    tendencies: [
-      { label: '独立倾向', percent: 82, tone: 'red' },
-      { label: '表达需求', percent: 31, tone: 'yellow' },
-      { label: '关系敏感', percent: 67, tone: 'green' },
-      { label: '边界意识', percent: 91, tone: 'purple' }
-    ],
-    friendTags: ['可靠', '温柔', '有点敏感', '慢热', '爱胡思乱想'],
-    notes: ['你不是不需要爱，你只是不喜欢“需要别人”的自己。', '你很少大吵大闹，但会在心里一点点退出。', '你在意细节，也擅长保护自己。']
-  }
-};
-
-const RESULT_VISUALS = { cognitive, social };
+// 社交结果暂不接入 illustrated-poster。旧 SPARK 配置误用了“慢性撤退者”的
+// 标题、插画和分析，与正式计分得到的“全自动气氛组”完全相反。保留旧素材文件，
+// 但在有一套与 17 种社交结果逐一匹配的视觉内容前，统一使用正式结果模板。
+const RESULT_VISUALS = { cognitive, social: {} };
 
 module.exports = { RESULT_VISUALS, cognitiveTypes };
