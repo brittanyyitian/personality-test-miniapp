@@ -1,93 +1,100 @@
-# Design QA — 慢性撤退者结果页
+# 依恋结果长页 Design QA
 
 ## Evidence
 
-- Source visual truth: `/var/folders/wh/yf3_krg54wq_8nd7f5y5_gh80000gn/T/codex-clipboard-1f9a0758-0cce-4853-b8bc-8411011d4aa9.png`
-- Supplied hero asset: `/Users/senguoyun/Downloads/Group 22.png`
-- Implementation URL: `http://127.0.0.1:4173/?view=result&id=social_1786347500838`
-- Top implementation capture: `/Users/senguoyun/collab-projects/personality-test-miniapp/tmp/imagegen/result-chronic-retreater-viewport.png`
-- Lower implementation capture: `/Users/senguoyun/collab-projects/personality-test-miniapp/tmp/imagegen/result-chronic-retreater-lower.png`
-- Tag-panel implementation capture: `/Users/senguoyun/collab-projects/personality-test-miniapp/tmp/imagegen/result-chronic-tags.png`
-- AI-observer implementation capture: `/Users/senguoyun/collab-projects/personality-test-miniapp/tmp/imagegen/result-ai-observer.png`
-- Source pixels: 480 × 1124.
-- Implementation viewport: 1280 × 720 at DPR 1, with a 430px-wide mobile result surface.
-- State: result core view, 慢性撤退者, 2 / 5 puzzle pieces complete.
-
-## Comparison
-
-- Full-view evidence: the reference full poster was compared in one visual input with the implementation top and lower viewport captures. Both preserve the same vertical hierarchy: integrated title/hero, quote, four traits, four relationship bars, puzzle progress, friend tags, AI notes, and a red action area.
-- Focused evidence: the top capture verifies the supplied transparent illustration, headline scale, quote card, and four-column traits; the tag-panel capture verifies the complete 3 × 3 expression grid at 390px content width; the AI-observer region keeps the television icon above its label while the three notes use equal vertical spacing; the lower capture verifies relationship values, puzzle row, tag pills, notes, and persistent actions.
-- Density normalization: the source is a single export while the implementation is a scrollable 430px app surface. Comparison used matching content regions rather than resizing the source into a browser frame.
+- Source visual truth: `design/attachment-result-sources/attachment-result-page-reference.png`
+- Source pixels: 430 × 2690 px, mobile content capture, 1× density.
+- Browser-rendered implementation:
+  - `preview/attachment-result-long-single-final.png` — 430 × 1878 px browser capture of the long result body.
+  - `preview/attachment-result-analysis-final.png` — 415 × 676 px focused analysis capture.
+  - `preview/attachment-result-actions-final.png` — 415 × 676 px focused bottom-action capture.
+- Combined comparison inputs:
+  - `preview/attachment-result-top-comparison.png`
+  - `preview/attachment-result-bottom-comparison.png`
+- CSS viewport: 430 × 700 px for interaction and focused captures; 430 × 2300 px for the long-page capture. Device scale factor is 1. The in-app browser reserves 15 px for its scrollbar in the 430 × 700 focused captures, so the rendered content width is 415 px. No density rescaling was used for the source or implementation.
+- State: `?view=result&preview=attachment-fearful-avoidant`, completed puzzle state. The other three public attachment types were separately loaded at the same result route.
 
 ## Required Fidelity Surfaces
 
-- Fonts and typography: bold red headline is retained inside the supplied raster asset; UI copy uses the project font stack with compact weights and line heights close to the reference.
-- Spacing and layout rhythm: section order and compact card spacing match the reference. The implementation adds slightly more breathing room around tappable actions for mobile usability.
-- Colors and visual tokens: warm paper background, red/yellow/green/purple trait system, white information panels, and red footer are preserved.
-- Image quality and asset fidelity: the user-supplied transparent illustration is used directly, downsampled to 1368 × 1400 and encoded as a 400 KB WebP. No placeholder or code-drawn illustration replaces it.
-- Copy and content: 慢性撤退者 title, four traits, nine expression labels, four tendencies, friend labels, AI observations, puzzle progress, and result actions all render completely.
+- Fonts and typography: passed. Display lettering remains inside the supplied raster hero; UI copy uses the existing PingFang/system stack. The quote, four traits, metrics, six analysis headings and body copy have distinct optical weights and no truncation or horizontal overflow.
+- Spacing and layout rhythm: passed. The page follows the reference order and density: kicker → hero → centered quote → four traits → three metrics → six-part analysis → puzzle → friend tags → AI notes → boundary note → actions. The final action panel is full bleed like the source.
+- Colors and visual tokens: passed. Cream paper, brick red, black primary action, white secondary action, muted green/yellow/purple metrics and low-contrast card borders match the selected direction.
+- Image quality and asset fidelity: passed. All four attachment types use real compressed WebP hero assets derived from high-resolution PNG sources. No placeholder or code-drawn hero artwork is used. The avoidant scene contains exactly two characters and no residual hidden face.
+- Copy and content: passed. Each of the four types has its own quote, four traits, three scores, five friend tags, three observer notes, six analysis paragraphs and type-specific analysis heading. A weak boundary statement is visible before the action area.
 
-## Findings
+## Comparison History
 
-- No actionable P0, P1, or P2 differences.
-- P3: the reference includes small custom icons in trait cards. The implementation intentionally omits them until matching raster assets are supplied, avoiding mismatched code-drawn substitutes.
+### Iteration 1
 
-## Interaction And Runtime Checks
+- P2: The small “你的依恋类型是” kicker was hidden although it was not included in the hero asset.
+- P2: The quote block did not guarantee vertical centering.
+- P2: All attachment types shared the same analysis headline, weakening differentiation.
+- Fixes: exposed the kicker; converted the quote to a minimum-height centered flex row; added four type-specific two-line analysis headlines and changed the eyebrow to `ATTACHMENT NOTES`.
+- Post-fix evidence: `preview/attachment-result-top-comparison.png` and the four `preview/attachment-*-top-qa.png` captures.
 
-- Share and continue buttons remain present and enabled.
-- Browser console errors: none.
-- `npm test`: 35 / 35 passed.
-- `npm run check`: passed; main package 1.04 MB.
-- `git diff --check`: passed.
+### Iteration 2
 
-## Implementation Checklist
-
-- [x] Replace SPARK hero and generated face assets.
-- [x] Add the supplied 慢性撤退者 illustration.
-- [x] Rebuild the result visual hierarchy from the selected reference.
-- [x] Insert the supplied 3 × 3 expression-label panel before relationship tendencies.
-- [x] Place the supplied television icon above the “AI 看到的你” label and evenly distribute the three notes.
-- [x] Preserve puzzle progress and existing actions.
-- [x] Verify top and lower states in the in-app browser.
-
-final result: passed
-
----
-
-# Design QA — 双人拼图主链路
-
-## Evidence
-
-- Visual baseline: the illustrated cognitive result page already accepted on `main`.
-- Baseline capture: `/private/tmp/personality-result-reference.png`.
-- Ready-state capture: `/private/tmp/personality-couple-ready.png`.
-- Report capture: `/private/tmp/personality-couple-report.png`.
-- Side-by-side comparison: `/private/tmp/personality-couple-comparison.jpg`.
-- Implementation states: `demo=missing`, `demo=incoming`, `demo=ready`, and `demo=report` on the couple route.
-
-## Comparison
-
-- The couple flow reuses the result page's warm paper background, black high-contrast primary action, strong Chinese headline, outlined rounded cards, red/yellow/green/purple information system, and the existing hand-drawn puzzle assets.
-- The relationship and social puzzle pieces remain the visual anchor; no new or replacement visual assets were introduced.
-- Information density increases progressively: invitation hook, prerequisite cards, ready action, then four structured report modules and one concrete recovery action.
+- P2: The lower action panel was inset and rounded, while the selected source uses a full-width color field.
+- P2: Analysis copy was visually denser and smaller than the source.
+- Fixes: made the action field full bleed, restored the outlined “把 TA 拼进来” treatment, increased analysis title/body size, spacing and line height, and added the weak boundary statement.
+- Post-fix evidence: `preview/attachment-result-analysis-final.png`, `preview/attachment-result-actions-final.png`, and `preview/attachment-result-bottom-comparison.png`.
 
 ## Interaction And Runtime Checks
 
-- Missing prerequisites expose only the required cognitive and attachment tests.
-- Incoming invite code remains available while the user completes prerequisites.
-- Manual result-code panel expands and collapses without changing the page width.
-- Ready invitation, incoming report generation, empty-code guard, and reset-to-invite flow are wired.
-- Base reports always contain four modules and never output a compatibility percentage.
-- Browser console errors and warnings: none.
-- `npm test`: 46 / 46 passed.
-- `npm run check`: passed; main package 1.05 MB.
-- `node --check preview/app.js`: passed.
-- `git diff --check`: passed.
+- Four preview states loaded: secure, anxious, avoidant and fearful-avoidant.
+- Each state exposed four distinct traits, three percentage metrics, six analysis modules and unique text content.
+- “分享我的结果” opened the share view and generated a poster preview.
+- “返回结果” restored the result view while preserving the preview type.
+- “把 TA 拼进来” opened the couple flow.
+- No horizontal page overflow was detected at the mobile viewport.
+- Browser console warnings/errors: none.
+- Automated tests: 63 passed, 0 failed.
+- Static route/package check: passed; 7 main-package pages, 1 subpackage, main package 1.09 MB.
+- JavaScript syntax checks passed for the changed JS modules; 10 miniprogram JSON files parsed successfully.
 
-## Findings
+## Remaining P3 Polish
 
-- No actionable P0, P1, or P2 visual differences against the accepted result-page design system.
-- The in-app browser's full-page screenshot path mis-captured pages taller than its viewport; viewport captures and measured DOM widths confirmed the implementation remains 430px wide with no horizontal overflow inside the app surface.
-- Native safe-area rendering and share-sheet appearance still require final confirmation in WeChat Developer Tools.
+- Exact typeface texture inside each generated hero varies slightly from the reference hand-lettering. This is confined to the raster assets and does not affect hierarchy or legibility.
+- The reference example shows a 2/5 puzzle state, while the QA browser had 5/5 stored results; the component layout and state labels were still verified.
+
+## 双人拼图状态重构补充验收
+
+- Source/current-problem capture: `preview/couple-before-reference.png`, 1021 × 1742 px. It shows the earlier mismatch: the headline promises “把 TA 拼进来”, while the only actionable task is an unfinished prerequisite card.
+- Browser-rendered states, each 1021 × 1358 px at the same in-app-browser stage:
+  - `preview/couple-missing-final.jpg` — one prerequisite missing.
+  - `preview/couple-ready-final.jpg` — my half complete, invitation ready.
+  - `preview/couple-incoming-ready-final.jpg` — partner invite present and both prerequisites complete.
+- Combined comparison evidence: `preview/couple-before-after-comparison.jpg`.
+- State routes: `?view=couple&demo=missing`, `?view=couple&demo=ready`, and `?view=couple&demo=incoming-ready`.
+
+Required surface review:
+
+- Fonts and typography: passed. Existing system type stack and weight hierarchy were preserved; state headline, explanatory copy, progress labels and single primary action are legible without truncation.
+- Spacing and layout rhythm: passed. The new three-step strip fits the existing mobile card width, prerequisite rows are secondary status rather than competing buttons, and the black primary action remains above the fold.
+- Colors and visual tokens: passed. Existing cream, rust, black and muted green tokens were reused; active/done states are visually distinct without introducing a new theme.
+- Image quality and asset fidelity: passed. Existing puzzle assets are reused unchanged; no visual asset was generated, replaced or modified for this flow.
+- Copy and content: passed. Every state now names the real current task, states what happens after sharing, and accurately discloses that automatic cross-device completion status is unavailable without a backend.
+
+Interaction checks:
+
+- The missing-state primary button opened the first question of the required attachment assessment.
+- The incoming-ready primary button generated a four-card couple report.
+- The ready state exposes one primary invitation action; manual result-code entry remains collapsed as a weak fallback.
+- The partner invite code is persisted across the prerequisite quiz/result return path and cleared when the user chooses to pair with someone else.
+
+## 依恋画像层级补充验收
+
+- The public taxonomy remains exactly four attachment types.
+- The scoring result now exposes one of nine `profileTitle` values as “当前画像”, derived from low/mid/high anxiety × avoidance bands.
+- Browser DOM verification on `?view=result&preview=attachment-fearful-avoidant` showed `恐惧—回避型依恋` plus `当前画像 · 一边想确认，一边想退开`, followed by type-specific quote, traits, metrics and six-part analysis.
+- Stored attachment results with answers are automatically rescored when the new profile field is absent, while records without recoverable answers remain readable.
+
+## 双人地图分数区补充验收
+
+- 默认只展示“回应敏感、空间需要、整理能量”三项，另外三项通过弱操作展开，避免分数区占满手机首屏。
+- 三项与展开后的六项都继续读取同一份连续维度数据；没有新增匹配分或优劣判断。
+- 分数区直接落在暖色页面底面，不再使用白色外层卡片；每项仍为一条共享刻度线。
+- “我”使用橙色实底白字，“TA”使用蓝色实底白字；浏览器计算样式与移动端截图均确认标签可见。
+- 默认态渲染 3 行，展开态渲染 6 行，“查看另外 3 项 / 收起另外 3 项”交互已在网页预览验证。
 
 final result: passed

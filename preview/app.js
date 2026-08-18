@@ -11,7 +11,9 @@ const state = {
   coupleCode: '',
   couplePartnerCode: '',
   coupleCodePanel: false,
+  coupleInviteSent: false,
   coupleDemo: '',
+  coupleScoreExpanded: false,
   returnToCouple: false,
   coupleReport: null,
   inspirationGroup: null,
@@ -36,6 +38,7 @@ const persistResult = (result) => {
   state.results = [record, ...state.results.filter((item) => item.assessmentId !== record.assessmentId)].slice(0, 20);
   state.coupleCode = '';
   state.coupleReport = null;
+  state.coupleInviteSent = false;
   localStorage.setItem(RESULT_KEY, JSON.stringify(state.results));
   return record;
 };
@@ -70,14 +73,28 @@ const illustratedAnalysis = (result, visual) => {
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
+  const labels = Array.isArray(visual.analysisLabels) && visual.analysisLabels.length === 6
+    ? visual.analysisLabels
+    : ['核心驱动力', '内在矛盾', '压力反转', '关系误读', '被理解方式', '恢复建议'];
   return [
-    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
-    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
-    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
-    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
-    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
-    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labels[0], body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labels[1], body: conflict },
+    { key: 'stress', index: '03', title: labels[2], body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labels[3], body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labels[4], body: profile.understood },
+    { key: 'recovery', index: '06', title: labels[5], body: recovery || profile.recovery }
   ];
+};
+const visualTendencyPercent = (result, axis) => {
+  const scores = result?.scores || {};
+  if (axis.scale === 'derived-security') {
+    return clampPercent(100 - (((Number(scores.anxiety) || 0) + (Number(scores.avoidance) || 0)) / 2));
+  }
+  if (axis.scale === 'percent') {
+    const value = Number(scores[axis.key]) || 0;
+    return clampPercent(axis.direction === -1 ? 100 - value : value);
+  }
+  return clampPercent(50 + (Number(scores[axis.key]) || 0) * 50 * (axis.direction || 1));
 };
 const resultVisual = (result) => {
   const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[result?.typeCode] || null;
@@ -89,7 +106,7 @@ const resultVisual = (result) => {
     analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: clampPercent(50 + (Number(result.scores?.[axis.key]) || 0) * 50 * axis.direction),
+      percent: visualTendencyPercent(result, axis),
       tone: axis.tone
     }))
   };
@@ -446,10 +463,13 @@ const createIllustratedFullReport = async (result, visual) => {
   drawPosterRoundRect(context, 42, 1500, 666, 154, 30, '#f7ded1');
   context.fillStyle = '#e84b35';
   context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
+  context.fillText(visual.analysisEyebrow || `TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
   context.fillStyle = '#3d3028';
   context.font = '800 34px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('不止四个字母，这是你的内在运作方式', 72, 1602);
+  const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
+    ? visual.analysisHeadingLines
+    : ['不止四个字母，', '这是你的内在运作方式'];
+  analysisHeadingLines.slice(0, 2).forEach((line, index) => context.fillText(line, 72, 1590 + (index * 40)));
   (visual.analysis || []).slice(0, 6).forEach((item, index) => {
     const y = 1678 + (index * 232);
     drawPosterRoundRect(context, 42, y, 666, 212, 25, '#fffdf8');
@@ -666,7 +686,9 @@ const renderQuiz = () => {
   const selected = Number(state.answers[state.current]) || 0;
   const progress = Math.round(((state.current + 1) / state.questions.length) * 100);
   const piece = pieceFor(assessment.id);
-  const optionValues = assessment.options.length === 5 ? [1, 2, 4, 5] : assessment.options.map((_, index) => index + 1);
+  const optionValues = assessment.options.length === 5 && !['attachment', 'relationship'].includes(assessment.id)
+    ? [1, 2, 4, 5]
+    : assessment.options.map((_, index) => index + 1);
   setRoute('quiz', assessment.id);
   app.className = 'screen quiz-screen';
   app.style.background = piece.background;
@@ -705,6 +727,19 @@ const advanceQuestion = async () => {
     return;
   }
   try {
+    if (state.assessment.id === 'cognitive') {
+      const followupData = await api('/api/followups', { id: state.assessment.id, answers: state.answers });
+      const existingIds = new Set(state.questions.map((question) => question.id));
+      const pendingFollowups = (followupData.questions || []).filter((question) => !existingIds.has(question.id));
+      if (pendingFollowups.length) {
+        state.questions = state.questions.concat(pendingFollowups);
+        state.answers = state.answers.concat(Array(pendingFollowups.length).fill(0));
+        state.current += 1;
+        state.transitioning = false;
+        renderQuiz();
+        return;
+      }
+    }
     const data = await api('/api/score', {
       id: state.assessment.id,
       answers: state.answers,
@@ -727,7 +762,7 @@ const renderResult = (stage = 'core') => {
   const result = state.result;
   if (!result) return renderHome();
   const previewType = new URLSearchParams(location.search).get('preview');
-  if (!previewType) setRoute('result', result.id || result.assessmentId);
+  setRoute('result', result.id || result.assessmentId, previewType ? { preview: previewType } : {});
   const piece = pieceFor(result.assessmentId);
   const visual = resultVisual(result);
   const title = visual?.title || resultKeyword(result) || '新的一面';
@@ -761,13 +796,15 @@ const renderResult = (stage = 'core') => {
     app.className = `screen illustrated-result-screen result-kind-${result.assessmentId}`;
     app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
       <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
+      ${result.assessmentId === 'attachment' && result.profileTitle ? `<div class="poster-profile"><span>当前画像</span><b>${escapeHtml(result.profileTitle)}</b></div>` : ''}
       <section class="poster-quote"><b>“</b><p>${escapeHtml(visual.quote)}</p></section>
       <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
       <section class="poster-tendencies"><h2>${escapeHtml(visual.tendencyTitle || '关系倾向')}</h2><div>${visual.tendencies.map((item) => `<article class="poster-tendency"><span>${escapeHtml(item.label)}</span><i><em class="poster-fill-${escapeHtml(item.tone)}" style="width:${item.percent}%"></em></i><b>${item.percent}%</b></article>`).join('')}</div></section>
-      ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>TYPE NOTES · ${escapeHtml(result.typeCode || '')}</p><h2>不止四个字母，<br>这是你的内在运作方式</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
+      ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>${escapeHtml(visual.analysisEyebrow || `TYPE NOTES · ${result.typeCode || ''}`)}</p><h2>${(visual.analysisHeadingLines?.length ? visual.analysisHeadingLines : ['不止四个字母，', '这是你的内在运作方式']).map((line) => escapeHtml(line)).join('<br>')}</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
       <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
       <section class="poster-friend-tags"><h2>朋友眼中的你</h2><div>${visual.friendTags.map((item, index) => `<span class="poster-friend-tag poster-friend-tag-${index}">${escapeHtml(item)}</span>`).join('')}</div></section>
       <section class="poster-notes"><div class="poster-notes-identity"><img src="${asset(visual.aiIcon)}" alt="AI 观察员" /><h2>AI 看到的你</h2></div><ul>${visual.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
+      <p class="poster-boundary">结果呈现的是你此刻的回答倾向，只用于自我理解；它不是临床诊断，也不替你判断一段关系。</p>
       <div class="illustrated-actions"><button class="illustrated-primary" type="button" data-action="share">分享我的结果</button><button class="illustrated-secondary" type="button" data-action="next">${escapeHtml(nextText)}</button>${state.returnToCouple ? '' : '<button class="illustrated-link" type="button" data-action="couple"><b>把 TA 拼进来</b><small>看看你们哪里同频，哪里容易错频道</small></button>'}<div class="illustrated-utility"><button class="illustrated-restart" type="button" data-action="restart">重新测这一块</button><i></i><button class="illustrated-source" type="button" data-action="sources">依据与边界</button></div></div>`;
     bind('[data-action="share"]', renderShare);
     bind('[data-action="next"]', () => {
@@ -816,7 +853,11 @@ const shareLink = () => {
 const renderShare = async () => {
   const result = state.result;
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
-  const previewType = String(result.id || '').startsWith('preview-cognitive-') ? result.typeCode : '';
+  const previewType = String(result.id || '').startsWith('preview-cognitive-')
+    ? result.typeCode
+    : String(result.id || '').startsWith('preview-attachment-')
+      ? `attachment-${result.typeCode}`
+      : '';
   setRoute('share', result.id || result.assessmentId, { preview: previewType });
   app.className = 'screen web-share-screen';
   app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-loading"><i></i><p>正在生成你的人格海报…</p></div>';
@@ -916,13 +957,26 @@ const renderCouple = async () => {
 
   if (state.coupleReport) {
     const cards = state.coupleReport.cards.map((card, index) => `<article class="couple-report-card couple-report-card-${index}"><span>0${index + 1}</span><div><h2>${escapeHtml(card.title)}</h2><p>${escapeHtml(card.body)}</p></div></article>`).join('');
+    const scoreItems = state.coupleScoreExpanded
+      ? (state.coupleReport.dimensions || [])
+      : (state.coupleReport.dimensions || []).filter((item) => ['回应敏感', '空间需要', '整理能量'].includes(item.label));
+    const dimensions = scoreItems.map((item) => {
+      const note = item.label === '整理能量' ? '差异最大' : '';
+      return `<article class="couple-score-row"><div class="couple-score-label"><b>${escapeHtml(item.label)}</b><small>${escapeHtml(note)}</small></div><div class="couple-score-track"><i class="mine" style="left:${Number(item.mine)}%"><em>我</em></i><i class="theirs" style="left:${Number(item.theirs)}%"><em>TA</em></i></div><div class="couple-score-ends"><span>${escapeHtml(item.leftLabel)}</span><span>${escapeHtml(item.rightLabel)}</span></div></article>`;
+    }).join('');
+    const scoreMore = `<button class="couple-score-more" type="button" data-action="toggle-scores">${state.coupleScoreExpanded ? '收起另外 3 项' : '查看另外 3 项'} <span>›</span></button>`;
     app.innerHTML = `${backButton()}<p class="couple-eyebrow">OUR MAP · 双人拼图</p><h1 class="couple-title"><span>我们一起，</span><span>拼出「我们」</span></h1><p class="couple-intro">${escapeHtml(state.coupleReport.summary)}</p>${hero}
+      <section class="couple-score-evidence"><h2>你们在关系里的位置</h2><p>不是匹配分，只看彼此更靠近哪一边</p>${dimensions}${scoreMore}</section>
       <section class="couple-report-list">${cards}</section>
       <aside class="couple-action"><small>下次错频道时，可以试试</small><p>${escapeHtml(state.coupleReport.action)}</p></aside>
       <p class="couple-boundary">差异不等于不适合。真实互动，永远比人格组合更重要。</p>
       <button class="couple-primary" type="button" data-action="share-report">分享我们的相处地图</button>
       <button class="couple-reset" type="button" data-action="again">换一个人重新拼</button>`;
     bind('[data-action="home"]', renderHome);
+    bind('[data-action="toggle-scores"]', () => {
+      state.coupleScoreExpanded = !state.coupleScoreExpanded;
+      renderCouple();
+    });
     bind('[data-action="share-report"]', async () => {
       const data = { title: '我们的相处地图', text: state.coupleReport.summary, url: location.href };
       if (navigator.share) { try { await navigator.share(data); return; } catch (error) { if (error?.name === 'AbortError') return; } }
@@ -932,6 +986,8 @@ const renderCouple = async () => {
       state.coupleReport = null;
       state.couplePartnerCode = '';
       state.coupleCodePanel = false;
+      state.coupleInviteSent = false;
+      state.coupleScoreExpanded = false;
       state.coupleDemo = '';
       renderCouple();
     });
@@ -943,18 +999,39 @@ const renderCouple = async () => {
     state.coupleCode = data.code;
   }
 
-  const requirement = (id, title, subtitle, duration, ready) => `<button class="couple-requirement ${ready ? 'done' : ''}" type="button" ${ready ? 'disabled' : `data-action="start-${id}"`}>
-    <img src="/miniprogram/assets/doodle-${id}.png" alt="" /><span><strong>${title}</strong><small>${subtitle}</small></span><em>${ready ? '已拼上 ✓' : `${duration} →`}</em>
-  </button>`;
-  const requirements = `<section class="couple-requirements"><h2>先拼上你的两块基础拼图</h2>${requirement('cognitive', '思考模式', '你怎样理解世界', '约 6 分钟', cognitiveReady)}${requirement('attachment', '依恋模式', '你怎样靠近与退后', '约 4 分钟', attachmentReady)}</section>`;
+  const missingCount = Number(!cognitiveReady) + Number(!attachmentReady);
+  const nextRequirement = !cognitiveReady
+    ? { id: 'cognitive', title: '思考模式', duration: '约 6 分钟' }
+    : !attachmentReady ? { id: 'attachment', title: '依恋模式', duration: '约 4 分钟' } : null;
+  const requirement = (id, title, subtitle, ready) => `<div class="couple-requirement ${ready ? 'done' : ''}">
+    <img src="/miniprogram/assets/doodle-${id}.png" alt="" /><span><strong>${title}</strong><small>${subtitle}</small></span><em>${ready ? '已拼上 ✓' : '待完成'}</em>
+  </div>`;
+  const requirements = `<section class="couple-requirements"><h2>你的准备进度</h2>${requirement('cognitive', '思考模式', '你怎样理解世界', cognitiveReady)}${requirement('attachment', '依恋模式', '你怎样靠近与退后', attachmentReady)}</section>`;
   const readyCard = `<section class="couple-ready"><b>✓</b><span><strong>你的这一半已经拼好</strong><small>认知偏好与依恋倾向已准备完成</small></span></section>`;
   const codePanel = state.coupleCodePanel ? `<section class="couple-code-panel"><h2>对方的结果码</h2><textarea data-field="partner" placeholder="粘贴对方主动分享的结果码">${escapeHtml(state.couplePartnerCode)}</textarea><button type="button" data-action="create-report">生成相处地图</button><button type="button" data-action="copy-code">复制我的结果码</button></section>` : '';
+  const eyebrow = hasIncomingInvite ? 'TA 的邀请' : hasResults ? '邀请 TA' : '先完成自己';
+  const title = hasIncomingInvite ? 'TA 把一半拼图，留给了你' : hasResults ? '你的一半，已经准备好了' : '先准备好你的一半';
+  const intro = hasIncomingInvite
+    ? (hasResults
+      ? '你们两边都准备好了。点击下方按钮，就能在这台设备上生成相处地图。'
+      : '补上你的思考模式和依恋模式，就能在这台设备上生成你们的相处地图。')
+    : hasResults
+      ? '把这份邀请发给 TA。TA 补完自己的两块后，就会看到你们哪里同频、哪里容易错频道。'
+      : `双人拼图需要「思考模式 + 依恋模式」。你还差 ${missingCount} 块，完成后才能生成邀请。`;
+  const flowSteps = `<div class="couple-steps">
+    <div class="couple-step ${!hasResults ? 'active' : 'done'}"><span>1</span><b>拼好我的一半</b></div>
+    <div class="couple-step ${hasResults && !hasIncomingInvite ? 'active' : hasIncomingInvite ? 'done' : ''}"><span>2</span><b>发给 / 来自 TA</b></div>
+    <div class="couple-step ${hasIncomingInvite && hasResults ? 'active' : ''}"><span>3</span><b>生成「我们」</b></div>
+  </div>`;
+  const waiting = state.coupleInviteSent && !hasIncomingInvite
+    ? '<section class="couple-waiting"><strong>邀请已经准备好</strong><p>如果刚才取消了分享，可以再次发送。当前版本不会自动知道 TA 是否完成。</p></section>'
+    : '';
 
-  app.innerHTML = `${backButton()}<p class="couple-eyebrow">${hasIncomingInvite ? 'TA 的邀请' : '从「我」到「我们」'}</p>
-    <h1 class="couple-title">${hasIncomingInvite ? 'TA 把一半拼图，留给了你' : '把 TA 拼进来，会出现怎样一张图？'}</h1>
-    <p class="couple-intro">${hasIncomingInvite ? 'TA 已经先拼出了自己。现在还缺你的这一半，才能看见你们之间那张看不见的图。' : '前五块拼的是「我」。两个人放在一起，会看见共同语言，也会看见最容易错频道的地方。'}</p>
+  app.innerHTML = `${backButton()}<p class="couple-eyebrow">${eyebrow}</p>
+    <h1 class="couple-title">${title}</h1>
+    <p class="couple-intro">${intro}</p>${flowSteps}
     ${hero}<section class="couple-belief"><strong>两个人都没有问题。</strong><p>只是可能一直在用不同的方式，理解同一件事。</p></section>
-    ${hasResults ? `${readyCard}<button class="couple-primary" type="button" data-action="${hasIncomingInvite ? 'create-report' : 'invite'}">${hasIncomingInvite ? '拼出我们的相处地图' : '把 TA 拼进来'}</button><p class="couple-action-note">约 4 分钟 · 不判断你们合不合适</p><button class="couple-manual-toggle" type="button" data-action="toggle-code">${state.coupleCodePanel ? '收起手动方式' : '已经拿到结果码？手动拼入'}</button>${codePanel}<p class="couple-privacy">只交换生成地图所需的结构化结果，不公开逐题答案。</p>` : `${requirements}<p class="couple-privacy">完成后自动回到这里，TA 的邀请也会保留。</p>`}`;
+    ${hasResults ? `${readyCard}<button class="couple-primary" type="button" data-action="${hasIncomingInvite ? 'create-report' : 'invite'}">${hasIncomingInvite ? '生成我们的相处地图' : state.coupleInviteSent ? '再次发给 TA' : '生成邀请，发给 TA'}</button><p class="couple-action-note">${hasIncomingInvite ? '双方结果只在本机组合，不上传逐题答案' : 'TA 完成后，报告会先显示在 TA 的设备上，再由 TA 分享给你'}</p>${waiting}<button class="couple-manual-toggle" type="button" data-action="toggle-code">${state.coupleCodePanel ? '收起手动方式' : '已经拿到结果码？手动拼入'}</button>${codePanel}<p class="couple-privacy">只交换生成地图所需的结构化结果，不公开逐题答案。</p>` : `${requirements}<button class="couple-primary" type="button" data-action="start-${nextRequirement.id}">完成${nextRequirement.title} · ${nextRequirement.duration}</button><p class="couple-privacy">完成后自动回到这里；如果你是从 TA 的邀请进入，邀请会继续保留。</p>`}`;
   bind('[data-action="home"]', renderHome);
   bind('[data-action="start-cognitive"]', () => startAssessment('cognitive', { returnToCouple: true }));
   bind('[data-action="start-attachment"]', () => startAssessment('attachment', { returnToCouple: true }));
@@ -968,8 +1045,18 @@ const renderCouple = async () => {
     inviteUrl.searchParams.set('code', state.coupleCode);
     const inviteLink = inviteUrl.toString();
     const data = { title: '把我的拼图拼进来', text: '看看我们在关系里的共同节奏和容易误会的地方。', url: inviteLink };
-    if (navigator.share) { try { await navigator.share(data); return; } catch (error) { if (error?.name === 'AbortError') return; } }
+    if (navigator.share) {
+      try {
+        await navigator.share(data);
+        state.coupleInviteSent = true;
+        return renderCouple();
+      } catch (error) {
+        if (error?.name === 'AbortError') return;
+      }
+    }
     try { await navigator.clipboard.writeText(inviteLink); window.alert('邀请链接已复制'); } catch (error) { window.prompt('复制邀请链接', inviteLink); }
+    state.coupleInviteSent = true;
+    renderCouple();
   });
   bind('[data-action="create-report"]', async () => {
     const code = (app.querySelector('[data-field="partner"]')?.value || state.couplePartnerCode).trim();
@@ -978,6 +1065,7 @@ const renderCouple = async () => {
     try {
       const data = await api('/api/couple-report', { results: seriousResults, code });
       state.coupleReport = data.report;
+      state.coupleScoreExpanded = false;
       renderCouple();
     } catch (error) {
       window.alert(error.message);
@@ -986,11 +1074,13 @@ const renderCouple = async () => {
 };
 
 const setupCoupleDemo = async (demo) => {
-  if (!['missing', 'incoming', 'ready', 'report'].includes(demo)) return;
+  if (!['missing', 'incoming', 'incoming-ready', 'ready', 'report'].includes(demo)) return;
   state.coupleDemo = demo;
   state.coupleCode = '';
   state.coupleReport = null;
   state.coupleCodePanel = false;
+  state.coupleInviteSent = false;
+  state.coupleScoreExpanded = false;
   state.results = state.results.filter((result) => !['cognitive', 'attachment'].includes(result.assessmentId));
   const mine = [
     { id: 'demo-mine-cognitive', assessmentId: 'cognitive', typeCode: 'INTJ', version: state.catalog.assessments.cognitive.version, scores: { EI: -0.72, NS: 0.78, TF: -0.66, JP: 0.68 } },
@@ -1000,8 +1090,9 @@ const setupCoupleDemo = async (demo) => {
     { id: 'demo-partner-cognitive', assessmentId: 'cognitive', typeCode: 'ENFP', version: state.catalog.assessments.cognitive.version, scores: { EI: 0.75, NS: 0.82, TF: 0.71, JP: -0.58 } },
     { id: 'demo-partner-attachment', assessmentId: 'attachment', typeCode: 'avoidant', version: state.catalog.assessments.attachment.version, scores: { anxiety: 34, avoidance: 73 } }
   ];
-  if (['ready', 'report'].includes(demo)) state.results = [...mine, ...state.results];
-  if (['incoming', 'report'].includes(demo)) {
+  if (demo === 'missing') state.results = [mine[0], ...state.results];
+  if (['incoming-ready', 'ready', 'report'].includes(demo)) state.results = [...mine, ...state.results];
+  if (['incoming', 'incoming-ready', 'report'].includes(demo)) {
     const shared = await api('/api/share-code', { results: partner });
     state.couplePartnerCode = shared.code;
   } else {
@@ -1034,7 +1125,10 @@ const boot = async () => {
     const id = query.get('id');
     const coupleDemo = String(query.get('demo') || '').toLowerCase();
     const previewIdMatch = String(id || '').match(/^preview-cognitive-([a-z]{4})$/i);
-    const previewType = String(query.get('preview') || previewIdMatch?.[1] || '').toUpperCase();
+    const previewRaw = String(query.get('preview') || previewIdMatch?.[1] || '');
+    const previewType = previewRaw.toUpperCase();
+    const attachmentPreviewMatch = previewRaw.toLowerCase().match(/^attachment-(secure|anxious|avoidant|fearful-avoidant)$/);
+    const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
     state.couplePartnerCode = query.get('code') || '';
     if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.cognitive?.[previewType]) {
       const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
@@ -1072,6 +1166,41 @@ const boot = async () => {
       };
       state.result = previewResult;
       state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];
+      if (view === 'share') return renderShare();
+      if (view === 'poster') return renderPoster();
+      return renderResult('core');
+    }
+    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.attachment?.[attachmentPreviewType]) {
+      const previewVisual = state.catalog.resultVisuals.attachment[attachmentPreviewType];
+      const previewProfile = previewVisual.analysisProfile;
+      const previewResult = {
+        id: `preview-attachment-${attachmentPreviewType}`,
+        assessmentId: 'attachment',
+        typeCode: attachmentPreviewType,
+        typeName: previewVisual.title,
+        title: previewVisual.title,
+        profileKey: attachmentPreviewType === 'secure' ? 'low_low' : attachmentPreviewType === 'anxious' ? 'high_low' : attachmentPreviewType === 'avoidant' ? 'low_high' : 'high_high',
+        profileTitle: attachmentPreviewType === 'secure' ? '关系里比较能松下来' : attachmentPreviewType === 'anxious' ? '很认真地确认连接' : attachmentPreviewType === 'avoidant' ? '习惯把自己照顾好' : '一边想确认，一边想退开',
+        summary: previewVisual.quote,
+        shareLine: previewVisual.quote,
+        scores: previewVisual.previewScores,
+        insights: [
+          { title: '你的主要倾向', body: previewProfile.driver },
+          { title: '一个很像你的瞬间', body: previewProfile.conflict },
+          { title: '你最容易掉进去的循环', body: previewProfile.stress },
+          { title: '别人可能误会你的地方', body: previewProfile.misread },
+          { title: '更适合你的调整方式', body: previewProfile.recovery }
+        ],
+        sections: [
+          { title: '你自然的样子', body: previewProfile.driver },
+          { title: '这份反应在保护什么', body: previewProfile.conflict },
+          { title: '关系里的你', body: previewProfile.misread },
+          { title: '容易卡住的时刻', body: previewProfile.conflict },
+          { title: '你真正需要的', body: previewProfile.understood }
+        ]
+      };
+      state.result = previewResult;
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'attachment')];
       if (view === 'share') return renderShare();
       if (view === 'poster') return renderPoster();
       return renderResult('core');

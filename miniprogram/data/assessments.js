@@ -1,4 +1,42 @@
 const likert = ['很不像我', '比较不像我', '看情况', '比较像我', '很像我'];
+const attachmentLikert = ['非常不同意', '比较不同意', '不确定', '比较同意', '非常同意'];
+
+// 每道产品题都要能回溯到 ECR-R 的焦虑/回避构念。这里记录的是
+// 语义对应关系，不表示当前中文情境题与原量表具有测量等价性。
+const attachmentReferences = {
+  RS01: ['ECR-R 1', 'ECR-R 2'],
+  RS02: ['ECR-R 19'],
+  RS03: ['ECR-R 2', 'ECR-R 6'],
+  RS04: ['ECR-R 21'],
+  RS05: ['ECR-R 4', 'ECR-R 5'],
+  RS06: ['ECR-R 23', 'ECR-R 25'],
+  RS07: ['ECR-R 1', 'ECR-R 6'],
+  RS08: ['ECR-R 28'],
+  RS09: ['ECR-R 3', 'ECR-R 12'],
+  RS10: ['ECR-R 29'],
+  RS11: ['ECR-R 10'],
+  RS12: ['ECR-R 30'],
+  RS13: ['ECR-R 13'],
+  RS14: ['ECR-R 23', 'ECR-R 32'],
+  RS15: ['ECR-R 6', 'ECR-R 16'],
+  RS16: ['ECR-R 31'],
+  RS17: ['ECR-R 17'],
+  RS18: ['ECR-R 35'],
+  RS19: ['ECR-R 9'],
+  RS20: ['ECR-R 20'],
+  RS21: ['ECR-R 11'],
+  RS22: ['ECR-R 33', 'ECR-R 34'],
+  RS23: ['ECR-R 3', 'ECR-R 13'],
+  RS24: ['ECR-R 22', 'ECR-R 26']
+};
+
+const relationshipReferences = {
+  commitment: ['Investment Model Scale · commitment / investment'],
+  appreciation: ['Perceived Partner Responsiveness · validation / caring'],
+  response: ['Perceived Partner Responsiveness · understanding / support'],
+  repair: ['relationship conflict repair research'],
+  trust: ['dyadic trust and relationship boundary research']
+};
 
 const cognitiveQuestionOrder = [
   'CP01', 'CP05', 'CP09', 'CP13', 'CP17', 'CP21', 'CP25', 'CP29',
@@ -17,7 +55,7 @@ const assessments = {
     duration: '36 题 · 约 6 分钟',
     evidence: '依据荣格的感觉、直觉、思维、情感四种心理功能及内外倾态度，并参考 Myers-Briggs 类型动力学编写；题目为原创自我探索版，不属于官方 MBTI® 量表',
     evidenceId: 'S01',
-    version: '0.7.0',
+    version: '0.8.0',
     tone: 'serious',
     accent: 'blue',
     icon: '/assets/mist-blue.png',
@@ -73,7 +111,16 @@ const assessments = {
     ]
       .map(([id, text, cognitiveFunction, facet, oppositeFunction]) => ({ id, text, cognitiveFunction, facet, oppositeFunction }))
       .sort((a, b) => cognitiveQuestionOrder.indexOf(a.id) - cognitiveQuestionOrder.indexOf(b.id)),
-    followups: []
+    followups: [
+      ['CF01', '当我还没想清楚时，比起独自整理，我更容易通过说出来和外界反馈把想法理清。', 'Ne', '互动或独处', 'Ni', 'EI'],
+      ['CF02', '需要做出决定时，我通常先把步骤和标准摆到外部，而不是先在心里反复校准自己的逻辑。', 'Te', '外部或内部整理', 'Ti', 'EI'],
+      ['CF03', '面对陌生问题，我更自然地展开几种可能，而不是先抓住眼前可以验证的事实。', 'Ne', '可能或事实', 'Se', 'NS'],
+      ['CF04', '判断事情走向时，我更依赖零散线索在心里形成的方向，而不是过去相似经验提供的参照。', 'Ni', '方向或经验', 'Si', 'NS'],
+      ['CF05', '发生分歧时，我更自然地先确定可执行标准，而不是先调整到彼此都能接受的表达。', 'Te', '标准或关系', 'Fe', 'TF'],
+      ['CF06', '判断一个选择时，我更先检查逻辑是否一致，而不是它是否符合自己真正重视的东西。', 'Ti', '逻辑或价值', 'Fi', 'TF'],
+      ['CF07', '开始一项开放任务时，我更自然地先列步骤推进，而不是先保留多种可能继续探索。', 'Te', '推进或探索', 'Ne', 'JP'],
+      ['CF08', '多人一起行动时，我更自然地先确认共识和安排，而不是跟着现场变化边走边调整。', 'Fe', '安排或现场', 'Se', 'JP']
+    ].map(([id, text, cognitiveFunction, facet, oppositeFunction, axis]) => ({ id, text, cognitiveFunction, facet, oppositeFunction, axis }))
   },
 
   attachment: {
@@ -82,16 +129,16 @@ const assessments = {
     shortTitle: '依恋倾向',
     section: '理解关系',
     duration: '24 题 · 约 4 分钟',
-    evidence: '参考 ECR-R 的依恋焦虑、依恋回避二维模型，并按关系丧失、确认需要、自我价值、情绪开放、依靠他人、亲密距离六个侧面原创编写；并非原量表翻译',
+    evidence: '依据 ECR-R / ECR-RS 的依恋焦虑、依恋回避二维模型编写中文情境题；逐题保留构念来源，但不声称与原量表具有测量等价性',
     evidenceId: 'S03',
-    version: '0.5.0',
+    version: '0.6.0',
     tone: 'serious',
     accent: 'coral',
     icon: '/assets/mist-attachment-coral.png',
     introArt: '/assets/intro-attachment-coral-v2.jpg',
     intro: '看看你在亲密关系里怎样确认连接、表达需要，也怎样为自己保留空间。',
-    instruction: '请先在心里选定一段目前或过去对你重要的亲密关系，整份题都按这段关系中的通常感受回答。没有恋爱经历时，可参考最重要的亲密关系，结果仅供自我观察。',
-    options: likert,
+    instruction: '请按你在重要亲密关系中的通常感受回答，而不是只按最近一次争执。没有恋爱经历时，可以参考一段对你重要的亲密关系。',
+    options: attachmentLikert,
     questions: [
       ['RS01', '当对方的回应明显变少时，我会很快担心自己是不是不再重要。', 'anxiety', 'rejection', false],
       ['RS02', '难受的时候，即使对方愿意听，我也更倾向先独自处理。', 'avoidance', 'openness', false],
@@ -101,26 +148,33 @@ const assessments = {
       ['RS06', '当对方想更深入了解我的感受时，我有时会下意识退开。', 'avoidance', 'closeness', false],
 
       ['RS07', '发生摩擦后，如果迟迟没有和好，我容易想到这段关系可能会结束。', 'anxiety', 'rejection', false],
-      ['RS08', '说到真正重要的需要时，我常会先说轻一点，把更深的部分留在心里。', 'avoidance', 'openness', false],
+      ['RS08', '我通常愿意和对方讨论自己的烦恼或担心。', 'avoidance', 'openness', true],
       ['RS09', '如果对方没有明确表达在意，我会很难判断我们的关系是不是还好。', 'anxiety', 'reassurance', false],
-      ['RS10', '即使确实需要帮助，我也常常不愿意向对方开口。', 'avoidance', 'dependence', false],
+      ['RS10', '需要支持时，向对方求助通常会让我觉得有帮助。', 'avoidance', 'dependence', true],
       ['RS11', '对方语气变冷或心不在焉时，我容易先怀疑是不是自己做错了什么。', 'anxiety', 'worth', false],
-      ['RS12', '关系变得很亲密时，我仍需要保留一大块不希望对方进入的空间。', 'avoidance', 'closeness', false],
+      ['RS12', '大多数重要的事情，我愿意让对方知道。', 'avoidance', 'closeness', true],
 
       ['RS13', '当对方有自己的安排、没有顾到我时，我容易感觉自己正在被推开。', 'anxiety', 'rejection', false],
       ['RS14', '谈到很深的感受时，我有时会沉默、转开话题，或想尽快结束。', 'avoidance', 'openness', false],
       ['RS15', '等待对方回应时，我常常很难把注意力放回自己的事情。', 'anxiety', 'reassurance', false],
-      ['RS16', '依靠另一个人会让我担心欠下什么，或以后失去主动。', 'avoidance', 'dependence', false],
+      ['RS16', '遇到重要的事情时，我通常愿意和对方把它谈开。', 'avoidance', 'dependence', true],
       ['RS17', '看到对方对别人更热情时，我会在意自己在对方心里的位置。', 'anxiety', 'worth', false],
-      ['RS18', '当对方越来越依赖我时，我会本能地想把距离拉开一点。', 'avoidance', 'closeness', false],
+      ['RS18', '向对方表达喜欢、在意或亲近，对我来说通常比较自然。', 'avoidance', 'closeness', true],
 
       ['RS19', '关系出现短暂冷淡时，我通常不会立刻想到自己可能失去对方。', 'anxiety', 'rejection', true],
       ['RS20', '我愿意让对方知道自己正在害怕、委屈或无助。', 'avoidance', 'openness', true],
       ['RS21', '即使暂时得不到确认，我通常也能先安定下来，等有机会再沟通。', 'anxiety', 'reassurance', true],
       ['RS22', '需要帮助时，我能够比较自然地依靠对方。', 'avoidance', 'dependence', true],
-      ['RS23', '对方没有立刻回应时，我通常不会马上把它理解成拒绝。', 'anxiety', 'worth', true],
+      ['RS23', '对方没有立刻回应时，我容易把这种安静理解成拒绝或变心。', 'anxiety', 'worth', false],
       ['RS24', '关系越来越亲近时，我多数时候仍能感到放松，而不是被困住。', 'avoidance', 'closeness', true]
-    ].map(([id, text, dimension, facet, reverse]) => ({ id, text, dimension, facet, reverse }))
+    ].map(([id, text, dimension, facet, reverse]) => ({
+      id,
+      text,
+      dimension,
+      facet,
+      reverse,
+      references: attachmentReferences[id]
+    }))
   },
 
   bigfive: {
@@ -169,9 +223,9 @@ const assessments = {
     shortTitle: '恋爱状态',
     section: '理解关系',
     duration: '20 题 · 约 4 分钟',
-    evidence: '参考关系质量、承诺、伴侣回应与冲突后修复研究，按共同投入、被看见感、情绪回应、冲突修复、信任与边界五个方向原创编写',
+    evidence: '依据关系投入、伴侣回应、冲突修复与信任边界等构念原创编写；每道题保留构念来源，但不声称等同某一套正式量表',
     evidenceId: 'S05',
-    version: '0.5.0',
+    version: '0.6.0',
     tone: 'serious',
     accent: 'lavender',
     icon: '/assets/mist-relationship-lavender.png',
@@ -203,7 +257,7 @@ const assessments = {
       ['RC18', '当我说出感受时，对方常会淡化它、转开话题或急着反驳。', 'response', true],
       ['RC19', '同一个矛盾常常反复出现，却很少真正谈清楚或形成改变。', 'repair', true],
       ['RC20', '为了安心，我们常需要查看、限制或反复证明彼此的行踪和关系。', 'trust', true]
-    ].map(([id, text, dimension, reverse]) => ({ id, text, dimension, reverse }))
+    ].map(([id, text, dimension, reverse]) => ({ id, text, dimension, reverse, references: relationshipReferences[dimension] }))
   },
 
   social: {

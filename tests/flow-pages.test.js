@@ -67,13 +67,27 @@ test('损坏草稿从最早缺题恢复，快速返回会取消自动前进', as
   const page = instantiate(loadPage('miniprogram/pages/quiz/index.js'));
   page.onLoad({ id: 'relationship' });
   assert.equal(page.data.current, 1);
-  assert.equal(page.data.options.length, 4);
+  assert.equal(page.data.options.length, 5);
 
   page.selectAnswer({ currentTarget: { dataset: { value: 4 } } });
   page.exitOrPrevious();
   await new Promise((resolve) => setTimeout(resolve, 260));
   assert.equal(page.data.current, 0);
   page.onUnload();
+});
+
+test('依恋与恋爱状态保留五级中间选项，其他主流程测试仍使用四档快选', () => {
+  const attachmentPage = instantiate(loadPage('miniprogram/pages/quiz/index.js'));
+  attachmentPage.onLoad({ id: 'attachment' });
+  assert.deepEqual(attachmentPage.data.options.map((option) => option.value), [1, 2, 3, 4, 5]);
+  assert.equal(attachmentPage.data.options[2].label, '不确定');
+  attachmentPage.onUnload();
+
+  const relationshipPage = instantiate(loadPage('miniprogram/pages/quiz/index.js'));
+  relationshipPage.onLoad({ id: 'relationship' });
+  assert.deepEqual(relationshipPage.data.options.map((option) => option.value), [1, 2, 3, 4, 5]);
+  assert.equal(relationshipPage.data.options[2].label, '有时');
+  relationshipPage.onUnload();
 });
 
 test('同一答题页重复提交只保存一份结果', () => {
@@ -85,6 +99,25 @@ test('同一答题页重复提交只保存一份结果', () => {
   page.finish();
   assert.equal(memory.get('mind_results_v1').length, 1);
   assert.equal(calls.redirectTo.length, 1);
+  page.onUnload();
+});
+
+test('思考模式全部同档时先追加取舍题，再保存明确类型', () => {
+  const page = instantiate(loadPage('miniprogram/pages/quiz/index.js'));
+  page.onLoad({ id: 'cognitive' });
+  page.data.answers = Array(assessments.cognitive.questions.length).fill(3);
+  page.data.current = assessments.cognitive.questions.length - 1;
+  page.finish();
+  assert.equal(page.data.questions.length, 44);
+  assert.equal(page.data.current, 36);
+  assert.equal(memory.get('mind_results_v1'), undefined);
+
+  page.data.answers = page.data.answers.map((value, index) => index < 36 ? value : (index % 2 ? 2 : 4));
+  page.data.current = 43;
+  page.finish();
+  const result = memory.get('mind_results_v1')[0];
+  assert.match(result.typeCode, /^[EI][NS][TF][JP]$/);
+  assert.notEqual(result.typeCode, 'XXXX');
   page.onUnload();
 });
 

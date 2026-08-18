@@ -1,8 +1,14 @@
 <view class="couple-page">
   <block wx:if="{{!report}}">
-    <view class="couple-eyebrow">{{hasIncomingInvite ? 'TA 的邀请' : '从「我」到「我们」'}}</view>
-    <view class="couple-title">{{hasIncomingInvite ? 'TA 把一半拼图，留给了你' : '把 TA 拼进来，会出现怎样一张图？'}}</view>
-    <view class="couple-intro">{{hasIncomingInvite ? 'TA 已经先拼出了自己。现在还缺你的这一半，才能看见你们之间那张看不见的图。' : '前五块拼的是「我」。两个人放在一起，会看见共同语言，也会看见最容易错频道的地方。'}}</view>
+    <view class="couple-eyebrow">{{pageEyebrow}}</view>
+    <view class="couple-title">{{pageTitle}}</view>
+    <view class="couple-intro">{{pageIntro}}</view>
+
+    <view class="couple-steps">
+      <view class="couple-step {{!hasResults ? 'couple-step-active' : 'couple-step-done'}}"><text>1</text><view>拼好我的一半</view></view>
+      <view class="couple-step {{hasResults && !hasIncomingInvite ? 'couple-step-active' : (hasIncomingInvite ? 'couple-step-done' : '')}}"><text>2</text><view>发给 / 来自 TA</view></view>
+      <view class="couple-step {{hasIncomingInvite && hasResults ? 'couple-step-active' : ''}}"><text>3</text><view>生成「我们」</view></view>
+    </view>
 
     <view class="couple-hero">
       <view class="couple-person couple-person-me">
@@ -30,9 +36,14 @@
         </view>
       </view>
 
-      <button wx:if="{{hasIncomingInvite}}" class="couple-primary" bindtap="createReport">拼出我们的相处地图</button>
-      <button wx:else class="couple-primary" open-type="share">把 TA 拼进来</button>
-      <view class="couple-action-note">约 4 分钟 · 不判断你们合不合适</view>
+      <button wx:if="{{hasIncomingInvite}}" class="couple-primary" bindtap="createReport">生成我们的相处地图</button>
+      <button wx:else class="couple-primary" open-type="share" bindtap="prepareInvite">{{invitePrepared ? '再次发给 TA' : '生成邀请，发给 TA'}}</button>
+      <view class="couple-action-note">{{hasIncomingInvite ? '双方结果只在本机组合，不上传逐题答案' : 'TA 完成后，报告会先显示在 TA 的设备上，再由 TA 分享给你'}}</view>
+
+      <view wx:if="{{invitePrepared && !hasIncomingInvite}}" class="couple-waiting">
+        <view class="couple-waiting-title">邀请已经准备好</view>
+        <view>如果刚才取消了分享，点上面的按钮可以再次发送。当前版本不会自动知道 TA 是否完成。</view>
+      </view>
 
       <button class="couple-manual-toggle" bindtap="toggleCodePanel">{{showCodePanel ? '收起手动方式' : '已经拿到结果码？手动拼入'}}</button>
       <view wx:if="{{showCodePanel}}" class="couple-code-panel">
@@ -46,30 +57,21 @@
 
     <block wx:else>
       <view class="couple-requirements">
-        <view class="couple-requirements-title">先拼上你的两块基础拼图</view>
-        <button wx:if="{{!readiness.cognitive}}" class="couple-requirement" data-id="cognitive" bindtap="goAssessment">
+        <view class="couple-requirements-title">你的准备进度</view>
+        <view class="couple-requirement {{readiness.cognitive ? 'couple-requirement-done' : ''}}">
           <image src="/assets/doodle-cognitive.png" mode="aspectFit" />
           <view class="couple-requirement-copy"><text>思考模式</text><text class="couple-requirement-hint">你怎样理解世界</text></view>
-          <view class="couple-requirement-state">约 6 分钟 →</view>
-        </button>
-        <view wx:else class="couple-requirement couple-requirement-done">
-          <image src="/assets/doodle-cognitive.png" mode="aspectFit" />
-          <view class="couple-requirement-copy"><text>思考模式</text><text class="couple-requirement-hint">你怎样理解世界</text></view>
-          <view class="couple-requirement-state">已拼上 ✓</view>
+          <view class="couple-requirement-state">{{readiness.cognitive ? '已拼上 ✓' : '待完成'}}</view>
         </view>
 
-        <button wx:if="{{!readiness.attachment}}" class="couple-requirement" data-id="attachment" bindtap="goAssessment">
+        <view class="couple-requirement {{readiness.attachment ? 'couple-requirement-done' : ''}}">
           <image src="/assets/doodle-attachment.png" mode="aspectFit" />
           <view class="couple-requirement-copy"><text>依恋模式</text><text class="couple-requirement-hint">你怎样靠近与退后</text></view>
-          <view class="couple-requirement-state">约 4 分钟 →</view>
-        </button>
-        <view wx:else class="couple-requirement couple-requirement-done">
-          <image src="/assets/doodle-attachment.png" mode="aspectFit" />
-          <view class="couple-requirement-copy"><text>依恋模式</text><text class="couple-requirement-hint">你怎样靠近与退后</text></view>
-          <view class="couple-requirement-state">已拼上 ✓</view>
+          <view class="couple-requirement-state">{{readiness.attachment ? '已拼上 ✓' : '待完成'}}</view>
         </view>
       </view>
-      <view class="couple-privacy">完成后自动回到这里，TA 的邀请也会保留。</view>
+      <button wx:if="{{nextRequirement}}" class="couple-primary" data-id="{{nextRequirement.id}}" bindtap="goAssessment">完成{{nextRequirement.name}} · {{nextRequirement.duration}}</button>
+      <view class="couple-privacy">完成后自动回到这里；如果你是从 TA 的邀请进入，邀请会继续保留。</view>
     </block>
   </block>
 
@@ -82,6 +84,20 @@
       <view class="couple-person couple-person-me"><image src="/assets/doodle-relationship.png" mode="aspectFit" /><text>我</text></view>
       <view class="couple-join">×</view>
       <view class="couple-person couple-person-partner couple-person-arrived"><image src="/assets/doodle-social.png" mode="aspectFit" /><text>TA</text></view>
+    </view>
+
+    <view class="couple-score-evidence">
+      <view class="couple-score-heading">你们在关系里的位置</view>
+      <view class="couple-score-note">不是匹配分，只看彼此更靠近哪一边</view>
+      <view wx:for="{{report.visibleDimensions}}" wx:key="key" class="couple-score-row">
+        <view class="couple-score-label"><text>{{item.label}}</text><text wx:if="{{item.label === '整理能量'}}" class="couple-score-tag">差异最大</text></view>
+        <view class="couple-score-track">
+          <view class="couple-score-dot couple-score-dot-me" style="{{item.mineStyle}}"><text>我</text></view>
+          <view class="couple-score-dot couple-score-dot-ta" style="{{item.theirStyle}}"><text>TA</text></view>
+        </view>
+        <view class="couple-score-ends"><text>{{item.leftLabel}}</text><text>{{item.rightLabel}}</text></view>
+      </view>
+      <button class="couple-score-more" bindtap="toggleScoreDimensions">{{scoreExpanded ? '收起另外 3 项' : '查看另外 3 项'}} <text>›</text></button>
     </view>
 
     <view class="report-cards">

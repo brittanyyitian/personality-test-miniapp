@@ -27,8 +27,9 @@ function getResults() {
   const upgrade = (result, cognitiveBaseline) => {
     const assessment = assessments[result.assessmentId];
     const answers = Array.isArray(result.answers) ? result.answers : null;
+    const needsAttachmentProfile = result.assessmentId === 'attachment' && !result.profileTitle;
     const needsUpgrade = assessment && answers && answers.length === assessment.questions.length
-      && (result.version !== assessment.version || !Array.isArray(result.insights));
+      && (result.version !== assessment.version || !Array.isArray(result.insights) || needsAttachmentProfile);
     if (!needsUpgrade) return result;
     try {
       const questionIds = Array.isArray(result.questionIds) && result.questionIds.length === answers.length

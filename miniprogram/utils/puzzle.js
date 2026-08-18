@@ -99,14 +99,31 @@ function illustratedAnalysis(result, visual) {
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
+  const labels = Array.isArray(visual.analysisLabels) && visual.analysisLabels.length === 6
+    ? visual.analysisLabels
+    : ['核心驱动力', '内在矛盾', '压力反转', '关系误读', '被理解方式', '恢复建议'];
   return [
-    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
-    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
-    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
-    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
-    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
-    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labels[0], body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labels[1], body: conflict },
+    { key: 'stress', index: '03', title: labels[2], body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labels[3], body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labels[4], body: profile.understood },
+    { key: 'recovery', index: '06', title: labels[5], body: recovery || profile.recovery }
   ];
+}
+
+function visualTendencyPercent(result, axis) {
+  const scores = result.scores || {};
+  if (axis.scale === 'derived-security') {
+    const anxiety = Number(scores.anxiety) || 0;
+    const avoidance = Number(scores.avoidance) || 0;
+    return clamp(100 - ((anxiety + avoidance) / 2));
+  }
+  if (axis.scale === 'percent') {
+    const value = Number(scores[axis.key]) || 0;
+    return clamp(axis.direction === -1 ? 100 - value : value);
+  }
+  return clamp(50 + (Number(scores[axis.key]) || 0) * 50 * (axis.direction || 1));
 }
 
 function getResultVisual(result) {
@@ -121,7 +138,7 @@ function getResultVisual(result) {
     analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: clamp(50 + (Number(result.scores && result.scores[axis.key]) || 0) * 50 * axis.direction),
+      percent: visualTendencyPercent(result, axis),
       tone: axis.tone
     }))
   };

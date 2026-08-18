@@ -1,11 +1,11 @@
 const { assessments } = require('../../data/assessments');
-const { scoreAssessment } = require('../../utils/scoring');
+const { scoreAssessment, getFollowupQuestions } = require('../../utils/scoring');
 const { saveDraft, getDraft, clearDraft, saveResult, getLatestByAssessment } = require('../../utils/storage');
 const { getPiece } = require('../../utils/puzzle');
 
-function displayOptions(options) {
+function displayOptions(options, includeMiddle = false) {
   if (!Array.isArray(options)) return [];
-  const values = options.length === 5 ? [1, 2, 4, 5] : options.map((_, index) => index + 1);
+  const values = options.length === 5 && !includeMiddle ? [1, 2, 4, 5] : options.map((_, index) => index + 1);
   return values.map((value) => ({ value, label: options[value - 1] }));
 }
 
@@ -60,7 +60,7 @@ Page({
       assessment,
       piece: getPiece(assessment.id),
       questions,
-      options: displayOptions(assessment.options),
+      options: displayOptions(assessment.options, ['attachment', 'relationship'].includes(assessment.id)),
       answers: restored.answers,
       current: restored.current
     }, () => this.syncQuestion());
@@ -141,6 +141,25 @@ Page({
     if (this.submitting) return;
     if (this.savedResultId) {
       this.openSavedResult();
+      return;
+    }
+    const { assessment, questions, answers } = this.data;
+    const existingIds = new Set(questions.map((question) => question.id));
+    const pendingFollowups = getFollowupQuestions(assessment.id, answers)
+      .filter((question) => !existingIds.has(question.id));
+    if (pendingFollowups.length) {
+      const nextQuestions = questions.concat(pendingFollowups);
+      const nextAnswers = answers.concat(Array(pendingFollowups.length).fill(0));
+      this.setData({
+        questions: nextQuestions,
+        answers: nextAnswers,
+        current: questions.length,
+        finishing: false,
+        transitioning: false
+      }, () => {
+        saveDraft(assessment.id, { answers: nextAnswers, current: questions.length, updatedAt: Date.now() });
+        this.syncQuestion();
+      });
       return;
     }
     this.submitting = true;

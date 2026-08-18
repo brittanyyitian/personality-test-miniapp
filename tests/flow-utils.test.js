@@ -71,6 +71,43 @@ test('16 种认知结果拥有独立六段画像，不能退化成四字母通�
   assert.equal(new Set(profiles).size, 16);
 });
 
+test('四种依恋结果复用依恋母版，但拥有独立头图与六段关系画像', () => {
+  const definitions = {
+    secure: ['安全型依恋', 28, 24],
+    anxious: ['焦虑型依恋', 82, 28],
+    avoidant: ['回避型依恋', 30, 82],
+    'fearful-avoidant': ['恐惧—回避型依恋', 80, 78]
+  };
+  const headings = new Set();
+  const profiles = Object.entries(definitions).map(([typeCode, [title, anxiety, avoidance]]) => {
+    const visual = getResultVisual({ assessmentId: 'attachment', typeCode, scores: { anxiety, avoidance } });
+    assert.equal(visual.template, 'illustrated-poster', typeCode);
+    assert.equal(visual.title, title, typeCode);
+    assert.equal(visual.hero, `/result-package/assets/attachment/result-attachment-${typeCode}-hero-v2.webp`, typeCode);
+    assert.equal(visual.heroIncludesKicker, false, typeCode);
+    assert.equal(visual.traits.length, 4, typeCode);
+    assert.equal(visual.tendencies.length, 3, typeCode);
+    assert.equal(visual.friendTags.length, 5, typeCode);
+    assert.equal(visual.notes.length, 3, typeCode);
+    assert.deepEqual(visual.analysis.map((item) => item.title), ['依恋底色', '容易触发', '自动保护', '关系误读', '真正需要', '练习方向'], typeCode);
+    assert.equal(visual.analysisHeadingLines.length, 2, typeCode);
+    headings.add(visual.analysisHeadingLines.join('|'));
+    visual.analysis.forEach((item) => assert.ok(item.body.length >= 45, `${typeCode}/${item.title} 内容过短`));
+    return visual.analysis.map((item) => item.body).join('|');
+  });
+  assert.equal(new Set(profiles).size, 4);
+  assert.equal(headings.size, 4);
+});
+
+test('依恋海报指标直接读取百分制，并独立派生连接安全', () => {
+  const visual = getResultVisual({
+    assessmentId: 'attachment',
+    typeCode: 'anxious',
+    scores: { anxiety: 82, avoidance: 28 }
+  });
+  assert.deepEqual(visual.tendencies.map((item) => item.percent), [82, 28, 45]);
+});
+
 test('illustrated 画像优先接入正式 insights、sections 与 deepDive', () => {
   const result = {
     assessmentId: 'cognitive', typeCode: 'INTJ', scores: {},
@@ -173,6 +210,14 @@ test('五因素会把明显低于中点的特质识别为核心画像', () => {
   const result = scoreAssessment('bigfive', answers, assessment.questions.map((question) => question.id));
   assert.equal(result.title, '能量更愿意往内收');
   assert.match(result.insights[0].body, /外向活力/);
+});
+
+test('五因素全部位于中点时给出均衡画像，不伪造两条最突出线索', () => {
+  const result = scoreAssessment('bigfive', assessments.bigfive.questions.map(() => 3));
+  assert.equal(result.title, '看人，也看场合');
+  assert.deepEqual(result.ruleIds, ['BF_BALANCED_MID']);
+  assert.match(result.summary, /五个方向都接近量尺中点/);
+  assert.doesNotMatch(result.insights[0].body, /最突出的两条/);
 });
 
 test('五套测试的高低典型回答会产生不同分析内容', () => {

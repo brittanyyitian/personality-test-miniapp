@@ -450,10 +450,13 @@ Page({
     drawRoundRect(ctx, 42, 1500, 666, 154, 30, '#F7DED1');
     ctx.setFillStyle('#E84B35');
     ctx.setFontSize(17);
-    ctx.fillText(`TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
+    ctx.fillText(visual.analysisEyebrow || `TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
     ctx.setFillStyle('#3D3028');
     ctx.setFontSize(34);
-    ctx.fillText('不止四个字母，这是你的内在运作方式', 72, 1602);
+    const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
+      ? visual.analysisHeadingLines
+      : ['不止四个字母，', '这是你的内在运作方式'];
+    analysisHeadingLines.slice(0, 2).forEach((line, index) => ctx.fillText(line, 72, 1590 + (index * 40)));
     (visual.analysis || []).slice(0, 6).forEach((item, index) => {
       const y = 1678 + (index * 232);
       drawRoundRect(ctx, 42, y, 666, 212, 25, '#FFFDF8');

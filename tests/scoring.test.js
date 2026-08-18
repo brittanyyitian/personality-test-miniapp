@@ -26,14 +26,16 @@ test('未完成答案不会被静默补齐', () => {
   assert.throws(() => scoreAssessment('attachment', [1, 2, 3]), /未完成|NaN|reduce|undefined/);
 });
 
-test('认知偏好固定 36 题并直接给出四字母结果', () => {
+test('认知偏好集中作答时追加取舍题并仍给出明确四字母结果', () => {
   assert.equal(assessments.cognitive.questions.length, 36);
   const neutralAnswers = assessments.cognitive.questions.map(() => 3);
   const followups = getFollowupQuestions('cognitive', neutralAnswers);
-  const result = scoreAssessment('cognitive', neutralAnswers, assessments.cognitive.questions.map((question) => question.id));
-  assert.equal(followups.length, 0);
-  assert.equal(result.typeCode, 'XXXX');
-  assert.match(result.title, /暂未分开/);
+  const questions = assessments.cognitive.questions.concat(followups);
+  const answers = neutralAnswers.concat(followups.map((_, index) => (index % 2 ? 2 : 4)));
+  const result = scoreAssessment('cognitive', answers, questions.map((question) => question.id));
+  assert.equal(followups.length, 8);
+  assert.match(result.typeCode, /^[EI][NS][TF][JP]$/);
+  assert.doesNotMatch(result.title, /暂未分开|XXXX/);
 });
 
 test('认知偏好用 Fi/Ti 功能而不是“会不会解决问题”区分 INFP 与 INTP', () => {
@@ -185,7 +187,7 @@ test('关系安全感反向题参与确定性评分', () => {
   assert.equal(high.rawScores.avoidance, 5);
   assert.equal(high.title, '恐惧—回避型依恋');
   assert.equal(high.typeCode, 'fearful-avoidant');
-  assert.match(high.summary, /怕失去，也怕靠得太近/);
+  assert.match(high.summary, /一边想确认，一边想退开/);
 });
 
 test('依恋二维结果明确映射四种核心依恋倾向', () => {
@@ -207,25 +209,64 @@ test('依恋二维结果明确映射四种核心依恋倾向', () => {
   );
 });
 
-test('依恋结果页指标直接使用标准化百分比，不会二次换算', () => {
-  const result = scoreAssessment('attachment', assessments.attachment.questions.map((question) => question.reverse ? 5 : 1));
-  const metrics = getResultVisual(result) ? [] : require('../miniprogram/utils/puzzle').buildMetrics(result);
-  assert.deepEqual(metrics.map((item) => item.percent), [4, 4, 96]);
+test('依恋中间分数只影响细节，不会生成第五种公开类型', () => {
+  const allowed = new Set(['secure', 'anxious', 'avoidant', 'fearful-avoidant']);
+  const answerSets = [
+    assessments.attachment.questions.map(() => 3),
+    assessments.attachment.questions.map((_, index) => [2, 3, 4, 3][index % 4]),
+    assessments.attachment.questions.map((question) => question.reverse ? 4 : 2),
+    assessments.attachment.questions.map((question) => question.reverse ? 2 : 4)
+  ];
+  answerSets.forEach((answers) => {
+    const result = scoreAssessment('attachment', answers);
+    assert.equal(allowed.has(result.typeCode), true, result.typeCode);
+  });
+  const neutral = scoreAssessment('attachment', assessments.attachment.questions.map(() => 3));
+  assert.equal(neutral.typeCode, 'secure');
+  assert.equal(neutral.confidence, '回答较集中');
+  assert.match(neutral.summary, /最接近的方向/);
 });
 
-test('依恋倾向为 24 题，二维各 12 题且六个侧面各四题', () => {
+test('依恋结果页指标直接使用标准化百分比，不会二次换算', () => {
+  const result = scoreAssessment('attachment', assessments.attachment.questions.map((question) => question.reverse ? 5 : 1));
+  const metrics = require('../miniprogram/utils/puzzle').buildMetrics(result);
+  assert.deepEqual(metrics.map((item) => item.percent), [4, 4, 96]);
+  assert.deepEqual(getResultVisual(result).tendencies.map((item) => item.percent), [4, 4, 96]);
+});
+
+test('依恋倾向为 24 题，二维各 12 题并按 ECR-R 构念平衡正反向题', () => {
   assert.equal(assessments.attachment.questions.length, 24);
   const dimensions = {};
   const facets = {};
-  const reverseFacets = {};
+  const reverseDimensions = {};
   assessments.attachment.questions.forEach((question) => {
     dimensions[question.dimension] = (dimensions[question.dimension] || 0) + 1;
     facets[question.facet] = (facets[question.facet] || 0) + 1;
-    if (question.reverse) reverseFacets[question.facet] = (reverseFacets[question.facet] || 0) + 1;
+    if (question.reverse) reverseDimensions[question.dimension] = (reverseDimensions[question.dimension] || 0) + 1;
+    assert.ok(Array.isArray(question.references) && question.references.length >= 1, question.id);
   });
   assert.deepEqual(dimensions, { anxiety: 12, avoidance: 12 });
   assert.deepEqual(Object.values(facets).sort(), Array(6).fill(4));
-  assert.deepEqual(Object.values(reverseFacets).sort(), Array(6).fill(1));
+  assert.deepEqual(reverseDimensions, { avoidance: 8, anxiety: 2 });
+});
+
+test('随机四档答案不会再大比例坍缩成安全型', () => {
+  let seed = 20260818;
+  const random = () => {
+    seed = ((seed * 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const values = [1, 2, 4, 5];
+  const counts = { secure: 0, anxious: 0, avoidant: 0, 'fearful-avoidant': 0 };
+  const samples = 20000;
+  for (let sample = 0; sample < samples; sample += 1) {
+    const answers = assessments.attachment.questions.map(() => values[Math.floor(random() * values.length)]);
+    counts[scoreAssessment('attachment', answers).typeCode] += 1;
+  }
+  Object.entries(counts).forEach(([type, count]) => {
+    const ratio = count / samples;
+    assert.ok(ratio >= 0.15 && ratio <= 0.35, `${type}: ${ratio}`);
+  });
 });
 
 test('恋爱状态为 20 题，五个关系资源各四题且各有反向题', () => {
@@ -235,9 +276,21 @@ test('恋爱状态为 20 题，五个关系资源各四题且各有反向题', (
   assessments.relationship.questions.forEach((question) => {
     dimensions[question.dimension] = (dimensions[question.dimension] || 0) + 1;
     if (question.reverse) reversed[question.dimension] = (reversed[question.dimension] || 0) + 1;
+    assert.ok(Array.isArray(question.references) && question.references.length > 0, question.id);
   });
   assert.deepEqual(Object.values(dimensions).sort(), Array(5).fill(4));
   assert.deepEqual(Object.values(reversed).sort(), Array(5).fill(1));
+});
+
+test('恋爱状态五项平分时输出均衡画像，不伪造最强或最弱维度', () => {
+  const assessment = assessments.relationship;
+  for (const target of [1, 2, 3, 4, 5]) {
+    const answers = assessment.questions.map((question) => question.reverse ? 6 - target : target);
+    const result = scoreAssessment('relationship', answers);
+    assert.match(result.tags.join(' '), /五项相对均衡/);
+    assert.doesNotMatch(result.summary, /最稳|最弱|更值得照顾的一处/);
+    assert.ok(result.ruleIds.some((ruleId) => ruleId.startsWith('RC_BALANCED_')));
+  }
 });
 
 test('恋爱状态同时组合整体状态、支点和两处风险', () => {
@@ -275,6 +328,46 @@ test('塔罗式意象卡共 18 张且每张都有反思与行动字段', () => {
   });
 });
 
+test('依恋四个主类型下保留九种可见的当前画像', () => {
+  const cases = [
+    ['secure', 'low_low', 1, 1],
+    ['secure', 'mid_low', 3, 1],
+    ['secure', 'low_mid', 1, 3],
+    ['anxious', 'high_low', 5, 1],
+    ['anxious', 'high_mid', 5, 3],
+    ['avoidant', 'low_high', 1, 5],
+    ['avoidant', 'mid_high', 3, 5],
+    ['fearful-avoidant', 'high_high', 5, 5]
+  ];
+  const profiles = new Map();
+  cases.forEach(([typeCode, profileKey, anxietyTarget, avoidanceTarget]) => {
+    const answers = assessments.attachment.questions.map((question) => {
+      const target = question.dimension === 'anxiety' ? anxietyTarget : avoidanceTarget;
+      return question.reverse ? 6 - target : target;
+    });
+    const result = scoreAssessment('attachment', answers);
+    assert.equal(result.typeCode, typeCode);
+    assert.equal(result.profileKey, profileKey);
+    assert.match(result.summary, new RegExp(result.profileTitle));
+    profiles.set(result.profileKey, result.profileTitle);
+  });
+
+  const dimensionIndexes = { anxiety: 0, avoidance: 0 };
+  const softFearfulAnswers = assessments.attachment.questions.map((question) => {
+    const target = dimensionIndexes[question.dimension] < 3 ? 4 : 3;
+    dimensionIndexes[question.dimension] += 1;
+    return question.reverse ? 6 - target : target;
+  });
+  const softFearful = scoreAssessment('attachment', softFearfulAnswers);
+  assert.equal(softFearful.typeCode, 'fearful-avoidant');
+  assert.equal(softFearful.profileKey, 'mid_mid');
+  assert.match(softFearful.summary, /靠近和退后都会出现/);
+  profiles.set(softFearful.profileKey, softFearful.profileTitle);
+
+  assert.equal(profiles.size, 9);
+  assert.equal(new Set(profiles.values()).size, 9);
+});
+
 test('双人结果码可往返且篡改会失败', () => {
   const cognitive = scoreAssessment('cognitive', assessments.cognitive.questions.map((_, index) => (index % 5) + 1), assessments.cognitive.questions.map((question) => question.id));
   const result = scoreAssessment('attachment', assessments.attachment.questions.map(() => 4));
@@ -304,7 +397,44 @@ test('双人报告始终包含共同资源且不输出匹配百分比', () => {
   ]);
   const report = createCoupleReport(mine, theirs);
   assert.equal(report.cards[0].ruleId, 'CM14');
-  assert.ok(!JSON.stringify(report).includes('%'));
+  assert.equal(report.matchScore, undefined);
+  assert.match(report.summary, /没有匹配百分比/);
+  assert.equal(report.dimensions.length, 6);
   assert.equal(report.cards.length, 4);
   assert.ok(report.cards.some((card) => card.ruleId === 'CM15'));
+});
+
+test('双人地图不会把完全相同的依恋分数写成差异', () => {
+  const cognitiveScores = { EI: -0.4, NS: 0.2, TF: -0.1, JP: 0.3 };
+  const versions = { c: assessments.cognitive.version, a: assessments.attachment.version };
+  const payload = (attachment) => ({ v: 2, c: cognitiveScores, a: attachment, versions });
+  const secure = createCoupleReport(payload({ anxiety: 25, avoidance: 25 }), payload({ anxiety: 25, avoidance: 25 }));
+  assert.equal(secure.profileName, '同频安稳');
+  assert.equal(secure.cards[1].ruleId, 'CM16');
+  assert.doesNotMatch(secure.cards[1].title + secure.cards[1].body, /不同|一个人.*另一个人/);
+
+  const fearful = createCoupleReport(payload({ anxiety: 75, avoidance: 75 }), payload({ anxiety: 75, avoidance: 75 }));
+  assert.equal(fearful.profileName, '同步拉扯');
+  assert.equal(fearful.cards[1].ruleId, 'CM17');
+  assert.match(fearful.cards[1].body, /你们都/);
+});
+
+test('双人地图把同方向认知差异写成强度不同，而不是相反偏好', () => {
+  const versions = { c: assessments.cognitive.version, a: assessments.attachment.version };
+  const mine = { v: 2, c: { EI: -0.9, NS: 0, TF: 0, JP: 0 }, a: { anxiety: 25, avoidance: 25 }, versions };
+  const theirs = { v: 2, c: { EI: -0.1, NS: 0, TF: 0, JP: 0 }, a: { anxiety: 25, avoidance: 25 }, versions };
+  const report = createCoupleReport(mine, theirs);
+  assert.equal(report.cards[2].ruleId, 'CM19');
+  assert.match(report.cards[2].body, /都需要安静整理/);
+  assert.doesNotMatch(report.cards[2].body, /一个人.*互动.*另一个人.*安静/);
+});
+
+test('双人结果码只携带地图实际使用的思考与依恋分数', () => {
+  const cognitive = scoreAssessment('cognitive', assessments.cognitive.questions.map((_, index) => (index % 4) + 1), assessments.cognitive.questions.map((question) => question.id));
+  const attachment = scoreAssessment('attachment', assessments.attachment.questions.map(() => 4));
+  const bigfive = scoreAssessment('bigfive', assessments.bigfive.questions.map(() => 4));
+  const relationship = scoreAssessment('relationship', assessments.relationship.questions.map(() => 4));
+  const decoded = parseShareCode(createShareCode([cognitive, attachment, bigfive, relationship]));
+  assert.deepEqual(Object.keys(decoded).sort(), ['a', 'c', 'v', 'versions']);
+  assert.deepEqual(Object.keys(decoded.versions).sort(), ['a', 'c']);
 });

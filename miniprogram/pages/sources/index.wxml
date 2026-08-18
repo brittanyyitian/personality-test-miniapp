@@ -9,6 +9,10 @@
       <view class="serif source-title">{{item.title}}</view>
       <view class="source-label">依据</view>
       <view class="source-copy">{{item.basis}}</view>
+      <block wx:if="{{item.references}}">
+        <view class="source-label">主要参考</view>
+        <view class="source-copy">{{item.references}}</view>
+      </block>
       <view class="source-label">局限</view>
       <view class="source-copy">{{item.limit}}</view>
     </view>

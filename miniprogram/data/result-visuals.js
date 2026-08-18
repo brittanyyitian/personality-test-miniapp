@@ -220,9 +220,153 @@ function cognitiveVisual(typeCode, definition) {
 
 const cognitive = Object.fromEntries(Object.entries(cognitiveTypes).map(([code, definition]) => [code, cognitiveVisual(code, definition)]));
 
+const attachmentTypes = {
+  secure: {
+    title: '安全型依恋',
+    analysisHeadingLines: ['不只是一句「安全」，', '这是你让亲密稳定运转的方式'],
+    hero: '/result-package/assets/attachment/result-attachment-secure-hero-v2.webp',
+    quote: '你不是从不不安，而是多数时候相信：需要可以说，距离可以留，关系也会回来。',
+    traits: [
+      ['能信任', '短暂没回应时，不急着把安静理解成离开。'],
+      ['敢需要', '需要帮助时，比较愿意让重要的人靠近。'],
+      ['会回来', '冲突可以暂停，但你更倾向于重新把话谈完。'],
+      ['有边界', '亲近不等于失去自己，独立也不等于推开。']
+    ],
+    friendTags: ['可靠', '松弛', '愿意沟通', '有分寸', '让人安心'],
+    notes: [
+      '你能同时容纳“我需要你”和“我也能照顾自己”。',
+      '你的稳定不是没有情绪，而是较少用最坏答案解释关系变化。',
+      '如果把确定感说出来，而不只放在心里，会让对方也更安心。'
+    ],
+    previewScores: { anxiety: 28, avoidance: 24 },
+    analysisProfile: {
+      driver: '你在关系里最珍惜的是一种可持续的确定感：不必时时证明爱，也不必靠消失争取空间。你愿意靠近，同时相信双方都可以保有自己的节奏。',
+      conflict: '稳定有时也会让你低估别人的不安。你觉得“这件事晚点谈也没关系”时，对方可能仍在等一句明确回应；安全感如果只存在你心里，并不会自动变成两个人都能感受到的东西。',
+      stress: '当连续失信、长期冷处理或边界被反复踩过时，你也会从松弛转为警觉。只是你通常会先尝试沟通和校准，而不是立刻用追逐或撤退解决所有不安。',
+      misread: '别人可能觉得你很独立、什么都能自己消化，因而忘记主动安慰你。事实上，稳定不等于没有脆弱；你也需要被认真回应，只是不一定会用强烈方式提醒。',
+      understood: '你最容易在言行一致的关系里松下来：想靠近时能直接靠近，需要空间时可以说明，并且双方都相信暂停之后还会回来。',
+      recovery: '继续把内在的确定感变成可见行动：多说一句“我还在”、约定何时再谈，也允许自己在需要时明确请求支持，而不是总做那个看起来最稳的人。'
+    }
+  },
+  anxious: {
+    title: '焦虑型依恋',
+    analysisHeadingLines: ['不只是一句「需要回应」，', '这是你确认连接的内在逻辑'],
+    hero: '/result-package/assets/attachment/result-attachment-anxious-hero-v2.webp',
+    quote: '你等的常常不只是一条消息，而是一个更深的确认：我对你仍然重要，你没有准备离开。',
+    traits: [
+      ['很想确认', '回应变慢时，注意力会不断回到关系上。'],
+      ['信号敏感', '语气、停顿和细小变化，都容易被你察觉。'],
+      ['容易反刍', '没有答案的空白，会被大脑补成很多可能。'],
+      ['需要可预期', '稳定的小回应，比偶尔浓烈的保证更能安定你。']
+    ],
+    friendTags: ['很认真', '重感情', '敏锐', '需要回应', '容易多想'],
+    notes: [
+      '你不是故意黏人，而是关系越重要，模糊信号越容易牵住注意力。',
+      '你真正想确认的往往不是“为什么没回”，而是“我们是不是还好”。',
+      '把试探换成一个具体请求，会比独自猜完整段关系更容易被接住。'
+    ],
+    previewScores: { anxiety: 82, avoidance: 28 },
+    analysisProfile: {
+      driver: '你对关系的投入很认真，也因此格外在意连接有没有被双方同时守住。回应、语气和约定会成为安全信号；当这些信号清楚时，你能非常热情、细腻地爱人。',
+      conflict: '越想确认关系，你越容易把注意力交给对方的每一个反应。等待一旦没有明确边界，大脑就会主动补全故事；你越追着寻找答案，对方又可能越觉得有压力。',
+      stress: '不安积累时，你可能反复查看消息、追问关系，或先说“没事”再用冷淡测试对方会不会发现。表面动作不同，底层都在问同一句：你还愿不愿意回来找我。',
+      misread: '别人可能只看到催促、敏感和反复确认，却没看见你真正害怕的是关系在自己不知道的时候变了。你要的并非每分钟在线，而是连接有清楚落点。',
+      understood: '真正让你松下来的不是一句很浓的承诺，而是持续、可预期、说到做到的回应：忙时说明，冲突后回来，重要决定不让你长期猜。',
+      recovery: '先把“关系是不是要结束”缩小成一个当下事实和一个请求，例如：“刚才回复变少，我有点不安。你方便告诉我什么时候能聊吗？”让真实回应替代脑内推演。'
+    }
+  },
+  avoidant: {
+    title: '回避型依恋',
+    analysisHeadingLines: ['不只是一句「独立」，', '这是你保护空间与关系的方式'],
+    hero: '/result-package/assets/attachment/result-attachment-avoidant-hero-v2.webp',
+    quote: '你不是没有感情。只是亲密一旦像压力涌来，你会先退回自己的空间，等重新找回掌控。',
+    traits: [
+      ['先靠自己', '难受时更习惯内部消化，再决定说多少。'],
+      ['情绪内收', '不是没有波动，而是不想在混乱时暴露脆弱。'],
+      ['空间恢复', '退开能帮你理顺感受，也让身体重新松下来。'],
+      ['慢慢打开', '被尊重而非追问时，你反而更愿意回来连接。']
+    ],
+    friendTags: ['独立', '克制', '有边界', '慢热', '不爱被逼'],
+    notes: [
+      '你的沉默常是在恢复秩序，不一定是在惩罚或放弃关系。',
+      '你不常主动依赖别人，也会让别人晚一点才看见你的真实需要。',
+      '如果为空间加上返回时间，独立就不必被误读成拒绝。'
+    ],
+    previewScores: { anxiety: 30, avoidance: 82 },
+    analysisProfile: {
+      driver: '你依靠自主、清楚边界和内部整理来维持安全感。关系重要并不意味着所有感受都要立即共享；先把自己找回来，再决定怎样靠近，是你最熟悉的节奏。',
+      conflict: '越被追问、越被要求马上表态，你越容易感到亲密正在侵入自己的空间。你退开是为了恢复掌控，但对方看不见这个内部过程，只能看见距离突然出现。',
+      stress: '压力过高时，你可能变得很理性、把感受压成问题，或直接把注意力转向工作和独处。等情绪终于清楚，关系里的另一个人可能已经在不确定里等了很久。',
+      misread: '别人可能把你的沉默理解为冷淡、惩罚或“不需要我”。事实上，你往往仍然在意，只是不相信混乱状态下的表达会带来好结果。',
+      understood: '你需要一种不逼迫但不会消失的靠近：对方允许你暂停，不把每次安静都升级成危机，同时也清楚告诉你，关系仍在等待一次后续对话。',
+      recovery: '不必一次打开全部内心，只需要给空间一个边界：“我现在需要安静到晚上，不是在推开你，之后我会回来谈。”这句话能同时保护自主与连接。'
+    }
+  },
+  'fearful-avoidant': {
+    title: '恐惧—回避型依恋',
+    analysisHeadingLines: ['不只是一句“矛盾”，', '这是你靠近与退后的内在逻辑'],
+    hero: '/result-package/assets/attachment/result-attachment-fearful-avoidant-hero-v2.webp',
+    quote: '你不是故意忽冷忽热。想靠近是真的，靠得太近时想退回去保护自己，也是真的。',
+    traits: [
+      ['想靠近', '关系很重要，你会认真寻找对方还在的证据。'],
+      ['又想退后', '需要暴露得太多时，自我保护会迅速接管。'],
+      ['擅长察觉', '你能捕捉语气、距离和关系气氛的变化。'],
+      ['需要可预期', '可以暂停、也一定会回来的关系最让你安心。']
+    ],
+    friendTags: ['很敏感', '慢热', '重感情', '怕受伤', '需要安全感'],
+    notes: [
+      '你不是想制造距离，而是不确定自己的需要能不能被安全接住。',
+      '追着确认和突然撤回，看似相反，其实都在保护同一份害怕。',
+      '先说清这一刻是想被确认还是想有空间，比要求自己立刻相信更实际。'
+    ],
+    previewScores: { anxiety: 80, avoidance: 78 },
+    analysisProfile: {
+      driver: '你既渴望一段可靠的连接，也对靠近以后可能发生的失望、控制或抛下保持警觉。关系越重要，两套保护系统越可能同时启动：一套让你伸手，一套让你扶住退路。',
+      conflict: '当对方离远，你会想确认连接；可对方真的靠近，你又可能担心自己显得太需要，或害怕把弱点交出去。于是“追上去”和“退回来”会在很短时间里轮流出现。',
+      stress: '压力累积时，你可能先密集确认，得不到理想回应后突然冷下来、说“随便”或切断联系。动作像是在改变主意，内在却一直围绕同一个问题：怎样才不会再次受伤。',
+      misread: '别人容易把这种靠近与退后理解成反复、试探甚至操控。但很多时候，你并不是想让人猜，而是还没有足够安全到能把真实需要完整说出来。',
+      understood: '你需要的不是无限确认或绝对自由，而是可预期的关系节奏：需要可以说，暂停不会被惩罚，双方都会按约定回来，边界也不会在靠近时被吞掉。',
+      recovery: '先不要解决整段关系，只辨认这一刻是哪套保护在工作。用一句具体话替代忽近忽远：“我现在很想确认你还在，也有点怕靠太近，能不能慢一点陪我？”'
+    }
+  }
+};
+
+function attachmentVisual(typeCode, definition) {
+  return {
+    template: 'illustrated-poster',
+    kicker: '你的依恋类型是',
+    title: definition.title,
+    hero: definition.hero,
+    heroIncludesKicker: false,
+    analysisEyebrow: `ATTACHMENT NOTES · ${typeCode.toUpperCase()}`,
+    analysisHeadingLines: definition.analysisHeadingLines,
+    analysisLabels: ['依恋底色', '容易触发', '自动保护', '关系误读', '真正需要', '练习方向'],
+    analysisProfile: definition.analysisProfile,
+    previewScores: definition.previewScores,
+    aiIcon: '/assets/result-ai-observer.webp',
+    quote: definition.quote,
+    traits: definition.traits.map(([label, detail], index) => ({ label, detail, tone: tones[index] })),
+    tags: definition.friendTags.map((label, index) => ({
+      label,
+      face: tagFaces[index],
+      tone: index === 0 ? 'yellow' : index === 1 ? 'blue' : index === 2 ? 'coral' : ''
+    })),
+    tendencyTitle: '依恋倾向',
+    tendencyAxes: [
+      { key: 'anxiety', label: '回应敏感', scale: 'percent', tone: 'red' },
+      { key: 'avoidance', label: '空间需要', scale: 'percent', tone: 'yellow' },
+      { key: 'security', label: '连接安全', scale: 'derived-security', tone: 'green' }
+    ],
+    friendTags: definition.friendTags,
+    notes: definition.notes
+  };
+}
+
+const attachment = Object.fromEntries(Object.entries(attachmentTypes).map(([code, definition]) => [code, attachmentVisual(code, definition)]));
+
 // 社交结果暂不接入 illustrated-poster。旧 SPARK 配置误用了“慢性撤退者”的
 // 标题、插画和分析，与正式计分得到的“全自动气氛组”完全相反。保留旧素材文件，
 // 但在有一套与 17 种社交结果逐一匹配的视觉内容前，统一使用正式结果模板。
-const RESULT_VISUALS = { cognitive, social: {} };
+const RESULT_VISUALS = { cognitive, attachment, social: {} };
 
-module.exports = { RESULT_VISUALS, cognitiveTypes };
+module.exports = { RESULT_VISUALS, cognitiveTypes, attachmentTypes };

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>双人流程前后对照</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px; background: #e9e7e2; color: #1b1916; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
+    h1 { margin: 0 0 24px; font-size: 28px; }
+    main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+    article { min-width: 0; }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    img { width: 100%; display: block; border-radius: 20px; background: #fff; box-shadow: 0 16px 42px rgba(54,47,35,.12); }
+    p { margin: 12px 0 0; color: #655f55; font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <h1>双人拼图：旧入口与新状态路径</h1>
+  <main>
+    <article>
+      <h2>旧版：入口标题与可点击区域不一致</h2>
+      <img src="/preview/couple-before-reference.png" alt="旧版双人拼图入口" />
+      <p>页面说“把 TA 拼进来”，但用户实际只能先完成依恋模式；加号和灰色 TA 都不可点击。</p>
+    </article>
+    <article>
+      <h2>新版：先说明当前任务，只保留一个主按钮</h2>
+      <img src="/preview/couple-missing-final.jpg" alt="新版双人拼图准备状态" />
+      <p>先显示还差哪一块、三步进度和唯一主操作；完成后再切换为发送邀请与生成报告。</p>
+    </article>
+  </main>
+</body>
+</html>

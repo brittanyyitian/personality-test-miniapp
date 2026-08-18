@@ -151,7 +151,12 @@ function cognitiveDimensions(questions, answers) {
 }
 
 function getFollowupQuestions(id, answers) {
-  return [];
+  if (id !== 'cognitive' || !Array.isArray(answers)) return [];
+  const baseCount = assessments.cognitive.questions.length;
+  const baseAnswers = answers.slice(0, baseCount).map(Number);
+  if (baseAnswers.length !== baseCount || baseAnswers.some((value) => !Number.isFinite(value) || value < 1 || value > 5)) return [];
+  const straightLining = Math.max(...baseAnswers) === Math.min(...baseAnswers);
+  return straightLining ? assessments.cognitive.followups.slice() : [];
 }
 
 const cognitiveCopy = {
@@ -376,57 +381,17 @@ function scoreCognitive(answers, questionIds) {
   const candidates = rankCognitiveTypes(functions);
   const answerSpread = Math.max(...answers.map(Number)) - Math.min(...answers.map(Number));
   const isFlat = answerSpread === 0;
-  if (isFlat) {
-    const flatSections = [
-      { title: '这次为什么没有硬给四字母', body: '你的 36 个答案都落在同一强度，八种偏好没有被真正区分开。直接给出一个类型只会是猜。' },
-      { title: '这可能说明了什么', body: '你也许更习惯判断一句描述“对不对”，而不是比较两种方式哪一种更自然；也可能是最近的状态让很多反应都显得差不多。' },
-      { title: '怎样再答会更准', body: '不用想“哪个更好”，只想大多数真实时候哪一项更自然。有些题选中间很正常，但不必每题都保持同一强度。' },
-      { title: '换成一个真实场景', body: '回想最近一次做决定、处理冲突或开始陌生任务的时刻：你最先注意到什么，第一步实际做了什么，而不是你希望自己怎样做。' },
-      { title: '这不是对你的否定', body: '它只说明这组答案还不足以分清偏好，不代表你没有特点，也不代表你必须被归到某一类。' }
-    ];
-    const flatExtension = {
-      eyebrow: '偏好还没有分开', title: '先看见真实反应',
-      lead: '比起急着定义自己，更值得回想最近真实发生过的选择。',
-      sections: flatSections,
-      action: '下次作答时，尽量回想一个具体场景，不按理想中的自己回答。'
-    };
-    return {
-      assessmentId: assessment.id,
-      assessmentTitle: assessment.title,
-      title: '偏好暂未分开',
-      typeCode: 'XXXX',
-      tags: ['答案过于集中', '不硬猜类型'],
-      summary: '这次的答案还没有把不同偏好拉开。我们宁愿告诉你“暂时看不清”，也不用一个看似准确的四字母代替真实判断。',
-      sections: flatSections,
-      insights: flatSections,
-      reminder: '结果是一张观察地图，不是必须维持的人设。',
-      extensions: { love: flatExtension, stuck: flatExtension, practice: flatExtension },
-      scores: Object.fromEntries(Object.entries(dimensions).map(([key, value]) => [key, value.normalized])),
-      functionScores: functions,
-      typeCandidates: candidates.slice(0, 3),
-      facets: functions,
-      shareLine: '这次我没有被硬塞进一个类型。',
-      scoreLabels: { x: '更关注自己', x2: '更关注他人', y: '需要确定', y2: '随遇而安' },
-      map: { x: 50, y: 50 },
-      confidence: '偏好暂未分开',
-      boundaryFlags: ['flat'],
-      ruleIds: ['CP_FLAT'],
-      evidenceId: assessment.evidenceId,
-      version: assessment.version,
-      tone: assessment.tone
-    };
-  }
   const typeCode = candidates[0].typeCode;
   const letters = { EI: typeCode[0], NS: typeCode[1], TF: typeCode[2], JP: typeCode[3] };
   const typeName = typeTitles[typeCode] || '认知偏好画像';
   const candidateGap = round(candidates[0].score - candidates[1].score, 3);
-  const boundaryFlags = [];
+  const boundaryFlags = isFlat ? ['flat'] : [];
   Object.entries(dimensions).forEach(([key, value]) => {
     if (Math.abs(value.normalized) < 0.12) boundaryFlags.push(key);
   });
   if (candidateGap < 0.05) boundaryFlags.push('TYPE');
   const title = `${typeCode} · ${typeName}`;
-  const confidence = '本次画像';
+  const confidence = isFlat ? '回答较集中' : '本次画像';
   const strongestFunctions = Object.entries(functions).sort((a, b) => b[1] - a[1]).slice(0, 2);
   const personalDetail = strongestFunctions.map(([key]) => cognitiveFunctionDetail[key]).join(' ');
   const deepDive = cognitiveDeepDive(typeCode, functions);
@@ -509,21 +474,41 @@ const attachmentProfiles = {
   high_high: ['一边想确认，一边想退开', '关系对你很重要，但真正靠近时，你也可能感到紧张。你想知道对方是否还在，又担心暴露需要后失去主动。', '这不是你故意让人猜，而是两种保护方式同时出现：怕失去，也怕受伤。', '先不急着解决整段关系，只说清楚这一刻更需要什么。一个具体请求更容易被接住。']
 };
 
-const attachmentStyleProfiles = {
-  low_low: { typeCode: 'secure', typeName: '安全型依恋', profileName: '能安心靠近，也保有自己' },
-  mid_low: { typeCode: 'secure-anxious', typeName: '安全型偏焦虑', profileName: '愿意靠近，也会在意回应' },
-  high_low: { typeCode: 'anxious', typeName: '焦虑型依恋', profileName: '越重要，越需要确认连接' },
-  low_mid: { typeCode: 'secure-avoidant', typeName: '安全型偏回避', profileName: '相信连接，也习惯先靠自己' },
-  mid_mid: { typeCode: 'contextual', typeName: '情境敏感型', profileName: '安全感会改变靠近的距离' },
-  high_mid: { typeCode: 'anxious-mixed', typeName: '焦虑型偏矛盾', profileName: '想靠近，也怕自己太需要' },
-  low_high: { typeCode: 'avoidant', typeName: '回避型依恋', profileName: '独立让你更有安全感' },
-  mid_high: { typeCode: 'avoidant-sensitive', typeName: '回避型偏敏感', profileName: '需要空间，也在意被理解' },
-  high_high: { typeCode: 'fearful-avoidant', typeName: '恐惧—回避型依恋', profileName: '怕失去，也怕靠得太近' }
+// 对外结果只保留依恋理论中常用的四个象限。3×3 band 仍用于生成
+// 更细的共情文案，但不会再变成额外的“类型”或额外海报。
+const attachmentCoreStyles = {
+  secure: { typeCode: 'secure', typeName: '安全型依恋', profileName: '能安心靠近，也保有自己' },
+  anxious: { typeCode: 'anxious', typeName: '焦虑型依恋', profileName: '越重要，越需要确认连接' },
+  avoidant: { typeCode: 'avoidant', typeName: '回避型依恋', profileName: '独立让你更有安全感' },
+  fearful: { typeCode: 'fearful-avoidant', typeName: '恐惧—回避型依恋', profileName: '怕失去，也怕靠得太近' }
 };
 
+// 九种共鸣画像必须服从四个主区域，不能再出现“主标题是安全型，
+// 细分画像却同时强调追逐与退开”的互相否定。靠近中点时仍给明确主结果，
+// 但使用该主结果内部更温和的画像。
+function attachmentProfileKey(typeCode, anxiety, avoidance) {
+  if (typeCode === 'secure') {
+    if (anxiety < 2.5 && avoidance < 2.5) return 'low_low';
+    return anxiety >= avoidance ? 'mid_low' : 'low_mid';
+  }
+  if (typeCode === 'anxious') {
+    if (anxiety >= 3.5 && avoidance < 2.5) return 'high_low';
+    return avoidance >= 2.5 ? 'high_mid' : 'mid_low';
+  }
+  if (typeCode === 'avoidant') {
+    if (avoidance >= 3.5 && anxiety < 2.5) return 'low_high';
+    return anxiety >= 2.5 ? 'mid_high' : 'low_mid';
+  }
+  if (anxiety >= 3.5 && avoidance >= 3.5) return 'high_high';
+  if (Math.abs(anxiety - avoidance) <= 0.2) return 'mid_mid';
+  if (anxiety > avoidance) return 'high_mid';
+  if (avoidance > anxiety) return 'mid_high';
+  return 'high_high';
+}
+
 function attachmentExtensions(anxiety, avoidance, profile) {
-  const seeksReply = anxiety >= 3.5;
-  const needsSpace = avoidance >= 3.5;
+  const seeksReply = anxiety > 3;
+  const needsSpace = avoidance > 3;
   const loveSignal = seeksReply
     ? '你会从回应的速度、语气和有没有被放在心上，确认这段关系是不是还稳稳存在。'
     : '你通常不会因为短暂安静就否定关系，也愿意给彼此一些不用时时解释的空间。';
@@ -595,20 +580,32 @@ function scoreAttachment(answers) {
   const avoidance = round(mean(grouped.avoidance));
   const aBand = band(anxiety);
   const vBand = band(avoidance);
-  const profileKey = `${aBand}_${vBand}`;
-  const profile = attachmentProfiles[profileKey];
-  const style = attachmentStyleProfiles[profileKey];
   const neutralCount = answers.filter((value) => Number(value) === 3).length;
   const mostlyNeutral = neutralCount / answers.length >= 0.6;
+  const answerCounts = answers.reduce((counts, value) => {
+    const key = String(Number(value));
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const straightLining = Math.max(...Object.values(answerCounts)) / answers.length >= 0.8;
   const centered = anxiety >= 2.8 && anxiety <= 3.2 && avoidance >= 2.8 && avoidance <= 3.2;
-  const resultStyle = mostlyNeutral
-    ? { typeCode: 'unclear', typeName: '依恋倾向暂未分开', profileName: '这次的答案更接近“看关系和情境”' }
-    : style;
+  // ECR 将焦虑与回避视为连续维度，没有官方的固定分型阈值。产品结果以
+  // 五级量尺的理论中点划分“最接近的区域”，而不是复用 3.5 高分阈值。
+  // 这能保留明确的共鸣主结果，同时避免把大部分中间答案吞进安全型。
+  const seeksReply = anxiety > 3;
+  const needsSpace = avoidance > 3;
+  const resultStyle = seeksReply && needsSpace
+    ? attachmentCoreStyles.fearful
+    : seeksReply
+      ? attachmentCoreStyles.anxious
+      : needsSpace
+        ? attachmentCoreStyles.avoidant
+        : attachmentCoreStyles.secure;
+  const profileKey = attachmentProfileKey(resultStyle.typeCode, anxiety, avoidance);
+  const profile = attachmentProfiles[profileKey];
   const title = resultStyle.typeName;
   const anxietyFacet = ['rejection', 'reassurance', 'worth'].sort((a, b) => facets[b] - facets[a])[0];
   const avoidanceFacet = ['openness', 'dependence', 'closeness'].sort((a, b) => facets[b] - facets[a])[0];
-  const seeksReply = anxiety >= 3.5;
-  const needsSpace = avoidance >= 3.5;
   const scenario = seeksReply && needsSpace
     ? '很像你的时刻，可能是你盯着一条迟迟没来的回复，心里很想问清楚；可对方真的靠近时，你又怕自己显得太需要，于是先冷下来、说“没事”。'
     : seeksReply
@@ -652,30 +649,36 @@ function scoreAttachment(answers) {
     title,
     typeCode: resultStyle.typeCode,
     typeName: resultStyle.typeName,
+    profileKey,
+    profileTitle: profile[0],
     profileName: resultStyle.profileName,
-    tags: [resultStyle.profileName, anxiety >= 3.5 ? '更在意回应' : '更能相信连接', avoidance >= 3.5 ? '更需要空间' : '更愿意靠近'],
-    summary: mostlyNeutral ? '这次有不少答案落在“看情况”，暂时不足以归入某一种清晰倾向。关系对象、关系阶段和当时的安全感，可能都会明显改变你的反应。' : `你更接近“${resultStyle.profileName}”。${profile[1]}`,
+    tags: [resultStyle.profileName, seeksReply ? '更在意回应' : '更能相信连接', needsSpace ? '更需要空间' : '更愿意靠近'],
+    summary: `在“${resultStyle.typeName}”这个大类里，你此刻更像“${profile[0]}”。${profile[1]}${centered ? ' 这次两条倾向都比较温和，因此你在不同关系情境里可能表现出更多弹性；主类型描述的是当前最接近的方向。' : ''}`,
     sections: [
       { title: '你的依恋类型怎样理解', body: `${resultStyle.typeName}表示你当前在依恋焦虑与依恋回避两条轴上的相对位置。它描述这段重要关系中更常出现的反应，不是对你一生的定型。` },
       { title: '你自然的样子', body: profile[1] },
       { title: '这份反应在保护什么', body: profile[2] },
       { title: '最容易触发你的地方', body: attachmentFacetCopy[anxietyFacet] },
       { title: '你保护自己的方式', body: attachmentFacetCopy[avoidanceFacet] },
-      { title: '关系里的你', body: anxiety >= 3.5 ? '当回应变慢或关系信号变得模糊时，你更容易把注意力放到“连接还在不在”。这份敏感让你很早发现变化，也会让等待变得辛苦。' : '你通常不需要很多确认，也能相信关系不会因为短暂距离就消失。只是别人未必拥有同样稳定的感受。' },
-      { title: '容易卡住的时刻', body: avoidance >= 3.5 ? '压力出现时，你更习惯先靠自己恢复。如果没有说明，空间可能会被对方理解成拒绝。' : '你愿意让信任的人看见需要，但对方开放得更慢时，你可能会不知道该继续靠近还是停下来。' },
+      { title: '关系里的你', body: seeksReply ? '当回应变慢或关系信号变得模糊时，你更容易把注意力放到“连接还在不在”。这份敏感让你很早发现变化，也会让等待变得辛苦。' : '你通常不需要很多确认，也能相信关系不会因为短暂距离就消失。只是别人未必拥有同样稳定的感受。' },
+      { title: '容易卡住的时刻', body: needsSpace ? '压力出现时，你更习惯先靠自己恢复。如果没有说明，空间可能会被对方理解成拒绝。' : '你愿意让信任的人看见需要，但对方开放得更慢时，你可能会不知道该继续靠近还是停下来。' },
       { title: '你真正需要的', body: profile[3] }
     ],
     insights,
     reminder: profile[3],
     extensions: attachmentExtensions(anxiety, avoidance, profile),
-    shareLine: `${title}｜${resultStyle.profileName}。`,
+    shareLine: `${title}｜${profile[0]}。`,
     scores: { anxiety: round(((anxiety - 1) / 4) * 100, 1), avoidance: round(((avoidance - 1) / 4) * 100, 1) },
     rawScores: { anxiety, avoidance },
     rawFacets: facets,
     scoreLabels: { x: '更愿意靠近', x2: '更需要空间', y: '更需要回应', y2: '更能等待' },
     map: { x: Math.round(((avoidance - 1) / 4) * 100), y: Math.round(((5 - anxiety) / 4) * 100) },
-    confidence: mostlyNeutral ? '目前不清晰' : centered ? '边界接近' : '可供参考',
-    boundaryFlags: centered ? ['centered'] : [],
+    confidence: mostlyNeutral || straightLining ? '回答较集中' : centered ? '倾向较温和' : '可供参考',
+    boundaryFlags: [
+      ...(mostlyNeutral ? ['mostly-neutral'] : []),
+      ...(straightLining ? ['straight-line'] : []),
+      ...(centered ? ['near-midpoint'] : [])
+    ],
     ruleIds: [`RS_STYLE_${resultStyle.typeCode.toUpperCase().replace(/-/g, '_')}`, `RS_A_${aBand.toUpperCase()}_V_${vBand.toUpperCase()}`, `RS_AF_${anxietyFacet.toUpperCase()}`, `RS_VF_${avoidanceFacet.toUpperCase()}`],
     evidenceId: assessment.evidenceId,
     version: assessment.version,
@@ -716,7 +719,7 @@ const bigFiveModules = {
   }
 };
 
-function bigFiveExtensions(scores, strongest, context) {
+function bigFiveExtensions(scores, strongest, context, balanced = false) {
   const energy = bigFiveModules.energy[band(scores.energy)][1];
   const empathy = bigFiveModules.empathy[band(scores.empathy)][1];
   const sensitivity = bigFiveModules.sensitivity[band(scores.sensitivity)][1];
@@ -742,14 +745,18 @@ function bigFiveExtensions(scores, strongest, context) {
         { title: '压力刚出现时', body: sensitivity },
         { title: '事情拖久以后', body: order },
         { title: '关系里容易忽略的', body: empathy },
-        { title: '不必逼自己改变的', body: `你的“${bigFiveModules[strongest].label}”是很自然的一部分；调整是多一种选择，不是把它改掉。` }
+        { title: '不必逼自己改变的', body: balanced
+          ? '五个方向都接近中间，并不代表你没有特点，而是对象、任务和当时状态会更明显地影响你使用哪一面。'
+          : `你的“${bigFiveModules[strongest].label}”是很自然的一部分；调整是多一种选择，不是把它改掉。` }
       ],
       action: '把一件让你累的事缩小成“今天只处理哪一步”，会比要求自己马上恢复更现实。'
     },
     practice: {
       eyebrow: '性格底色 · 一个小练习',
       title: '给自己换一种用力方式',
-      lead: `你在“${bigFiveModules[context].label}”上比较会随情境变化，这也是最容易练习新选择的地方。`,
+      lead: balanced
+        ? '你的五个方向都比较有弹性，练习不需要把自己推向某个固定极端。'
+        : `你在“${bigFiveModules[context].label}”上比较会随情境变化，这也是最容易练习新选择的地方。`,
       sections: [
         { title: '先找到熟悉反应', body: '写下压力出现时，你最容易自动做出的一个动作。' },
         { title: '换一个很小的动作', body: '不要走到完全相反，只比平时多一点表达、多一点停顿或多一点安排。' },
@@ -773,12 +780,22 @@ function scoreBigFive(answers) {
   // 五因素既可能以高分突出，也可能以低分突出；按偏离中点的程度选核心特征，
   // 避免“所有低分特质都永远不可能成为结果标题”。
   const ranked = Object.keys(scores).sort((a, b) => Math.abs(scores[b] - 3) - Math.abs(scores[a] - 3));
+  const topDeviation = Math.abs(scores[ranked[0]] - 3);
+  const topKeys = ranked.filter((key) => Math.abs(scores[key] - 3) === topDeviation);
+  const balanced = topDeviation === 0;
+  const multiPeak = topKeys.length > 2;
   const selected = ranked.slice(0, 2);
   const context = Object.keys(scores).sort((a, b) => Math.abs(scores[a] - 3) - Math.abs(scores[b] - 3))[0];
   const moduleFor = (key) => bigFiveModules[key][band(scores[key])];
   const first = moduleFor(selected[0]);
   const second = moduleFor(selected[1]);
   const middle = moduleFor(context);
+  const primaryTitle = balanced ? '看人，也看场合' : multiPeak ? '多条性格线索同时出现' : first[0];
+  const primarySummary = balanced
+    ? '五个方向都接近量尺中点。你不是没有特点，而是对象、任务和当时状态会更明显地决定你使用哪一种反应。'
+    : multiPeak
+      ? topKeys.map((key) => moduleFor(key)[1]).join(' ')
+      : `${first[1]} ${second[1]}`;
   const energyBand = band(scores.energy);
   const empathyBand = band(scores.empathy);
   const orderBand = band(scores.order);
@@ -811,7 +828,11 @@ function scoreBigFive(answers) {
         ? (energyBand === 'high' ? '在安排下一场连接前，给自己一个不需要回应任何人的空档。' : '不用逼自己变外向；提前准备一句开场和一个离场时间，已经足够扩大选择。')
         : `保留“${first[0]}”带来的优势，同时只练习一个比平时多一点的新动作。`;
   const insights = [
-    { title: '你的底色不是一个标签', body: `你最突出的两条线索是“${bigFiveModules[selected[0]].label}”和“${bigFiveModules[selected[1]].label}”。${first[1]} 同时，${second[1]}` },
+    { title: '你的底色不是一个标签', body: balanced
+      ? `五个方向这次都接近中间位置。${primarySummary}`
+      : multiPeak
+        ? `这次同样鲜明的线索包括${topKeys.map((key) => `“${bigFiveModules[key].label}”`).join('、')}。${primarySummary}`
+        : `你最突出的两条线索是“${bigFiveModules[selected[0]].label}”和“${bigFiveModules[selected[1]].label}”。${first[1]} 同时，${second[1]}` },
     { title: '别人先看到的你', body: socialFace },
     { title: '熟悉以后才会看见的部分', body: hiddenSide },
     { title: '压力下可能出现的反差', body: stressContrast },
@@ -820,9 +841,11 @@ function scoreBigFive(answers) {
   return {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
-    title: first[0],
-    tags: selected.map((key) => bigFiveModules[key].label).concat('连续维度'),
-    summary: `${first[1]} ${second[1]}`,
+    title: primaryTitle,
+    tags: balanced
+      ? ['五维相对均衡', '看情境切换', '连续维度']
+      : (multiPeak ? topKeys.slice(0, 2) : selected).map((key) => bigFiveModules[key].label).concat(multiPeak ? '多维并列' : '连续维度'),
+    summary: primarySummary,
     sections: [
       { title: first[0], body: first[1] },
       { title: second[0], body: second[1] },
@@ -832,14 +855,16 @@ function scoreBigFive(answers) {
     ],
     insights,
     reminder: '这不是人口百分位，也不用于诊断或高风险决定。把最像你的部分留下，不像的部分也可以先放着。',
-    extensions: bigFiveExtensions(scores, selected[0], context),
-    shareLine: `${first[0]}｜${first[1].split('。')[0]}。`,
+    extensions: bigFiveExtensions(scores, selected[0], context, balanced),
+    shareLine: `${primaryTitle}｜${primarySummary.split('。')[0]}。`,
     scores,
     scoreLabels: { x: '更安静', x2: '更有活力', y: '更具体', y2: '更开放' },
     map: { x: Math.round(((scores.energy - 1) / 4) * 100), y: Math.round(((5 - scores.openness) / 4) * 100) },
     confidence: '探索性结果',
     boundaryFlags: [],
-    ruleIds: selected.map((key) => `BF_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`),
+    ruleIds: balanced
+      ? ['BF_BALANCED_MID']
+      : topKeys.map((key) => `BF_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`),
     evidenceId: assessment.evidenceId,
     version: assessment.version,
     tone: assessment.tone
@@ -913,7 +938,52 @@ function relationshipPairKey(keys) {
     .join('_');
 }
 
-function relationshipExtensions(scores, strongest, weakest) {
+function relationshipExtensions(scores, strongest, weakest, balanced = false) {
+  if (balanced) {
+    const level = band(scores[strongest]);
+    const levelCopy = level === 'high'
+      ? '五种关系资源都比较常出现。真正托住你们的不是某一个优点，而是投入、回应、修复与边界能够一起工作。'
+      : level === 'low'
+        ? '你感受到的消耗可能不只集中在一次争执，而是投入、回应、修复与安全感都需要双方重新参与。'
+        : '五种关系资源目前比较接近：有些时候能够做到，有些时候又不够稳定。具体场景比硬找一个最弱点更重要。';
+    return {
+      love: {
+        eyebrow: '关系状态 · 延伸解读',
+        title: '关系中的你',
+        lead: levelCopy,
+        sections: [
+          { title: '你看到的是整体', body: levelCopy },
+          { title: '不必硬找一处短板', body: '当几条线索接近时，关系真实的样子往往取决于具体场景，而不是某个固定弱点。' },
+          { title: '你为关系做的努力', body: '你愿意认真看见这段关系，说明你并不只想下结论，也想知道双方还能怎样参与。' },
+          { title: '别把责任都放回自己', body: '表达可以由你先开始，但稳定的改变必须由两个人共同完成。' }
+        ],
+        action: '从最近一件具体小事开始，说清发生了什么，以及下次希望双方分别做什么。'
+      },
+      stuck: {
+        eyebrow: '关系状态 · 延伸解读',
+        title: '关系容易卡在哪里',
+        lead: levelCopy,
+        sections: [
+          { title: '不是单一问题', body: '几项分数接近时，反复出现的循环可能同时牵动投入、回应和修复，不能只归因给一个方面。' },
+          { title: '先缩小场景', body: '挑最近一次最有感受的经历，比一次讨论整段关系更容易看见真实问题。' },
+          { title: '确认双方是否参与', body: '对方是暂时不知道怎样做，还是一直不愿意面对？这两种情况需要不同选择。' },
+          { title: '你可以保留的底线', body: '理解对方不等于无限等待。你的感受、安全和边界也应该被放进关系里。' }
+        ],
+        action: '只讨论一个具体场景、一个感受和一个下一步，先看对方是否愿意真正参与。'
+      },
+      practice: {
+        eyebrow: '关系状态 · 一个小练习',
+        title: '从具体场景看见整体',
+        lead: '回想最近一次让你觉得关系很好，或明显感到消耗的时刻。',
+        sections: [
+          { title: '写下发生了什么', body: '只记录双方实际说了什么、做了什么，不先判断谁更爱谁。' },
+          { title: '标出被牵动的资源', body: '看看这件事同时影响了投入、被看见、回应、修复或边界中的哪几项。' },
+          { title: '提出一个可观察请求', body: '把期待变成下次双方都知道怎样做到的一个动作。' }
+        ],
+        action: '句式：下次再遇到＿＿，我希望我可以＿＿，也希望你愿意＿＿。'
+      }
+    };
+  }
   const strongCopy = relationshipModules[strongest][band(scores[strongest])];
   const weakCopy = relationshipModules[weakest][band(scores[weakest])];
   return {
@@ -965,13 +1035,26 @@ function scoreRelationship(answers) {
     grouped[question.dimension].push(question.reverse ? 6 - answer : answer);
   });
   const scores = Object.fromEntries(Object.entries(grouped).map(([key, value]) => [key, round(mean(value))]));
-  const lows = Object.keys(scores).filter((key) => band(scores[key]) === 'low');
-  const highs = Object.keys(scores).filter((key) => band(scores[key]) === 'high');
-  const ordered = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+  const answerCounts = answers.reduce((counts, value) => {
+    const key = String(Number(value));
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const straightLining = Math.max(...Object.values(answerCounts)) / answers.length >= 0.8;
+  const keys = Object.keys(scores);
+  const lows = keys.filter((key) => band(scores[key]) === 'low');
+  const highs = keys.filter((key) => band(scores[key]) === 'high');
+  const ordered = keys.slice().sort((a, b) => scores[b] - scores[a]);
+  const highestScore = Math.max(...keys.map((key) => scores[key]));
+  const lowestScore = Math.min(...keys.map((key) => scores[key]));
+  const strongestKeys = keys.filter((key) => scores[key] === highestScore);
+  const weakestKeys = keys.filter((key) => scores[key] === lowestScore);
+  const balanced = highestScore === lowestScore;
   const strongest = ordered[0];
   const weakest = ordered[ordered.length - 1];
   const secondWeakest = ordered[ordered.length - 2];
   const secondStrongest = ordered[1];
+  const labelsFor = (items) => items.map((key) => `“${relationshipModules[key].label}”`).join('、');
   const fragileTitles = {
     commitment: '有连接，也像是一个人在扛',
     appreciation: '有在意，却不总能被看见',
@@ -990,16 +1073,31 @@ function scoreRelationship(answers) {
   let stateCode;
   let stateName;
   let summary;
-  if (!lows.length && highs.length >= 2) {
+  if (balanced && highs.length) {
+    stateCode = 'resourced';
+    stateName = '关系有底气';
+    title = '五种关系资源都在托住你们';
+    summary = '共同投入、被看见感、情绪回应、冲突修复与信任边界都比较稳定。真正托住你们的不是某一个突出优点，而是几种资源能够一起工作。';
+  } else if (balanced && !lows.length) {
+    stateCode = 'developing';
+    stateName = '有基础，也有待确认';
+    title = '关系有基础，也还在慢慢确认';
+    summary = '五种关系资源目前处在相近位置：有些时候能够做到，有些时候又不够稳定。比起硬给某一项下结论，更值得回到最近发生的具体场景。';
+  } else if (balanced) {
+    stateCode = 'depleted';
+    stateName = '多处资源正在消耗';
+    title = '不是一处问题，而是整体都在消耗';
+    summary = '共同投入、被看见感、情绪回应、冲突修复与信任边界都落在较低位置。你感受到的累可能不是一次争执造成的，而是多个环节都需要双方重新参与。';
+  } else if (!lows.length && highs.length >= 2) {
     stateCode = 'resourced';
     stateName = '关系有底气';
     title = relationshipStrengthPairs[relationshipPairKey([strongest, secondStrongest])];
-    summary = `这段关系目前有不止一个支点。最稳的是“${relationshipModules[strongest].label}”与“${relationshipModules[secondStrongest].label}”；同时，“${relationshipModules[weakest].label}”仍是更值得照顾的一处。`;
+    summary = `这段关系目前有不止一个支点。得分较高的是${labelsFor([strongest, secondStrongest])}；相对更需要照顾的是${labelsFor(weakestKeys)}。`;
   } else if (!lows.length) {
     stateCode = 'developing';
     stateName = '有基础，也有待确认';
-    title = `相处有基础，${relationshipModules[weakest].label}还需要更确定`;
-    summary = `五个关系维度都没有明显落入低位，但支点还不算非常稳定。你们最能依靠“${relationshipModules[strongest].label}”，最容易出现不确定的是“${relationshipModules[weakest].label}”。`;
+    title = `相处有基础，${weakestKeys.map((key) => relationshipModules[key].label).join('与')}还需要更确定`;
+    summary = `五个关系维度都没有明显落入低位，但支点还不算非常稳定。相对更能依靠的是${labelsFor(strongestKeys)}，更容易出现不确定的是${labelsFor(weakestKeys)}。`;
   } else if (lows.length === 1) {
     stateCode = 'fragile';
     stateName = '有连接，也有消耗';
@@ -1008,35 +1106,58 @@ function scoreRelationship(answers) {
   } else {
     stateCode = 'depleted';
     stateName = '多处资源正在消耗';
-    title = relationshipStrainPairs[relationshipPairKey([weakest, secondWeakest])] || depletedTitles[weakest];
-    summary = `你可能已经花了不少力气维持这段关系。“${relationshipModules[weakest].label}”和“${relationshipModules[secondWeakest].label}”同时落在低位；现在更重要的是分清哪些可以协商，哪些必须由双方一起投入。`;
+    const weakPair = weakestKeys.length >= 2 ? weakestKeys.slice(0, 2) : [weakest, secondWeakest];
+    title = weakestKeys.length > 2
+      ? '多处关系资源正在一起消耗'
+      : relationshipStrainPairs[relationshipPairKey(weakPair)] || depletedTitles[weakest];
+    summary = `你可能已经花了不少力气维持这段关系。${labelsFor(lows)}同时落在低位；现在更重要的是分清哪些可以协商，哪些必须由双方一起投入。`;
   }
   const weakLabel = relationshipModules[weakest].label;
   const strongLabel = relationshipModules[strongest].label;
-  const relationshipLoop = {
+  const relationshipLoop = balanced ? (stateCode === 'resourced'
+    ? '你们不一定没有摩擦，但投入、回应、修复与边界通常能一起把关系接回来。需要留意的是，稳定也要继续通过具体行动让双方都感受到。'
+    : stateCode === 'developing'
+      ? '你们可能不是固定卡在某一个问题上，而是在不同场景里有时能够互相接住、有时又各自退回熟悉反应。找到最近一次具体转折，比硬找一个短板更准确。'
+      : '消耗可能已经不只发生在一次争执里：投入变少、回应错位、问题没有收尾和安全感下降会互相影响。先选一个最影响日常安全的场景开始。') : ({
     commitment: '遇到重要安排时，一方先承担、先决定，另一方后来再配合或解释。久而久之，表面争的是一件事，心里累的是“为什么总是我先把我们放进去”。',
     appreciation: '付出不断发生，却很少被具体说出来。被忽略的一方越做越委屈，另一方又可能觉得“我明明也在努力”，最后双方都觉得自己没有被看见。',
     response: '一个人想先被理解，另一个人急着解释、讲道理或解决。越解释，前者越觉得感受被跳过；越表达情绪，后者越觉得自己做什么都不对。',
     repair: '争执时先升级，之后靠沉默让事情过去。表面恢复正常，同一个伤口却没有被处理，下一次只需要一个很小的触发就会把旧账一起带回来。',
     trust: '一方因为不确定而追问、查看或试探，另一方因为被管得太紧而开始隐藏、回避。越想获得安全，双方越难自然地相信彼此。'
-  }[weakest];
-  const effortCopy = scores[weakest] < 2.5
+  }[weakest]);
+  const effortCopy = balanced ? (stateCode === 'depleted'
+    ? '你可能已经在不止一个地方解释、体谅或等待。需要提醒你的是，关系整体的消耗不能只靠你一个人再多做一点来补上。'
+    : '你不是在给关系找毛病。几项线索接近，说明更应该回到具体经历，看看哪些行动让你安心，哪些时刻让你失去连接。') : scores[weakest] < 2.5
     ? `你可能已经试过解释、体谅、等待，甚至把要求降得更低。需要提醒你的是，“${weakLabel}”不是只靠你更懂事就能补上的，它必须进入双方可观察的行动。`
     : `你不是在给关系找毛病。你只是察觉到“${weakLabel}”在某些时刻还不够稳定，希望连接不只在顺利时成立。`;
-  const nextEvidence = {
+  const nextEvidence = balanced
+    ? '挑最近一次最有感受的场景，只讨论双方实际做了什么，以及下次各自愿意多做哪一个动作。'
+    : ({
     commitment: '接下来不要只听“我会改”，看对方是否会主动参与一次具体安排，并承担属于自己的部分。',
     appreciation: '接下来留意的不是一句笼统的“爱你”，而是彼此能不能具体说出：我看见你最近做了什么。',
     response: '下一次难受时，先明确说“我现在想先被听完，不急着找办法”，再观察对方能否调整回应。',
     repair: '暂停可以，但要约定回来时间。真正的变化是争执后有人主动重启，并让下一次处理方式不再完全一样。',
     trust: '把边界说成双方都能执行的约定，再看它是否长期一致；安全感不能靠临时查证维持。'
-  }[weakest];
+  }[weakest]);
+  const overallInsight = balanced
+    ? `五种关系资源这次处在同一水平。${summary}`
+    : `相对更能托住你的是${labelsFor(strongestKeys)}，更容易消耗你的是${labelsFor(weakestKeys)}，另一处需要留意的是“${relationshipModules[secondWeakest].label}”。这些线索可以同时存在，不需要把关系压成一个好或坏的结论。`;
   const insights = [
-    { title: `整体状态：${stateName}`, body: `目前最能托住你的是“${strongLabel}”，最容易消耗你的是“${weakLabel}”，第二处需要留意的是“${relationshipModules[secondWeakest].label}”。这三件事可以同时存在，不需要把关系压成一个好或坏的结论。` },
-    { title: '你们还拥有的底气', body: relationshipModules[strongest][band(scores[strongest])] },
+    { title: `整体状态：${stateName}`, body: overallInsight },
+    { title: balanced ? '这段关系呈现的整体样子' : '你们还拥有的底气', body: balanced ? summary : relationshipModules[strongest][band(scores[strongest])] },
     { title: '最容易反复的相处循环', body: relationshipLoop },
     { title: '你可能已经做了很多', body: effortCopy },
-    { title: '接下来要看行动，不只看态度', body: `${nextEvidence} 同时留意“${relationshipModules[secondWeakest].label}”是否也在同一场景里出现。` }
+    { title: '接下来要看行动，不只看态度', body: balanced ? nextEvidence : `${nextEvidence} 同时留意“${relationshipModules[secondWeakest].label}”是否也在同一场景里出现。` }
   ];
+  const sections = balanced
+    ? keys.map((key) => ({ title: relationshipModules[key].label, body: relationshipModules[key][band(scores[key])] }))
+      .concat({ title: '你真正需要的', body: '把最具体的一次经历说出来，通常比讨论谁一直做错更容易靠近。关系的改变也不该永远只由一个人完成。' })
+    : [
+      { title: '最稳的一处', body: relationshipModules[strongest][band(scores[strongest])] },
+      { title: '最需要照顾的一处', body: relationshipModules[weakest][band(scores[weakest])] },
+      ...ordered.filter((key) => key !== strongest && key !== weakest).map((key) => ({ title: relationshipModules[key].label, body: relationshipModules[key][band(scores[key])] })),
+      { title: '你真正需要的', body: '把最具体的一次经历说出来，通常比讨论谁一直做错更容易靠近。关系的改变也不该永远只由一个人完成。' }
+    ];
   return {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
@@ -1044,25 +1165,30 @@ function scoreRelationship(answers) {
     typeCode: stateCode,
     typeName: stateName,
     profileName: title,
-    tags: [stateName, `${relationshipModules[strongest].label}较稳`, `${relationshipModules[weakest].label}需照顾`],
+    tags: balanced
+      ? [stateName, '五项相对均衡', stateCode === 'depleted' ? '需要共同投入' : '结合具体场景']
+      : [stateName, `${relationshipModules[strongest].label}较稳`, `${relationshipModules[weakest].label}需照顾`],
     summary,
-    sections: [
-      { title: '最稳的一处', body: relationshipModules[strongest][band(scores[strongest])] },
-      { title: '最需要照顾的一处', body: relationshipModules[weakest][band(scores[weakest])] },
-      ...ordered.filter((key) => key !== strongest && key !== weakest).map((key) => ({ title: relationshipModules[key].label, body: relationshipModules[key][band(scores[key])] })),
-      { title: '你真正需要的', body: '把最具体的一次经历说出来，通常比讨论谁一直做错更容易靠近。关系的改变也不该永远只由一个人完成。' }
-    ],
+    sections,
     insights,
     reminder: '如果你经常感到害怕、被威胁、被控制、被强迫，或担心人身安全，这已经超出本测试能处理的范围。请优先联系可信任的人和当地专业求助渠道。',
-    extensions: relationshipExtensions(scores, strongest, weakest),
-    shareLine: `${title}｜最稳的是${relationshipModules[strongest].label}，最需要照顾的是${relationshipModules[weakest].label}。`,
+    extensions: relationshipExtensions(scores, strongest, weakest, balanced),
+    shareLine: balanced
+      ? `${title}｜五种关系资源这次处在相近位置。`
+      : `${title}｜相对更稳的是${relationshipModules[strongest].label}，更需要照顾的是${relationshipModules[weakest].label}。`,
     scores,
-    metricKeys: [strongest, weakest, secondWeakest],
+    metricKeys: balanced ? ['commitment', 'response', 'trust'] : [strongest, weakest, secondWeakest],
     scoreLabels: { x: '共同投入', x2: '彼此看见', y: '情绪回应', y2: '冲突修复' },
     map: { x: Math.round(((scores.appreciation - 1) / 4) * 100), y: Math.round(((5 - scores.response) / 4) * 100) },
-    confidence: '最近一个月的自我观察',
-    boundaryFlags: [],
-    ruleIds: [`RC_STATE_${stateCode.toUpperCase()}`, `RC_PAIR_${relationshipPairKey(stateCode === 'resourced' ? [strongest, secondStrongest] : [weakest, secondWeakest]).toUpperCase()}`, ...ordered.map((key) => `RC_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`)],
+    confidence: straightLining ? '回答较集中' : '最近一个月的自我观察',
+    boundaryFlags: straightLining ? ['straight-line'] : [],
+    ruleIds: [
+      `RC_STATE_${stateCode.toUpperCase()}`,
+      balanced
+        ? `RC_BALANCED_${band(scores[strongest]).toUpperCase()}`
+        : `RC_PAIR_${relationshipPairKey(stateCode === 'resourced' ? [strongest, secondStrongest] : [weakest, secondWeakest]).toUpperCase()}`,
+      ...ordered.map((key) => `RC_${key.toUpperCase()}_${band(scores[key]).toUpperCase()}`)
+    ],
     evidenceId: assessment.evidenceId,
     version: assessment.version,
     tone: assessment.tone

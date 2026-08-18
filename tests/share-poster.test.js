@@ -41,3 +41,22 @@ test('小程序分享页预览正式海报且保存同一张生成图片', () =>
   assert.match(template, /canvas-id="fullReportPoster"/);
   assert.doesNotMatch(template, /class="share-card"/);
 });
+
+test('网页与小程序双人地图默认突出三项，并可展开全部六项连续位置', () => {
+  const web = read('preview/app.js');
+  const logic = read('miniprogram/pages/couple/index.js');
+  const template = read('miniprogram/pages/couple/index.wxml');
+  assert.match(web, /state\.coupleReport\.dimensions/);
+  assert.match(web, /\['回应敏感', '空间需要', '整理能量'\]/);
+  assert.match(web, /coupleScoreExpanded/);
+  assert.match(web, /couple-score-track/);
+  assert.match(web, /class="mine" style="left:/);
+  assert.match(web, /class="theirs" style="left:/);
+  assert.match(logic, /PRIMARY_SCORE_KEYS/);
+  assert.match(logic, /toggleScoreDimensions/);
+  assert.match(template, /wx:for="\{\{report\.visibleDimensions\}\}"/);
+  assert.match(template, /查看另外 3 项/);
+  assert.match(template, /class="couple-score-dot couple-score-dot-me"/);
+  assert.match(template, /class="couple-score-dot couple-score-dot-ta"/);
+  assert.match(template, /不是匹配分/);
+});

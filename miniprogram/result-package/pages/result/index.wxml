@@ -13,6 +13,11 @@
       <view class="poster-kicker {{visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}}">{{visual.kicker}}</view>
       <image class="poster-hero" src="{{visual.hero}}" mode="widthFix" />
 
+      <view wx:if="{{result.assessmentId === 'attachment' && result.profileTitle}}" class="poster-profile">
+        <text>当前画像</text>
+        <view>{{result.profileTitle}}</view>
+      </view>
+
       <view class="poster-quote">
         <view class="poster-quote-mark">“</view>
         <view>{{visual.quote}}</view>
@@ -38,9 +43,14 @@
 
       <view wx:if="{{visual.analysis && visual.analysis.length}}" class="poster-analysis">
         <view class="poster-analysis-head">
-          <text>TYPE NOTES · {{result.typeCode}}</text>
-          <view>不止四个字母，</view>
-          <view>这是你的内在运作方式</view>
+          <text>{{visual.analysisEyebrow || ('TYPE NOTES · ' + result.typeCode)}}</text>
+          <block wx:if="{{visual.analysisHeadingLines && visual.analysisHeadingLines.length}}">
+            <view wx:for="{{visual.analysisHeadingLines}}" wx:key="*this">{{item}}</view>
+          </block>
+          <block wx:else>
+            <view>不止四个字母，</view>
+            <view>这是你的内在运作方式</view>
+          </block>
         </view>
         <view class="poster-analysis-list">
           <view wx:for="{{visual.analysis}}" wx:key="key" class="poster-analysis-card poster-analysis-{{item.key}}">
@@ -83,6 +93,8 @@
           <view wx:for="{{visual.notes}}" wx:key="*this" class="poster-note">{{item}}</view>
         </view>
       </view>
+
+      <view class="poster-boundary">结果呈现的是你此刻的回答倾向，只用于自我理解；它不是临床诊断，也不替你判断一段关系。</view>
 
       <view class="illustrated-actions">
         <button class="illustrated-primary" bindtap="showShare">分享我的结果</button>

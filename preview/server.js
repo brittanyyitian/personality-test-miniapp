@@ -125,4 +125,4 @@ http.createServer(async (request, response) => {
   }
   response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
   fs.createReadStream(file).pipe(response);
-}).listen(4173, '0.0.0.0', () => console.log('preview http://0.0.0.0:4173'));
+}).listen(4173, '127.0.0.1', () => console.log('preview http://127.0.0.1:4173'));
