@@ -122,6 +122,18 @@ function createCoupleReport(mine, theirs) {
         title: '都需要自己的空间',
         body: '你们都尊重空间，相处可能很轻松、不黏。需要留意的是，问题也可能因为谁都不先开口而安静积累。低压力的近况交流会更适合你们。'
       });
+    } else if (distance(mineAnxiety, theirAnxiety) >= distance(mineAvoidance, theirAvoidance)) {
+      cards.push({
+        ruleId: 'CM04',
+        title: '确认安全的频率不同',
+        body: '你们都未必会强烈拉扯，但一个人可能更早察觉关系温度的变化。回应不需要很长，一句明确的“我收到了”，往往就能避免对方独自猜测。'
+      });
+    } else {
+      cards.push({
+        ruleId: 'CM13',
+        title: '留空间的尺度不同',
+        body: '你们对“先自己消化一下”的需要并不完全一样。提前说清楚这是暂时停一停，而不是拒绝交流，会让空间更像恢复，而不是疏远。'
+      });
     }
   }
 
@@ -135,7 +147,15 @@ function createCoupleReport(mine, theirs) {
     const differences = pairs
       .map(([key, ruleId, title, body]) => ({ key, ruleId, title, body, value: distance(mine.c[key], theirs.c[key]) }))
       .sort((a, b) => b.value - a.value);
-    if (differences[0].value >= 0.7) cards.push(differences[0]);
+    if (differences[0].value >= 0.7) {
+      cards.push(differences[0]);
+    } else {
+      cards.push({
+        ruleId: 'CM09',
+        title: '大体同频，也别替对方作答',
+        body: '你们理解事情的习惯比较接近，因此常有“不用解释也懂”的轻松感。越是同频，越要记得在重要时刻多问一句，别把相似误当成完全一样。'
+      });
+    }
   }
 
   if (mine.b && theirs.b) {
@@ -146,6 +166,18 @@ function createCoupleReport(mine, theirs) {
     } else if (aDistance >= 1.4) {
       cards.push({ ruleId: 'CM12', title: '照顾感受的方式不同', body: '一个人更自然地照顾感受，另一个人更习惯保留判断、直接说重点。把“态度”和“内容”分开谈，会更容易听见彼此。' });
     }
+  }
+
+  if (mine.a && theirs.a) {
+    const peakAnxiety = Math.max(Number(mine.a.anxiety), Number(theirs.a.anxiety));
+    const peakAvoidance = Math.max(Number(mine.a.avoidance), Number(theirs.a.avoidance));
+    let returnBody = '你们不一定需要马上把话说完，但需要让对方知道：这次暂停不是关系结束。约定一个重新开口的时间，比逼着当场解决更有用。';
+    if (peakAnxiety >= 62.5 && peakAnxiety >= peakAvoidance) {
+      returnBody = '至少有一个人会在冲突后很快确认关系是否还安全。先给一句明确的“我没有要离开，我们晚点继续”，能让后面的讨论少掉很多防御。';
+    } else if (peakAvoidance >= 62.5) {
+      returnBody = '至少有一个人需要先从高压里退出来，才有能力重新连接。空间可以有，但最好同时说清楚多久后回来，避免沉默被理解成不在意。';
+    }
+    cards.push({ ruleId: 'CM15', title: '冲突之后，怎么回来', body: returnBody });
   }
 
   let resource = null;
@@ -170,7 +202,7 @@ function createCoupleReport(mine, theirs) {
     title: '两个人的相处地图',
     summary: '这里没有匹配百分比。我们只把相似看作共同语言，把差异看作需要翻译的地方。',
     cards: cards.slice(0, 4),
-    action: '可以试试：倾诉前先问一句——你现在想被听见，还是想一起想办法？'
+    action: '倾诉前先问一句——你现在想被听见，还是想一起想办法？'
   };
 }
 

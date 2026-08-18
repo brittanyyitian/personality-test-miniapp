@@ -10,6 +10,8 @@ const state = {
   results: [],
   coupleCode: '',
   couplePartnerCode: '',
+  coupleCodePanel: false,
+  coupleDemo: '',
   returnToCouple: false,
   coupleReport: null,
   inspirationGroup: null,
@@ -894,55 +896,79 @@ const renderInspiration = () => {
 };
 
 const renderCouple = async () => {
-  setRoute('couple', '', { code: state.couplePartnerCode });
-  app.className = 'screen detail-screen';
+  setRoute('couple', '', { code: state.couplePartnerCode, demo: state.coupleDemo });
+  app.className = 'screen couple-screen';
   const seriousResults = state.results.filter((result) => ['cognitive', 'attachment', 'bigfive', 'relationship'].includes(result.assessmentId));
   const cognitiveReady = seriousResults.some((result) => result.assessmentId === 'cognitive' && result.typeCode !== 'XXXX' && result.version === state.catalog.assessments.cognitive.version);
   const attachmentReady = seriousResults.some((result) => result.assessmentId === 'attachment' && result.version === state.catalog.assessments.attachment.version);
-  if (!cognitiveReady || !attachmentReady) {
-    const missingButtons = `${cognitiveReady ? '' : '<button class="primary-button" type="button" data-action="start-cognitive">完成 16 型人格偏好</button>'}${attachmentReady ? '' : '<button class="secondary-button" type="button" data-action="start-attachment">完成依恋倾向</button>'}`;
-    app.innerHTML = `${backButton()}<div class="intro-art blue"><img src="/miniprogram/assets/icon-feather-blue.png" alt="" /></div><p class="eyebrow">两个人的相处地图</p><h1>两个人合不合</h1><p class="intro-copy">双方都需要完成认知偏好和依恋倾向，才能比较彼此的理解方式、确认连接的需要和靠近退开的节奏。</p>${missingButtons}`;
+  const hasResults = cognitiveReady && attachmentReady;
+  const hasIncomingInvite = Boolean(state.couplePartnerCode);
+  const hero = `<div class="couple-hero" aria-label="我和 TA 的两块拼图">
+      <div class="couple-person couple-person-me"><img src="/miniprogram/assets/doodle-relationship.png" alt="我的拼图" /><span>我</span></div>
+      <b>${state.coupleReport ? '×' : '+'}</b>
+      <div class="couple-person couple-person-partner ${hasIncomingInvite || state.coupleReport ? 'arrived' : ''}"><img src="/miniprogram/assets/doodle-social.png" alt="TA 的拼图" /><span>TA</span></div>
+    </div>`;
+
+  if (state.coupleReport) {
+    const cards = state.coupleReport.cards.map((card, index) => `<article class="couple-report-card couple-report-card-${index}"><span>0${index + 1}</span><div><h2>${escapeHtml(card.title)}</h2><p>${escapeHtml(card.body)}</p></div></article>`).join('');
+    app.innerHTML = `${backButton()}<p class="couple-eyebrow">OUR MAP · 双人拼图</p><h1 class="couple-title"><span>我们一起，</span><span>拼出「我们」</span></h1><p class="couple-intro">${escapeHtml(state.coupleReport.summary)}</p>${hero}
+      <section class="couple-report-list">${cards}</section>
+      <aside class="couple-action"><small>下次错频道时，可以试试</small><p>${escapeHtml(state.coupleReport.action)}</p></aside>
+      <p class="couple-boundary">差异不等于不适合。真实互动，永远比人格组合更重要。</p>
+      <button class="couple-primary" type="button" data-action="share-report">分享我们的相处地图</button>
+      <button class="couple-reset" type="button" data-action="again">换一个人重新拼</button>`;
     bind('[data-action="home"]', renderHome);
-    bind('[data-action="start-cognitive"]', () => startAssessment('cognitive', { returnToCouple: true }));
-    bind('[data-action="start-attachment"]', () => startAssessment('attachment', { returnToCouple: true }));
+    bind('[data-action="share-report"]', async () => {
+      const data = { title: '我们的相处地图', text: state.coupleReport.summary, url: location.href };
+      if (navigator.share) { try { await navigator.share(data); return; } catch (error) { if (error?.name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(location.href); window.alert('报告链接已复制'); } catch (error) { window.prompt('复制报告链接', location.href); }
+    });
+    bind('[data-action="again"]', () => {
+      state.coupleReport = null;
+      state.couplePartnerCode = '';
+      state.coupleCodePanel = false;
+      state.coupleDemo = '';
+      renderCouple();
+    });
     return;
   }
 
-  if (!state.coupleCode) {
+  if (hasResults && !state.coupleCode) {
     const data = await api('/api/share-code', { results: seriousResults });
     state.coupleCode = data.code;
   }
 
-  if (state.coupleReport) {
-    const cards = state.coupleReport.cards.map((card) => `<article class="analysis-section"><h3>${escapeHtml(card.title)}</h3><p>${escapeHtml(card.body)}</p></article>`).join('');
-    app.innerHTML = `${backButton()}<p class="eyebrow">组合结果</p><h1>${escapeHtml(state.coupleReport.title)}</h1><p class="intro-copy">${escapeHtml(state.coupleReport.summary)}</p>${cards}<aside><h3>可以试试</h3><p>${escapeHtml(state.coupleReport.action)}</p></aside><button class="secondary-button" type="button" data-action="again">重新输入结果码</button>`;
-    bind('[data-action="home"]', renderHome);
-    bind('[data-action="again"]', () => { state.coupleReport = null; renderCouple(); });
-    return;
-  }
+  const requirement = (id, title, subtitle, duration, ready) => `<button class="couple-requirement ${ready ? 'done' : ''}" type="button" ${ready ? 'disabled' : `data-action="start-${id}"`}>
+    <img src="/miniprogram/assets/doodle-${id}.png" alt="" /><span><strong>${title}</strong><small>${subtitle}</small></span><em>${ready ? '已拼上 ✓' : `${duration} →`}</em>
+  </button>`;
+  const requirements = `<section class="couple-requirements"><h2>先拼上你的两块基础拼图</h2>${requirement('cognitive', '思考模式', '你怎样理解世界', '约 6 分钟', cognitiveReady)}${requirement('attachment', '依恋模式', '你怎样靠近与退后', '约 4 分钟', attachmentReady)}</section>`;
+  const readyCard = `<section class="couple-ready"><b>✓</b><span><strong>你的这一半已经拼好</strong><small>认知偏好与依恋倾向已准备完成</small></span></section>`;
+  const codePanel = state.coupleCodePanel ? `<section class="couple-code-panel"><h2>对方的结果码</h2><textarea data-field="partner" placeholder="粘贴对方主动分享的结果码">${escapeHtml(state.couplePartnerCode)}</textarea><button type="button" data-action="create-report">生成相处地图</button><button type="button" data-action="copy-code">复制我的结果码</button></section>` : '';
 
-  const inviteUrl = new URL(location.origin + location.pathname);
-  inviteUrl.searchParams.set('view', 'couple');
-  inviteUrl.searchParams.set('code', state.coupleCode);
-  const inviteLink = inviteUrl.toString();
-  app.innerHTML = `${backButton()}<p class="eyebrow">双方主动分享</p><h1>两个人的相处地图</h1>
-    <p class="intro-copy">不算匹配百分比。相似是共同语言，差异是需要翻译的地方。</p>
-    <section class="info-block"><h3>我的匿名结果码</h3><textarea class="code-field" readonly>${escapeHtml(state.coupleCode)}</textarea><button class="share-row" type="button" data-action="copy-code">复制结果码</button><button class="doodle-black-button couple-invite-button" type="button" data-action="invite">邀请对方拼进来</button></section>
-    <section class="info-block"><h3>或者输入对方的结果码</h3><textarea class="code-field" data-field="partner" placeholder="粘贴对方主动分享的结果码">${escapeHtml(state.couplePartnerCode)}</textarea></section>
-    <button class="primary-button" type="button" data-action="create-report">生成相处地图</button>
-    <p class="footnote">结果码只包含必要的结构化分数，不包含逐题答案。</p>`;
+  app.innerHTML = `${backButton()}<p class="couple-eyebrow">${hasIncomingInvite ? 'TA 的邀请' : '从「我」到「我们」'}</p>
+    <h1 class="couple-title">${hasIncomingInvite ? 'TA 把一半拼图，留给了你' : '把 TA 拼进来，会出现怎样一张图？'}</h1>
+    <p class="couple-intro">${hasIncomingInvite ? 'TA 已经先拼出了自己。现在还缺你的这一半，才能看见你们之间那张看不见的图。' : '前五块拼的是「我」。两个人放在一起，会看见共同语言，也会看见最容易错频道的地方。'}</p>
+    ${hero}<section class="couple-belief"><strong>两个人都没有问题。</strong><p>只是可能一直在用不同的方式，理解同一件事。</p></section>
+    ${hasResults ? `${readyCard}<button class="couple-primary" type="button" data-action="${hasIncomingInvite ? 'create-report' : 'invite'}">${hasIncomingInvite ? '拼出我们的相处地图' : '把 TA 拼进来'}</button><p class="couple-action-note">约 4 分钟 · 不判断你们合不合适</p><button class="couple-manual-toggle" type="button" data-action="toggle-code">${state.coupleCodePanel ? '收起手动方式' : '已经拿到结果码？手动拼入'}</button>${codePanel}<p class="couple-privacy">只交换生成地图所需的结构化结果，不公开逐题答案。</p>` : `${requirements}<p class="couple-privacy">完成后自动回到这里，TA 的邀请也会保留。</p>`}`;
   bind('[data-action="home"]', renderHome);
+  bind('[data-action="start-cognitive"]', () => startAssessment('cognitive', { returnToCouple: true }));
+  bind('[data-action="start-attachment"]', () => startAssessment('attachment', { returnToCouple: true }));
   bind('[data-action="copy-code"]', async () => {
     try { await navigator.clipboard.writeText(state.coupleCode); } catch (error) { window.prompt('复制结果码', state.coupleCode); }
   });
+  bind('[data-action="toggle-code"]', () => { state.coupleCodePanel = !state.coupleCodePanel; renderCouple(); });
   bind('[data-action="invite"]', async () => {
+    const inviteUrl = new URL(location.origin + location.pathname);
+    inviteUrl.searchParams.set('view', 'couple');
+    inviteUrl.searchParams.set('code', state.coupleCode);
+    const inviteLink = inviteUrl.toString();
     const data = { title: '把我的拼图拼进来', text: '看看我们在关系里的共同节奏和容易误会的地方。', url: inviteLink };
     if (navigator.share) { try { await navigator.share(data); return; } catch (error) { if (error?.name === 'AbortError') return; } }
     try { await navigator.clipboard.writeText(inviteLink); window.alert('邀请链接已复制'); } catch (error) { window.prompt('复制邀请链接', inviteLink); }
   });
   bind('[data-action="create-report"]', async () => {
-    const code = app.querySelector('[data-field="partner"]').value.trim();
-    if (!code) return;
+    const code = (app.querySelector('[data-field="partner"]')?.value || state.couplePartnerCode).trim();
+    if (!code) return window.alert('还没有收到对方的拼图');
     state.couplePartnerCode = code;
     try {
       const data = await api('/api/couple-report', { results: seriousResults, code });
@@ -952,6 +978,34 @@ const renderCouple = async () => {
       window.alert(error.message);
     }
   });
+};
+
+const setupCoupleDemo = async (demo) => {
+  if (!['missing', 'incoming', 'ready', 'report'].includes(demo)) return;
+  state.coupleDemo = demo;
+  state.coupleCode = '';
+  state.coupleReport = null;
+  state.coupleCodePanel = false;
+  state.results = state.results.filter((result) => !['cognitive', 'attachment'].includes(result.assessmentId));
+  const mine = [
+    { id: 'demo-mine-cognitive', assessmentId: 'cognitive', typeCode: 'INTJ', version: state.catalog.assessments.cognitive.version, scores: { EI: -0.72, NS: 0.78, TF: -0.66, JP: 0.68 } },
+    { id: 'demo-mine-attachment', assessmentId: 'attachment', typeCode: 'secure', version: state.catalog.assessments.attachment.version, scores: { anxiety: 68, avoidance: 31 } }
+  ];
+  const partner = [
+    { id: 'demo-partner-cognitive', assessmentId: 'cognitive', typeCode: 'ENFP', version: state.catalog.assessments.cognitive.version, scores: { EI: 0.75, NS: 0.82, TF: 0.71, JP: -0.58 } },
+    { id: 'demo-partner-attachment', assessmentId: 'attachment', typeCode: 'avoidant', version: state.catalog.assessments.attachment.version, scores: { anxiety: 34, avoidance: 73 } }
+  ];
+  if (['ready', 'report'].includes(demo)) state.results = [...mine, ...state.results];
+  if (['incoming', 'report'].includes(demo)) {
+    const shared = await api('/api/share-code', { results: partner });
+    state.couplePartnerCode = shared.code;
+  } else {
+    state.couplePartnerCode = '';
+  }
+  if (demo === 'report') {
+    const data = await api('/api/couple-report', { results: mine, code: state.couplePartnerCode });
+    state.coupleReport = data.report;
+  }
 };
 
 const renderSources = () => {
@@ -973,6 +1027,7 @@ const boot = async () => {
     const query = new URLSearchParams(location.search);
     const view = query.get('view');
     const id = query.get('id');
+    const coupleDemo = String(query.get('demo') || '').toLowerCase();
     const previewIdMatch = String(id || '').match(/^preview-cognitive-([a-z]{4})$/i);
     const previewType = String(query.get('preview') || previewIdMatch?.[1] || '').toUpperCase();
     state.couplePartnerCode = query.get('code') || '';
@@ -1022,7 +1077,10 @@ const boot = async () => {
     }
     const stored = id ? state.results.find((result) => result.id === id || result.assessmentId === id) : null;
     if (stored) state.result = stored;
-    if (view === 'couple') return renderCouple();
+    if (view === 'couple') {
+      await setupCoupleDemo(coupleDemo);
+      return renderCouple();
+    }
     if (view === 'sources') return renderSources();
     if (view === 'inspiration') return renderInspiration();
     if (view === 'result' && stored) return renderResult('core');

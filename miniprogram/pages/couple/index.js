@@ -5,6 +5,8 @@ Page({
   data: {
     shareCode: '',
     inputCode: '',
+    hasIncomingInvite: false,
+    showCodePanel: false,
     hasResults: false,
     readiness: { cognitive: false, attachment: false },
     report: null
@@ -17,7 +19,7 @@ Page({
     } catch (error) {
       inputCode = String(options.code || '').trim();
     }
-    if (inputCode) this.setData({ inputCode });
+    if (inputCode) this.setData({ inputCode, hasIncomingInvite: true });
   },
 
   onShow() {
@@ -32,12 +34,20 @@ Page({
     this.setData({ inputCode: event.detail.value });
   },
 
+  toggleCodePanel() {
+    this.setData({ showCodePanel: !this.data.showCodePanel });
+  },
+
   copyCode() {
     if (!this.data.shareCode) return;
     wx.setClipboardData({ data: this.data.shareCode });
   },
 
   createReport() {
+    if (!this.data.inputCode.trim()) {
+      wx.showToast({ title: '还没有收到对方的拼图', icon: 'none' });
+      return;
+    }
     try {
       const theirs = parseShareCode(this.data.inputCode);
       const mine = compactResult(this.results);
@@ -46,6 +56,10 @@ Page({
     } catch (error) {
       wx.showToast({ title: error.message || '结果码无法读取', icon: 'none' });
     }
+  },
+
+  resetReport() {
+    this.setData({ report: null, inputCode: '', hasIncomingInvite: false, showCodePanel: false });
   },
 
   goAssessment(event) {

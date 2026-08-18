@@ -51,3 +51,43 @@
 - [x] Verify top and lower states in the in-app browser.
 
 final result: passed
+
+---
+
+# Design QA — 双人拼图主链路
+
+## Evidence
+
+- Visual baseline: the illustrated cognitive result page already accepted on `main`.
+- Baseline capture: `/private/tmp/personality-result-reference.png`.
+- Ready-state capture: `/private/tmp/personality-couple-ready.png`.
+- Report capture: `/private/tmp/personality-couple-report.png`.
+- Side-by-side comparison: `/private/tmp/personality-couple-comparison.jpg`.
+- Implementation states: `demo=missing`, `demo=incoming`, `demo=ready`, and `demo=report` on the couple route.
+
+## Comparison
+
+- The couple flow reuses the result page's warm paper background, black high-contrast primary action, strong Chinese headline, outlined rounded cards, red/yellow/green/purple information system, and the existing hand-drawn puzzle assets.
+- The relationship and social puzzle pieces remain the visual anchor; no new or replacement visual assets were introduced.
+- Information density increases progressively: invitation hook, prerequisite cards, ready action, then four structured report modules and one concrete recovery action.
+
+## Interaction And Runtime Checks
+
+- Missing prerequisites expose only the required cognitive and attachment tests.
+- Incoming invite code remains available while the user completes prerequisites.
+- Manual result-code panel expands and collapses without changing the page width.
+- Ready invitation, incoming report generation, empty-code guard, and reset-to-invite flow are wired.
+- Base reports always contain four modules and never output a compatibility percentage.
+- Browser console errors and warnings: none.
+- `npm test`: 46 / 46 passed.
+- `npm run check`: passed; main package 1.05 MB.
+- `node --check preview/app.js`: passed.
+- `git diff --check`: passed.
+
+## Findings
+
+- No actionable P0, P1, or P2 visual differences against the accepted result-page design system.
+- The in-app browser's full-page screenshot path mis-captured pages taller than its viewport; viewport captures and measured DOM widths confirmed the implementation remains 430px wide with no horizontal overflow inside the app surface.
+- Native safe-area rendering and share-sheet appearance still require final confirmation in WeChat Developer Tools.
+
+final result: passed

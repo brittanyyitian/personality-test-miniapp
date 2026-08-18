@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const { assessments } = require('../miniprogram/data/assessments');
+const { createShareCode } = require('../miniprogram/utils/couple');
 
 const memory = new Map();
 let calls;
@@ -119,4 +121,40 @@ test('朋友圈回流转到 intro，intro 连点只进入同一测试一次', ()
   introPage.start();
   assert.deepEqual(calls.redirectTo, ['/pages/quiz/index?id=social']);
   introPage.onUnload();
+});
+
+test('双人邀请会保留对方结果码，并只要求补齐缺失的当前版本拼图', () => {
+  const partnerResults = [
+    { assessmentId: 'cognitive', typeCode: 'ENFP', version: assessments.cognitive.version, scores: { EI: 0.7, NS: 0.8, TF: 0.6, JP: -0.5 } },
+    { assessmentId: 'attachment', version: assessments.attachment.version, scores: { anxiety: 35, avoidance: 70 } }
+  ];
+  const page = instantiate(loadPage('miniprogram/pages/couple/index.js'));
+  const code = createShareCode(partnerResults);
+  page.onLoad({ code: encodeURIComponent(code) });
+  page.onShow();
+
+  assert.equal(page.data.hasIncomingInvite, true);
+  assert.equal(page.data.inputCode, code);
+  assert.equal(page.data.hasResults, false);
+  assert.deepEqual(page.data.readiness, { cognitive: false, attachment: false });
+
+  page.goAssessment({ currentTarget: { dataset: { id: 'attachment' } } });
+  assert.deepEqual(calls.navigateTo, ['/pages/quiz/index?id=attachment&return=couple']);
+});
+
+test('双人报告不会在缺少对方结果码时空提交', () => {
+  const results = [
+    { assessmentId: 'cognitive', typeCode: 'INTJ', version: assessments.cognitive.version, scores: { EI: -0.7, NS: 0.8, TF: -0.6, JP: 0.7 } },
+    { assessmentId: 'attachment', version: assessments.attachment.version, scores: { anxiety: 55, avoidance: 30 } }
+  ];
+  memory.set('mind_results_v1', results);
+  const page = instantiate(loadPage('miniprogram/pages/couple/index.js'));
+  page.onLoad({});
+  page.onShow();
+
+  assert.equal(page.data.hasResults, true);
+  assert.ok(page.data.shareCode.startsWith('M2.'));
+  page.createReport();
+  assert.deepEqual(calls.toasts, ['还没有收到对方的拼图']);
+  assert.equal(page.data.report, null);
 });

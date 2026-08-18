@@ -1,47 +1,99 @@
-<view class="page couple-page">
+<view class="couple-page">
   <block wx:if="{{!report}}">
-    <view class="eyebrow">双方主动分享</view>
-    <view class="serif title-xl couple-title">两个人的相处地图</view>
-    <view class="couple-intro">不算匹配百分比，也不预测未来。这里只把相似看作共同语言，把差异看作需要翻译的地方。</view>
+    <view class="couple-eyebrow">{{hasIncomingInvite ? 'TA 的邀请' : '从「我」到「我们」'}}</view>
+    <view class="couple-title">{{hasIncomingInvite ? 'TA 把一半拼图，留给了你' : '把 TA 拼进来，会出现怎样一张图？'}}</view>
+    <view class="couple-intro">{{hasIncomingInvite ? 'TA 已经先拼出了自己。现在还缺你的这一半，才能看见你们之间那张看不见的图。' : '前五块拼的是「我」。两个人放在一起，会看见共同语言，也会看见最容易错频道的地方。'}}</view>
+
+    <view class="couple-hero">
+      <view class="couple-person couple-person-me">
+        <image src="/assets/doodle-relationship.png" mode="aspectFit" />
+        <text>我</text>
+      </view>
+      <view class="couple-join">＋</view>
+      <view class="couple-person couple-person-partner {{hasIncomingInvite ? 'couple-person-arrived' : ''}}">
+        <image src="/assets/doodle-social.png" mode="aspectFit" />
+        <text>TA</text>
+      </view>
+    </view>
+
+    <view class="couple-belief">
+      <view>两个人都没有问题。</view>
+      <text>只是可能一直在用不同的方式，理解同一件事。</text>
+    </view>
 
     <block wx:if="{{hasResults}}">
-      <view class="section-title">我的结果码</view>
-      <button class="code-box" bindtap="copyCode">
-        <text class="code-text">{{shareCode}}</text>
-        <text class="code-action">复制</text>
-      </button>
-      <view class="footnote code-note">只包含必要的结构化分数和版本，不包含逐题答案。</view>
-      <button class="couple-invite" open-type="share">邀请对方拼进来</button>
+      <view class="couple-ready-card">
+        <view class="couple-ready-mark">✓</view>
+        <view>
+          <view class="couple-ready-title">你的这一半已经拼好</view>
+          <view class="couple-ready-copy">认知偏好与依恋倾向已准备完成</view>
+        </view>
+      </view>
 
-      <view class="section-title">或者输入对方的结果码</view>
-      <textarea class="code-input" maxlength="1200" placeholder="粘贴对方主动分享的结果码" value="{{inputCode}}" bindinput="updateCode" />
-      <button class="primary-button" disabled="{{!inputCode}}" bindtap="createReport">生成相处地图</button>
+      <button wx:if="{{hasIncomingInvite}}" class="couple-primary" bindtap="createReport">拼出我们的相处地图</button>
+      <button wx:else class="couple-primary" open-type="share">把 TA 拼进来</button>
+      <view class="couple-action-note">约 4 分钟 · 不判断你们合不合适</view>
+
+      <button class="couple-manual-toggle" bindtap="toggleCodePanel">{{showCodePanel ? '收起手动方式' : '已经拿到结果码？手动拼入'}}</button>
+      <view wx:if="{{showCodePanel}}" class="couple-code-panel">
+        <view class="couple-code-label">对方的结果码</view>
+        <textarea class="code-input" maxlength="1200" placeholder="粘贴对方主动分享的结果码" value="{{inputCode}}" bindinput="updateCode" />
+        <button class="couple-code-submit" disabled="{{!inputCode}}" bindtap="createReport">生成相处地图</button>
+        <button class="couple-copy-code" bindtap="copyCode">复制我的结果码</button>
+      </view>
+      <view class="couple-privacy">只交换生成地图所需的结构化结果，不公开逐题答案。</view>
     </block>
 
     <block wx:else>
-      <view class="empty-state">
-        <image src="/assets/mist-blue.png" mode="aspectFit" />
-        <view class="serif empty-title">先补齐两份基础结果</view>
-        <view class="empty-copy">双方都需要完成认知偏好和依恋倾向，才能生成有内容的相处地图。</view>
+      <view class="couple-requirements">
+        <view class="couple-requirements-title">先拼上你的两块基础拼图</view>
+        <button wx:if="{{!readiness.cognitive}}" class="couple-requirement" data-id="cognitive" bindtap="goAssessment">
+          <image src="/assets/doodle-cognitive.png" mode="aspectFit" />
+          <view class="couple-requirement-copy"><text>思考模式</text><text class="couple-requirement-hint">你怎样理解世界</text></view>
+          <view class="couple-requirement-state">约 6 分钟 →</view>
+        </button>
+        <view wx:else class="couple-requirement couple-requirement-done">
+          <image src="/assets/doodle-cognitive.png" mode="aspectFit" />
+          <view class="couple-requirement-copy"><text>思考模式</text><text class="couple-requirement-hint">你怎样理解世界</text></view>
+          <view class="couple-requirement-state">已拼上 ✓</view>
+        </view>
+
+        <button wx:if="{{!readiness.attachment}}" class="couple-requirement" data-id="attachment" bindtap="goAssessment">
+          <image src="/assets/doodle-attachment.png" mode="aspectFit" />
+          <view class="couple-requirement-copy"><text>依恋模式</text><text class="couple-requirement-hint">你怎样靠近与退后</text></view>
+          <view class="couple-requirement-state">约 4 分钟 →</view>
+        </button>
+        <view wx:else class="couple-requirement couple-requirement-done">
+          <image src="/assets/doodle-attachment.png" mode="aspectFit" />
+          <view class="couple-requirement-copy"><text>依恋模式</text><text class="couple-requirement-hint">你怎样靠近与退后</text></view>
+          <view class="couple-requirement-state">已拼上 ✓</view>
+        </view>
       </view>
-      <button wx:if="{{!readiness.cognitive}}" class="primary-button" data-id="cognitive" bindtap="goAssessment">完成 16 型人格偏好</button>
-      <button wx:if="{{!readiness.attachment}}" class="secondary-button" data-id="attachment" bindtap="goAssessment">完成依恋倾向</button>
+      <view class="couple-privacy">完成后自动回到这里，TA 的邀请也会保留。</view>
     </block>
   </block>
 
   <block wx:else>
-    <view class="eyebrow">组合结果</view>
-    <view class="serif title-xl couple-title">{{report.title}}</view>
+    <view class="couple-eyebrow">OUR MAP · 双人拼图</view>
+    <view class="couple-title"><text>我们一起，</text><text>拼出「我们」</text></view>
     <view class="couple-intro">{{report.summary}}</view>
+
+    <view class="couple-hero couple-report-hero">
+      <view class="couple-person couple-person-me"><image src="/assets/doodle-relationship.png" mode="aspectFit" /><text>我</text></view>
+      <view class="couple-join">×</view>
+      <view class="couple-person couple-person-partner couple-person-arrived"><image src="/assets/doodle-social.png" mode="aspectFit" /><text>TA</text></view>
+    </view>
+
     <view class="report-cards">
-      <view wx:for="{{report.cards}}" wx:key="ruleId" class="report-card">
-        <view class="serif report-title">{{item.title}}</view>
+      <view wx:for="{{report.cards}}" wx:key="ruleId" class="report-card report-card-{{index}}">
+        <view class="report-index">0{{index + 1}}</view>
+        <view class="report-title">{{item.title}}</view>
         <view class="report-body">{{item.body}}</view>
-        <view class="rule-id">{{item.ruleId}}</view>
       </view>
     </view>
-    <view class="couple-action">{{report.action}}</view>
-    <view class="footnote report-note">差异不等于不适合；真实互动比人格组合更重要。</view>
-    <button class="secondary-button" open-type="share">邀请另一个人拼进来</button>
+    <view class="couple-action"><text>下次错频道时，可以试试</text><view>{{report.action}}</view></view>
+    <view class="couple-report-boundary">差异不等于不适合。真实互动，永远比人格组合更重要。</view>
+    <button class="couple-primary" open-type="share">分享我们的相处地图</button>
+    <button class="couple-reset" bindtap="resetReport">换一个人重新拼</button>
   </block>
 </view>

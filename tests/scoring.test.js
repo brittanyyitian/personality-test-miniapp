@@ -262,5 +262,6 @@ test('双人报告始终包含共同资源且不输出匹配百分比', () => {
   const report = createCoupleReport(mine, theirs);
   assert.equal(report.cards[0].ruleId, 'CM14');
   assert.ok(!JSON.stringify(report).includes('%'));
-  assert.ok(report.cards.length <= 4);
+  assert.equal(report.cards.length, 4);
+  assert.ok(report.cards.some((card) => card.ruleId === 'CM15'));
 });
