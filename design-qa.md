@@ -125,6 +125,45 @@ final result: passed
 
 final result: passed
 
+## 人格底色「开放想象」三档主视觉与五维素材完结验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-76771344-f059-42df-807c-087c4944e00d.png` — 开放想象低，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-b53f93fa-c4f4-42fe-a305-93790a326dcd.png` — 开放想象中，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-9278e216-9774-417a-86f6-ab10a00d61dd.png` — 开放想象高，1672 × 941 px，透明 PNG。
+- Browser-rendered implementation:
+  - `preview/bigfive-openness-low-mobile-first.png`
+  - `preview/bigfive-openness-mid-mobile-first.png`
+  - `preview/bigfive-openness-high-mobile-first.png`
+  - `preview/bigfive-openness-high-share-mobile.png`
+- Focused same-ratio comparison: `preview/bigfive-openness-source-vs-implementation.jpg`。三行左侧为源素材，右侧为结果页实际主视觉区域；均归一化到 720 × 405 px 后比较。
+- Browser viewport override: 390 × 844 CSS px；in-app browser 页面内容面为 375 × 812 px，device density 1×。
+- States: `?view=result&preview=bigfive-openness-low|mid|high`，以及 `?view=share&preview=bigfive-openness-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。源素材内“开放想象”档位与手写结果标题完整保留；页面文字层级、四个特征和五维数值清晰，无截断、叠字或异常换行。
+- Spacing and layout rhythm: passed。三张素材均以 16:9 进入 365 × 205.3 px 主视觉槽，顶部 y=8 px、共鸣卡 y=217.3 px，延续已经确认的紧凑顶部节奏。
+- Colors and visual tokens: passed。三档从实用暖色到蓝色想象场景的层次保留，透明素材与奶油页面底自然融合，没有黑底、遮罩或额外卡片。
+- Image quality and asset fidelity: passed。源图等比转为 720 × 405 透明 WebP；为满足微信主包 2MB 限制采用质量 52、约 2× 页面实际显示宽度，实际手机首屏中文字与关键细节清楚，无肉眼可见块状压缩和透明边缘破损。
+- Copy and content: passed。低档表达“想法需要具体和可落地”，中档表达“在现实与新鲜之间切换”，高档表达“容易被新的可能吸引”；低开放不等同于缺乏想象，高开放也同时说明收束成本。
+- Scoring integrity: passed。主视觉现已覆盖 `energy / empathy / order / sensitivity / openness` 全五维，每维低、中、高三档，共 15 种；仍按相对中点偏离最大的维度选主视觉，五条连续分数与完整分析不被压缩成固定人格分类。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、独立共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“开放想象 · 高”，短海报生成成功，并保留保存分享海报、保存完整报告、复制链接和发给朋友四个动作。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Comparison history: 首轮归一化对照未发现可执行 P0 / P1 / P2 差异；为满足发布门槛只调整 WebP 压缩质量，尺寸、透明通道、构图和页面布局均未改变，压缩后重新在真实页面复验通过。
+- Automated tests: 74 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 2,092,310 bytes，低于 2,097,152 bytes 上限。
+
+final result: passed
+
 ## 人格底色「情绪敏感」三档主视觉接入验收
 
 ### Evidence

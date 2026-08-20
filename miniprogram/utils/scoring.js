@@ -842,7 +842,8 @@ function scoreBigFive(answers) {
     { key: 'energy', level: energyBand },
     { key: 'empathy', level: empathyBand },
     { key: 'order', level: orderBand },
-    { key: 'sensitivity', level: sensitivityBand }
+    { key: 'sensitivity', level: sensitivityBand },
+    { key: 'openness', level: opennessBand }
   ].reduce((current, candidate) => (
     Math.abs(scores[candidate.key] - 3) > Math.abs(scores[current.key] - 3) ? candidate : current
   ));
