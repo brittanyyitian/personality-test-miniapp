@@ -56,27 +56,29 @@ const illustratedAnalysis = (result, visual) => {
   const sections = normalize(result.sections);
   const deepSections = normalize(result.deepDive?.sections);
   const profile = visual.analysisProfile;
+  const labels = visual.analysisLabels || {};
   const core = String(result.deepDive?.body || '').trim()
     || findVisualSection(deepSections, [/一起工作/, /顺起来/])?.body
     || findVisualSection(sections, [/自然的样子/, /两个细节/, /思考顺序/])?.body
+    || findVisualSection(insights, [/不是社牛/, /场合雷达/, /进入人群/])?.body
     || profile.driver;
-  const tension = findVisualSection(sections, [/容易卡住/, /生活节奏/])?.body;
-  const stress = findVisualSection(insights, [/压力/, /反过来/])?.body
+  const tension = findVisualSection(sections, [/容易卡住/, /生活节奏/, /情绪被看见/])?.body;
+  const stress = findVisualSection(insights, [/压力/, /反过来/, /自动角色/])?.body
     || findVisualSection(deepSections, [/压力/])?.body;
   const misread = findVisualSection(insights, [/误会/, /误读/])?.body
     || findVisualSection(sections, [/关系里的你/])?.body;
-  const recovery = findVisualSection(insights, [/调整/, /恢复/])?.body
+  const recovery = findVisualSection(insights, [/调整/, /恢复/, /散场/])?.body
     || findVisualSection(deepSections, [/平衡/, /恢复/])?.body;
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
   return [
-    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
-    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
-    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
-    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
-    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
-    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labels.driver || '核心驱动力', body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labels.conflict || '内在矛盾', body: conflict },
+    { key: 'stress', index: '03', title: labels.stress || '压力反转', body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labels.misread || '关系误读', body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labels.understood || '被理解方式', body: profile.understood },
+    { key: 'recovery', index: '06', title: labels.recovery || '恢复建议', body: recovery || profile.recovery }
   ];
 };
 const resultVisual = (result) => {
@@ -89,7 +91,7 @@ const resultVisual = (result) => {
     analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: clampPercent(50 + (Number(result.scores?.[axis.key]) || 0) * 50 * axis.direction),
+      percent: clampPercent(50 + (Number(result.scores?.[axis.key]) || 0) * (visual.tendencyScale || 50) * axis.direction),
       tone: axis.tone
     }))
   };
@@ -401,7 +403,7 @@ const createIllustratedFullReport = async (result, visual) => {
 
   context.fillStyle = '#776f62';
   context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`FULL PERSONALITY REPORT · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+  context.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
   context.fillStyle = '#e94b35';
   context.fillRect(42, 62, 72, 6);
   drawPosterImageContain(context, heroImage, 30, 78, 690, 570);
@@ -446,10 +448,11 @@ const createIllustratedFullReport = async (result, visual) => {
   drawPosterRoundRect(context, 42, 1500, 666, 154, 30, '#f7ded1');
   context.fillStyle = '#e84b35';
   context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
+  context.fillText(`${visual.analysisEyebrow || 'TYPE NOTES'} · ${result.typeCode || ''}`, 72, 1543);
   context.fillStyle = '#3d3028';
-  context.font = '800 34px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('不止四个字母，这是你的内在运作方式', 72, 1602);
+  context.font = '800 29px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(visual.analysisHeadingLine1 || '不止四个字母，', 72, 1588);
+  context.fillText(visual.analysisHeadingLine2 || '这是你的内在运作方式', 72, 1624);
   (visual.analysis || []).slice(0, 6).forEach((item, index) => {
     const y = 1678 + (index * 232);
     drawPosterRoundRect(context, 42, y, 666, 212, 25, '#fffdf8');
@@ -758,13 +761,13 @@ const renderResult = (stage = 'core') => {
   const metrics = resultMetrics(result);
   const story = resultStory(result);
   if (visual) {
-    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId}`;
+    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId} result-type-${String(result.typeCode || '').toLowerCase()}`;
     app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
       <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
       <section class="poster-quote"><b>“</b><p>${escapeHtml(visual.quote)}</p></section>
       <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
       <section class="poster-tendencies"><h2>${escapeHtml(visual.tendencyTitle || '关系倾向')}</h2><div>${visual.tendencies.map((item) => `<article class="poster-tendency"><span>${escapeHtml(item.label)}</span><i><em class="poster-fill-${escapeHtml(item.tone)}" style="width:${item.percent}%"></em></i><b>${item.percent}%</b></article>`).join('')}</div></section>
-      ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>TYPE NOTES · ${escapeHtml(result.typeCode || '')}</p><h2>不止四个字母，<br>这是你的内在运作方式</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
+      ${visual.analysis?.length ? `<section class="poster-analysis"><div class="poster-analysis-head"><p>${escapeHtml(visual.analysisEyebrow || 'TYPE NOTES')} · ${escapeHtml(result.typeCode || '')}</p><h2>${escapeHtml(visual.analysisHeadingLine1 || '不止四个字母，')}<br>${escapeHtml(visual.analysisHeadingLine2 || '这是你的内在运作方式')}</h2></div><div class="poster-analysis-list">${visual.analysis.map((item) => `<article class="poster-analysis-card poster-analysis-${escapeHtml(item.key)}"><span>${escapeHtml(item.index)}</span><div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></div></article>`).join('')}</div></section>` : ''}
       <section class="illustrated-puzzle-panel"><div class="illustrated-panel-head"><h2>✱ 你的人格拼图进度</h2><span>已完成 ${completed} / 5</span></div><div class="illustrated-puzzle-list">${collection.map((item) => `<article><img class="${item.result ? 'done' : 'pending'}" src="${asset(item.image)}" alt="${escapeHtml(item.name)}" /><b>${escapeHtml(item.name)}</b><small>${item.result ? escapeHtml(resultKeyword(item.result) || '已完成') : '待解锁'}</small></article>`).join('')}</div></section>
       <section class="poster-friend-tags"><h2>朋友眼中的你</h2><div>${visual.friendTags.map((item, index) => `<span class="poster-friend-tag poster-friend-tag-${index}">${escapeHtml(item)}</span>`).join('')}</div></section>
       <section class="poster-notes"><div class="poster-notes-identity"><img src="${asset(visual.aiIcon)}" alt="AI 观察员" /><h2>AI 看到的你</h2></div><ul>${visual.notes.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>
@@ -816,7 +819,7 @@ const shareLink = () => {
 const renderShare = async () => {
   const result = state.result;
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
-  const previewType = String(result.id || '').startsWith('preview-cognitive-') ? result.typeCode : '';
+  const previewType = String(result.id || '').startsWith('preview-') ? result.typeCode : '';
   setRoute('share', result.id || result.assessmentId, { preview: previewType });
   app.className = 'screen web-share-screen';
   app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-loading"><i></i><p>正在生成你的人格海报…</p></div>';
@@ -1033,29 +1036,43 @@ const boot = async () => {
     const view = query.get('view');
     const id = query.get('id');
     const coupleDemo = String(query.get('demo') || '').toLowerCase();
-    const previewIdMatch = String(id || '').match(/^preview-cognitive-([a-z]{4})$/i);
-    const previewType = String(query.get('preview') || previewIdMatch?.[1] || '').toUpperCase();
+    const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
+    const previewType = String(query.get('preview') || previewIdMatch?.[2] || '').toUpperCase();
+    const previewAssessment = previewIdMatch?.[1]?.toLowerCase()
+      || (state.catalog.resultVisuals?.cognitive?.[previewType] ? 'cognitive' : '')
+      || (state.catalog.resultVisuals?.social?.[previewType] ? 'social' : '');
     state.couplePartnerCode = query.get('code') || '';
-    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.cognitive?.[previewType]) {
-      const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
+    if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {
+      const previewVisual = state.catalog.resultVisuals[previewAssessment][previewType];
       const previewProfile = previewVisual.analysisProfile;
+      const isSocialPreview = previewAssessment === 'social';
       const previewResult = {
-        id: `preview-cognitive-${previewType.toLowerCase()}`,
-        assessmentId: 'cognitive',
+        id: `preview-${previewAssessment}-${previewType.toLowerCase()}`,
+        assessmentId: previewAssessment,
         typeCode: previewType,
         typeName: previewVisual.title,
         title: `${previewType} · ${previewVisual.title}`,
         summary: previewVisual.quote,
         shareLine: previewVisual.quote,
         scores: previewVisual.previewScores,
-        insights: [
+        insights: isSocialPreview ? [
+          { title: '这不是社牛或社恐那么简单', body: previewProfile.driver },
+          { title: '你在人群里的自动角色', body: previewProfile.stress },
+          { title: '别人容易误会你的地方', body: previewProfile.misread },
+          { title: '散场以后，你真正需要的', body: previewProfile.recovery }
+        ] : [
           { title: '别人先看到的你', body: previewVisual.quote },
           { title: '你心里真正发生的', body: previewProfile.driver },
           { title: '压力一来，你可能会反过来', body: previewProfile.stress },
           { title: '关系里容易被误会的地方', body: previewProfile.misread },
           { title: '更适合你的调整方式', body: previewProfile.recovery }
         ],
-        sections: [
+        sections: isSocialPreview ? [
+          { title: '你如何进入人群', body: previewProfile.driver },
+          { title: '情绪被看见的方式', body: previewProfile.conflict },
+          { title: '你在局里的功能', body: previewProfile.stress },
+          { title: '容易被误会的地方', body: previewProfile.misread }
+        ] : [
           { title: '你自然的样子', body: previewProfile.driver },
           { title: '你习惯的生活节奏', body: previewProfile.conflict },
           { title: '关系里的你', body: previewProfile.misread },
@@ -1071,7 +1088,7 @@ const boot = async () => {
         }
       };
       state.result = previewResult;
-      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== previewAssessment)];
       if (view === 'share') return renderShare();
       if (view === 'poster') return renderPoster();
       return renderResult('core');

@@ -596,6 +596,12 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .poster-kicker { margin: 0 0 2px; color: #787165; font-size: 13px; font-weight: 760; }
 .poster-kicker-hidden { visibility: hidden; }
 .poster-hero { width: calc(100% + 20px); height: auto; margin-left: -10px; display: block; object-fit: contain; }
+.result-kind-social .poster-hero { width: 64%; margin: 10px auto 2px; }
+.result-type-ping .poster-hero {
+  width: 142%;
+  max-width: none;
+  margin: 10px -25% 6px -17%;
+}
 .poster-quote { position: relative; margin-top: -3px; padding: 16px 18px 16px 48px; border: 1px solid rgba(68,55,31,.1); border-radius: 17px; background: rgba(255,255,255,.86); }
 .poster-quote > b { position: absolute; top: 8px; left: 16px; color: #ef412c; font-family: Georgia, serif; font-size: 33px; line-height: 1; }
 .poster-quote > p { margin: 0; color: #27231e; font-size: 13px; font-weight: 620; line-height: 1.55; }
@@ -649,6 +655,8 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .poster-analysis-head { padding: 18px 18px 17px; color: #3d3028; background: #f7ded1; }
 .poster-analysis-head p { margin: 0 0 9px; color: #e84b35; font-size: 8px; font-weight: 800; letter-spacing: .18em; }
 .poster-analysis-head h2 { margin: 0; font-size: 19px; font-weight: 850; line-height: 1.18; letter-spacing: -.5px; }
+.result-kind-social .poster-analysis-head { background: #f1dfc9; }
+.result-kind-social .poster-analysis-head p { color: #d9631c; }
 .poster-analysis-list { padding: 4px 16px 13px; }
 .poster-analysis-card { padding: 16px 0; display: grid; grid-template-columns: 29px 1fr; gap: 10px; border-bottom: 1px dashed rgba(52,45,34,.16); }
 .poster-analysis-card:last-child { border-bottom: 0; }

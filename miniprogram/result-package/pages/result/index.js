@@ -404,7 +404,7 @@ Page({
     ctx.fill();
     ctx.setFillStyle('#776F62');
     ctx.setFontSize(21);
-    ctx.fillText(`FULL PERSONALITY REPORT · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+    ctx.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
     ctx.setFillStyle('#E94B35');
     ctx.fillRect(42, 62, 72, 6);
     drawImageContain(ctx, heroImage, 30, 78, 690, 570);
@@ -450,10 +450,11 @@ Page({
     drawRoundRect(ctx, 42, 1500, 666, 154, 30, '#F7DED1');
     ctx.setFillStyle('#E84B35');
     ctx.setFontSize(17);
-    ctx.fillText(`TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
+    ctx.fillText(`${visual.analysisEyebrow || 'TYPE NOTES'} · ${result.typeCode || ''}`, 72, 1543);
     ctx.setFillStyle('#3D3028');
-    ctx.setFontSize(34);
-    ctx.fillText('不止四个字母，这是你的内在运作方式', 72, 1602);
+    ctx.setFontSize(29);
+    ctx.fillText(visual.analysisHeadingLine1 || '不止四个字母，', 72, 1588);
+    ctx.fillText(visual.analysisHeadingLine2 || '这是你的内在运作方式', 72, 1624);
     (visual.analysis || []).slice(0, 6).forEach((item, index) => {
       const y = 1678 + (index * 232);
       drawRoundRect(ctx, 42, y, 666, 212, 25, '#FFFDF8');

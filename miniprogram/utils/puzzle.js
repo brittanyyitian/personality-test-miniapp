@@ -85,27 +85,29 @@ function illustratedAnalysis(result, visual) {
   const insightItems = normalized(insights);
   const sectionItems = normalized(sections);
   const deepItems = normalized(deepSections);
+  const labels = visual.analysisLabels || {};
   const core = String(result.deepDive && result.deepDive.body || '').trim()
     || (findAnalysisSection(deepItems, [/一起工作/, /顺起来/]) || {}).body
     || (findAnalysisSection(sectionItems, [/自然的样子/, /两个细节/, /思考顺序/]) || {}).body
+    || (findAnalysisSection(insightItems, [/不是社牛/, /场合雷达/, /进入人群/]) || {}).body
     || profile.driver;
-  const tension = (findAnalysisSection(sectionItems, [/容易卡住/, /生活节奏/]) || {}).body;
-  const stress = (findAnalysisSection(insightItems, [/压力/, /反过来/])
+  const tension = (findAnalysisSection(sectionItems, [/容易卡住/, /生活节奏/, /情绪被看见/]) || {}).body;
+  const stress = (findAnalysisSection(insightItems, [/压力/, /反过来/, /自动角色/])
     || findAnalysisSection(deepItems, [/压力/]) || {}).body;
   const misread = (findAnalysisSection(insightItems, [/误会/, /误读/])
     || findAnalysisSection(sectionItems, [/关系里的你/]) || {}).body;
-  const recovery = (findAnalysisSection(insightItems, [/调整/, /恢复/])
+  const recovery = (findAnalysisSection(insightItems, [/调整/, /恢复/, /散场/])
     || findAnalysisSection(deepItems, [/平衡/, /恢复/]) || {}).body;
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
   return [
-    { key: 'driver', index: '01', title: '核心驱动力', body: core || profile.driver },
-    { key: 'conflict', index: '02', title: '内在矛盾', body: conflict },
-    { key: 'stress', index: '03', title: '压力反转', body: stress || profile.stress },
-    { key: 'misread', index: '04', title: '关系误读', body: misread || profile.misread },
-    { key: 'understood', index: '05', title: '被理解方式', body: profile.understood },
-    { key: 'recovery', index: '06', title: '恢复建议', body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labels.driver || '核心驱动力', body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labels.conflict || '内在矛盾', body: conflict },
+    { key: 'stress', index: '03', title: labels.stress || '压力反转', body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labels.misread || '关系误读', body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labels.understood || '被理解方式', body: profile.understood },
+    { key: 'recovery', index: '06', title: labels.recovery || '恢复建议', body: recovery || profile.recovery }
   ];
 }
 
@@ -121,7 +123,7 @@ function getResultVisual(result) {
     analysis,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: clamp(50 + (Number(result.scores && result.scores[axis.key]) || 0) * 50 * axis.direction),
+      percent: clamp(50 + (Number(result.scores && result.scores[axis.key]) || 0) * (visual.tendencyScale || 50) * axis.direction),
       tone: axis.tone
     }))
   };

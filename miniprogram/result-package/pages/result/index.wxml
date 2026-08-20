@@ -1,4 +1,4 @@
-<view wx:if="{{result && piece}}" class="result-page result-stage-{{stage}} result-kind-{{result.assessmentId}}">
+<view wx:if="{{result && piece}}" class="result-page result-stage-{{stage}} result-kind-{{result.assessmentId}} result-type-{{result.typeCode}}">
   <view wx:if="{{stage === 'reveal'}}" class="reveal-screen" bindtap="showCore">
     <view class="reveal-title">拼图 +1</view>
     <image class="reveal-shape" src="{{piece.image}}" mode="aspectFit" />
@@ -38,9 +38,9 @@
 
       <view wx:if="{{visual.analysis && visual.analysis.length}}" class="poster-analysis">
         <view class="poster-analysis-head">
-          <text>TYPE NOTES · {{result.typeCode}}</text>
-          <view>不止四个字母，</view>
-          <view>这是你的内在运作方式</view>
+          <text>{{visual.analysisEyebrow || 'TYPE NOTES'}} · {{result.typeCode}}</text>
+          <view>{{visual.analysisHeadingLine1 || '不止四个字母，'}}</view>
+          <view>{{visual.analysisHeadingLine2 || '这是你的内在运作方式'}}</view>
         </view>
         <view class="poster-analysis-list">
           <view wx:for="{{visual.analysis}}" wx:key="key" class="poster-analysis-card poster-analysis-{{item.key}}">
