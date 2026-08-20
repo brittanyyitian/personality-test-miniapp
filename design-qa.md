@@ -99,6 +99,32 @@ Interaction checks:
 
 final result: passed
 
+## 人格底色结果页顶部间距复验
+
+### Evidence
+
+- User-reported source: `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-3ab2fe1a-88fa-47db-968d-4679c10008b2.png`。
+- Same-state wide viewport before / after: `preview/bigfive-spacing-before-wide.png`、`preview/bigfive-spacing-after-wide.png`，1074 × 942 CSS px。
+- Combined comparison input: `preview/bigfive-spacing-before-after.jpg`。
+- Mobile verification: `preview/bigfive-spacing-after-mobile.png`，390 × 844 CSS px。
+- State: `?view=result&preview=bigfive-empathy-low`。
+
+### Finding And Fix
+
+- P2 before fix: 人格底色主视觉上方同时存在 26 px 页面顶距、18.5 px 的隐藏标题占位，以及 4 px 主视觉上边距，形成了用户截图里没有信息价值的大块空白。
+- Fix: 网页人格底色结果页顶距改为 10 px，隐藏标题从 `visibility: hidden` 的占位状态改为 `display: none`，主视觉上边距改为 -2 px；小程序同步为 18rpx、`display: none` 和 -4rpx。
+- Measured result: 同一 1074 × 942 页面中，主视觉顶部从 y=78.5 px 移到 y=38 px，共收紧 40.5 px；共鸣卡同步从 y=292.5 px 移到 y=252 px。
+- Scope control: 素材宽度、比例、`object-fit`、裁切、共鸣卡和特征卡内部样式均未修改，只有人格底色结果页顶部垂直节奏变化。
+
+### Runtime Checks
+
+- Wide and mobile layouts: passed；主视觉未裁切，后续模块未遮挡，无横向溢出。
+- Broken images: 0。
+- Automated tests: 72 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
+
+final result: passed
+
 ## 人格底色「共情合作」三档主视觉接入验收
 
 ### Evidence

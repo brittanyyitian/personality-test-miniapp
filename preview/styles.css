@@ -655,7 +655,9 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .poster-fill-green { background: #4c9768; }
 .poster-fill-purple { background: #8566a0; }
 .poster-fill-blue { background: #4f78a8; }
-.result-kind-bigfive .poster-hero { width: calc(100% + 30px); margin: 4px 0 7px -15px; }
+.illustrated-result-screen.result-kind-bigfive { padding-top: 10px; }
+.result-kind-bigfive .poster-kicker-hidden { display: none; }
+.result-kind-bigfive .poster-hero { width: calc(100% + 30px); margin: -2px 0 7px -15px; }
 .result-kind-bigfive .poster-traits { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 .result-kind-bigfive .poster-trait { min-height: 80px; padding: 12px 11px 11px; }
 .result-kind-bigfive .poster-trait h2 { font-size: 15px; }
