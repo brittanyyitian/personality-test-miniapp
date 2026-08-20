@@ -257,6 +257,18 @@
 .poster-fill-yellow { background: #e8ad20; }
 .poster-fill-green { background: #4c9768; }
 .poster-fill-purple { background: #8566a0; }
+.poster-fill-blue { background: #4f78a8; }
+.result-kind-bigfive .poster-hero { width: calc(100% + 52rpx); margin: 8rpx 0 12rpx -26rpx; }
+.result-kind-bigfive .poster-traits { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12rpx; }
+.result-kind-bigfive .poster-trait { min-height: 142rpx; padding: 22rpx 20rpx 20rpx; }
+.result-kind-bigfive .poster-trait-label { font-size: 27rpx; }
+.result-kind-bigfive .poster-trait-detail { margin-top: 12rpx; font-size: 21rpx; line-height: 1.55; }
+.result-kind-bigfive .poster-tendencies { grid-template-columns: 142rpx 1fr; }
+.result-kind-bigfive .poster-section-symbol { font-size: 26rpx; }
+.result-kind-bigfive .poster-tendency-label,
+.result-kind-bigfive .poster-tendency-value { font-size: 19rpx; }
+.result-kind-bigfive .poster-analysis-head { background: #efe4bd; }
+.result-kind-bigfive .poster-analysis-head text { color: #2e6548; }
 .poster-analysis { margin-top: 22rpx; overflow: hidden; border: 1rpx solid rgba(68,55,31,.12); border-radius: 32rpx; background: #fffdf7; }
 .poster-analysis-head { padding: 32rpx 32rpx 30rpx; color: #3d3028; background: #f7ded1; }
 .poster-analysis-head text { display: block; margin-bottom: 16rpx; color: #e84b35; font-size: 15rpx; font-weight: 800; letter-spacing: 3rpx; }

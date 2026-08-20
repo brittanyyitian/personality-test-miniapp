@@ -98,3 +98,61 @@ Interaction checks:
 - 默认态渲染 3 行，展开态渲染 6 行，“查看另外 3 项 / 收起另外 3 项”交互已在网页预览验证。
 
 final result: passed
+
+## 人格底色分享海报横向素材间距复验
+
+- User-reported issue: 750 × 1334 分享海报仍沿用竖向人物插画的 630 px 高主视觉槽；横向素材按 contain 居中后，画面上下产生了两段无意义空白。
+- Same-state evidence:
+  - Before: `preview/bigfive-energy-low-share-final.png`，375 × 812 px。
+  - After: `preview/bigfive-energy-low-share-spacing-mobile-final.png`，375 × 812 px。
+  - Combined comparison: `preview/bigfive-share-spacing-before-after.jpg`。
+- Fix: 只对 `assessmentId === 'bigfive'` 的短分享海报启用横向主视觉布局，把主视觉槽从 630 px 压到 430 px，并同步前移共鸣句、四个特征、结果署名和页脚。认知、依恋与社交海报保持原坐标不变。
+- Web and mini-program parity: passed。网页 Canvas 与微信小程序 Canvas 使用同一组人格底色专属坐标。
+- Visual result: passed。主视觉上下仍保留必要呼吸感，但标题到素材、素材到共鸣句之间不再出现大段空白；内容整体仍完整落在 750 × 1334 画布内。
+- Browser console errors: none。
+- Automated tests: 69 passed, 0 failed；静态分包检查通过。
+
+final result: passed
+
+## 人格底色三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-84787c59-710b-43e8-bae3-3d766b23e161.png` — 外向活力低，1920 × 819 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-bb4aa1b7-5a33-429c-affd-c0be2d2f042d.png` — 外向活力中，1942 × 809 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-a224c6db-96cb-4ac3-ad26-9a2f2bc2bab6.png` — 外向活力高，2048 × 768 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-energy-low-mobile-final.png`
+  - `preview/bigfive-energy-mid-mobile-final.png`
+  - `preview/bigfive-energy-high-mobile-final.png`
+  - `preview/bigfive-energy-low-share-final.png`
+- Combined comparison input: `preview/bigfive-low-source-vs-implementation.jpg`。左侧为透明源素材落在同一奶油色底上的原图，右侧为手机结果页首屏。
+- Browser viewport override: 390 × 844 px；in-app browser 保存出的页面内容面为 375 × 812 px，1× density。
+- States: `?view=result&preview=bigfive-energy-low|mid|high`，以及 `?view=share&preview=bigfive-energy-low`。
+
+### Required Fidelity Surfaces
+
+- Asset fidelity: passed。三张页面均直接使用用户提供的真实插画与手写字，透明背景、构图比例、标题和能量档位没有被重新绘制或裁切。
+- Layout and hierarchy: passed。沿用已经落地的认知 / 依恋 / 社交长结果母版，顺序为主视觉 → 共鸣句 → 四个可感知特征 → 五维连续分数 → 六段深度分析 → 拼图进度 → 朋友标签 → AI 观察 → 行动区。
+- Mobile readability: passed。人格底色的四个特征从原母版四列调整为两列两行，正文提升到 11 px 网页等效字号；五维分数完整保留，未压缩成三种人格标签。
+- Scoring integrity: passed。三张素材只由 `scores.energy` 的低 / 中 / 高区间选择；`energy / empathy / order / sensitivity / openness` 五个原始连续维度、原标题和正式分析数据仍然独立保留。
+- Share result: passed。短海报正确复用同一张能量档位素材，分享页档位徽标显示“外向活力 · 低 / 中 / 高”，完整报告入口存在。
+
+### Comparison History
+
+- Iteration 1: 直接套用既有四列特征卡后，手机上正文只有约 9 px，信息虽齐但过密。
+- Fix: 仅对人格底色结果改为 2 × 2 特征卡，扩大标题、正文、五维标签和数值，不改动其他已上线结果母版。
+- Iteration 2: 分享页因人格底色没有 `typeCode`，右上角出现空白胶囊。
+- Fix: 分享页改用 `visualCode` 显示明确档位，例如“外向活力 · 低”。
+- Post-fix comparison: `preview/bigfive-low-source-vs-implementation.jpg`；三档手机截图均确认主视觉、文本和五维分数无截断、无横向溢出。
+
+### Interaction And Runtime Checks
+
+- 三个预览入口均加载对应素材与独立文案，DOM 中均存在四个特征、五条分数和六段分析。
+- 分享页生成短海报成功，同时出现“保存分享海报”和“保存完整报告”。
+- Browser console errors: none。
+- Automated tests: 69 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.73 MB，结果分包低于 2 MB。
+
+final result: passed

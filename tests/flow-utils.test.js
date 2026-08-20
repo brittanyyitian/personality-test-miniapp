@@ -287,15 +287,55 @@ test('五因素会把明显低于中点的特质识别为核心画像', () => {
     : 3);
   const result = scoreAssessment('bigfive', answers, assessment.questions.map((question) => question.id));
   assert.equal(result.title, '能量更愿意往内收');
+  assert.equal(result.visualCode, 'energy-low');
   assert.match(result.insights[0].body, /外向活力/);
 });
 
 test('五因素全部位于中点时给出均衡画像，不伪造两条最突出线索', () => {
   const result = scoreAssessment('bigfive', assessments.bigfive.questions.map(() => 3));
   assert.equal(result.title, '看人，也看场合');
+  assert.equal(result.visualCode, 'energy-mid');
   assert.deepEqual(result.ruleIds, ['BF_BALANCED_MID']);
   assert.match(result.summary, /五个方向都接近量尺中点/);
   assert.doesNotMatch(result.insights[0].body, /最突出的两条/);
+});
+
+test('人格底色三张素材按外向活力区间切换，但保留完整五维数据', () => {
+  const assessment = assessments.bigfive;
+  const scored = ['low', 'mid', 'high'].map((level) => {
+    const target = level === 'low' ? 1 : level === 'high' ? 5 : 3;
+    const answers = assessment.questions.map((question) => question.dimension === 'energy'
+      ? (question.reverse ? 6 - target : target)
+      : 3);
+    return scoreAssessment('bigfive', answers, assessment.questions.map((question) => question.id));
+  });
+  assert.deepEqual(scored.map((result) => result.visualCode), ['energy-low', 'energy-mid', 'energy-high']);
+  scored.forEach((result) => assert.deepEqual(Object.keys(result.scores).sort(), ['empathy', 'energy', 'openness', 'order', 'sensitivity']));
+});
+
+test('人格底色三档复用长结果母版，并把 1–5 分换算成五条可视化位置', () => {
+  const expected = {
+    'energy-low': ['能量更愿意往内收', 'result-bigfive-energy-low-hero.webp'],
+    'energy-mid': ['看人，也看场合', 'result-bigfive-energy-mid-hero.webp'],
+    'energy-high': ['连接会带来能量', 'result-bigfive-energy-high-hero.webp']
+  };
+  Object.entries(expected).forEach(([visualCode, [title, filename]]) => {
+    const scores = visualCode === 'energy-low'
+      ? { energy: 1.8, empathy: 3.7, order: 3.3, sensitivity: 3.8, openness: 3.6 }
+      : visualCode === 'energy-high'
+        ? { energy: 4.4, empathy: 3.9, order: 3.1, sensitivity: 3.2, openness: 4.1 }
+        : { energy: 3, empathy: 3.8, order: 3.2, sensitivity: 3.4, openness: 3.7 };
+    const visual = getResultVisual({ assessmentId: 'bigfive', visualCode, scores });
+    assert.equal(visual.template, 'illustrated-poster', visualCode);
+    assert.equal(visual.title, title, visualCode);
+    assert.match(visual.hero, new RegExp(`/assets/${filename}$`), visualCode);
+    assert.equal(visual.heroIncludesKicker, true, visualCode);
+    assert.equal(visual.traits.length, 4, visualCode);
+    assert.equal(visual.tendencies.length, 5, visualCode);
+    assert.equal(visual.analysis.length, 6, visualCode);
+    assert.deepEqual(visual.analysis.map((item) => item.title), ['能量底色', '内在拉扯', '压力反差', '关系误读', '真正需要', '调整方向']);
+    visual.tendencies.forEach((item) => assert.ok(item.percent >= 4 && item.percent <= 96, `${visualCode}:${item.label}`));
+  });
 });
 
 test('五套测试的高低典型回答会产生不同分析内容', () => {

@@ -125,13 +125,20 @@ function visualTendencyPercent(result, axis, tendencyScale = 50) {
     const value = Number(scores[axis.key]) || 0;
     return clamp(axis.direction === -1 ? 100 - value : value);
   }
+  if (axis.scale === 'likert') {
+    const value = Number(scores[axis.key]) || 0;
+    const percent = ((value - 1) / 4) * 100;
+    return clamp(axis.direction === -1 ? 100 - percent : percent);
+  }
   return clamp(50 + (Number(scores[axis.key]) || 0) * tendencyScale * (axis.direction || 1));
 }
 
 function getResultVisual(result) {
-  if (!result || !result.assessmentId || !result.typeCode) return null;
+  if (!result || !result.assessmentId) return null;
+  const visualCode = result.visualCode || result.typeCode;
+  if (!visualCode) return null;
   const assessmentVisuals = RESULT_VISUALS[result.assessmentId];
-  const visual = assessmentVisuals ? assessmentVisuals[result.typeCode] || null : null;
+  const visual = assessmentVisuals ? assessmentVisuals[visualCode] || null : null;
   if (!visual) return null;
   const analysis = illustratedAnalysis(result, visual);
   const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
