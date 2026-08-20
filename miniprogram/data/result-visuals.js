@@ -220,6 +220,110 @@ function cognitiveVisual(typeCode, definition) {
 
 const cognitive = Object.fromEntries(Object.entries(cognitiveTypes).map(([code, definition]) => [code, cognitiveVisual(code, definition)]));
 
+// 人格底色仍按五个连续维度计分。当前三张主视觉只负责表达「外向活力」
+// 的低 / 中 / 高位置，不把完整五因素结果压缩成三个固定人格类型。
+const bigFiveTypes = {
+  'energy-low': {
+    title: '能量更愿意往内收',
+    hero: '/assets/result-bigfive-energy-low-hero.webp',
+    quote: '你不是没有表达欲，只是更习惯先在自己的空间里恢复，再把注意力留给真正重要的人和事。',
+    previewScores: { energy: 1.8, empathy: 3.7, order: 3.3, sensitivity: 3.8, openness: 3.6 },
+    traits: [
+      ['慢一点打开', '陌生环境里会先观察，安全感出现后才逐渐让自己被看见。'],
+      ['独处会回血', '安静不是空白，而是把注意力和情绪重新放回原位。'],
+      ['关系重质感', '你不追求认识很多人，更在意少数关系能否真正对上频道。'],
+      ['表达有选择', '愿意说的时候往往很具体，只是不想为热闹持续消耗自己。']
+    ],
+    heading: ['不只是一句「内向」，', '这是你保存与分配能量的方式'],
+    analysis: {
+      driver: '你会自然地把能量留在内部：先观察、先消化，再决定把注意力给谁。独处、熟悉空间和不被催促的节奏，能让你重新拥有清楚表达与靠近别人的力气。',
+      conflict: '你希望重要的人能主动理解自己的安静，又不喜欢为了证明在意而持续在线。越怕给别人添麻烦，越可能把真实需要收得太深，直到对方误以为你什么都不需要。',
+      stress: '刺激和任务叠在一起时，你会进一步减少回应，把大部分精力留给眼前必须处理的事。别人只看到你突然安静，却未必知道你是在避免自己彻底透支。',
+      misread: '你的慢热容易被理解成冷淡，独处也可能被误读成拒绝关系。其实你不是没有兴趣，而是需要更低压力、更可预期的入口来确认这段互动值得投入。',
+      understood: '真正理解你的人，会给出清楚而不施压的邀请，也允许你晚一点回应。他们不会要求你在所有场合都外放，却能认真接住你主动说出的那一小部分。',
+      recovery: '把独处当成正式安排，而不是拖到彻底没电才消失。对重要的人留一句简单说明，再回到安静里恢复，会同时保护自己的空间和关系里的确定感。'
+    },
+    friendTags: ['慢热但认真', '安静有内容', '熟了很能聊', '需要独处', '关系重质'],
+    notes: ['你不是没能量，而是能量更愿意流向少数真正重要的地方。', '不必强迫自己持续外放，清楚的小信号已经足够让人靠近。', '独处是恢复机制，也可以和重要的人提前说清。']
+  },
+  'energy-mid': {
+    title: '看人，也看场合',
+    hero: '/assets/result-bigfive-energy-mid-hero.webp',
+    quote: '你的状态不是固定开或关：人对了、场合舒服时会自然打开，需要收回来时也能安静待着。',
+    previewScores: { energy: 3, empathy: 3.8, order: 3.2, sensitivity: 3.4, openness: 3.7 },
+    traits: [
+      ['会读取场合', '先判断人、氛围和话题，再决定今天要打开到什么程度。'],
+      ['能进也能退', '需要连接时可以主动，想安静时也不必靠热闹维持状态。'],
+      ['熟悉度很重要', '同一个你，在陌生人和信任的人面前可能像两个版本。'],
+      ['节奏有弹性', '你不是永远居中，而是会根据当下需要调整投入的能量。']
+    ],
+    heading: ['不只是一句「看场合」，', '这是你读取环境并切换状态的方式'],
+    analysis: {
+      driver: '你会先读取现场：这里有没有安全感、话题是否有兴趣、对方是否值得靠近。条件合适时，你能自然地加入和回应；没有必要时，也不会逼自己维持过量存在感。',
+      conflict: '这种弹性让你很会适应，也可能让别人难以判断哪一个版本才是真实的你。其实热络和安静都是真的，只是不同环境调用了你不同的能量分配方式。',
+      stress: '连续切换场合或长期迎合外部节奏时，你可能一边表现得还不错，一边很晚才发现自己已经累了。状态下降并不突然，只是前面的适应能力遮住了消耗。',
+      misread: '有人可能把你在不同场合的变化理解成忽冷忽热，或觉得你“看人下菜”。实际上，你只是对互动质量很敏感，不愿把同样的能量平均分配给所有关系。',
+      understood: '真正理解你的人，会允许你今天活跃、明天安静，不把状态变化立刻上升为态度变化。他们更愿意问你此刻需要什么，而不是要求你固定成某一种样子。',
+      recovery: '每次高浓度互动后，留意自己更想继续连接还是先独处。把这个判断提前说出来，会比等到彻底没电才退出更容易维持舒服的关系节奏。'
+    },
+    friendTags: ['看场合开机', '可静可动', '熟人更松弛', '适应力强', '节奏灵活'],
+    notes: ['你的变化不是不稳定，而是对人和环境有真实反应。', '活跃与安静都属于你，不必选一个版本作为唯一答案。', '更早说出当下电量，会让弹性不再变成勉强。']
+  },
+  'energy-high': {
+    title: '连接会带来能量',
+    hero: '/assets/result-bigfive-energy-high-hero.webp',
+    quote: '人、回应和正在发生的事情会点亮你。你愿意进入现场，也很容易让周围的人感受到活力。',
+    previewScores: { energy: 4.4, empathy: 3.9, order: 3.1, sensitivity: 3.2, openness: 4.1 },
+    traits: [
+      ['主动靠近', '有兴趣时会很自然地发起话题，让连接真正发生。'],
+      ['现场有能量', '真实回应会让你越聊越有状态，也能带动周围气氛。'],
+      ['表达更可见', '想法和感受出现时，通常愿意让别人及时知道。'],
+      ['一起会更亮', '很多事情有人共同参与，会比独自完成更容易启动。']
+    ],
+    heading: ['不只是一句「外向」，', '这是你从连接里获得能量的方式'],
+    analysis: {
+      driver: '你会从人与现场的真实反馈里获得能量。一起讨论、共同体验和及时回应，会让想法迅速变得具体；你也常通过主动靠近，让原本松散的关系真正开始发生。',
+      conflict: '你享受连接，也容易把持续出现当成一种责任。越习惯带动别人，越可能在自己低电量时仍维持热度，直到某一刻突然不想再回应任何人。',
+      stress: '现场变冷或回应减少时，你可能下意识增加输出，用更多话题和安排把能量拉回来。真正疲惫时，也容易继续往外找刺激，而不是先承认自己需要停一下。',
+      misread: '别人可能以为你一直都想社交、永远不会累，也可能把快速热络理解成对谁都一样。其实你的热情很真，只是投入速度往往比别人确认关系的速度更快。',
+      understood: '真正理解你的人，会认真回应你的主动，也允许你不负责点亮每一次现场。他们既享受你的活力，也愿意在你安静下来时继续留在关系里。',
+      recovery: '在下一场连接开始前，给自己一段不需要回应任何人的空档。先问清这次是真的想见人，还是只是不习惯安静，能让你的热情更持久。'
+    },
+    friendTags: ['自带活力', '主动连接', '现场开机', '回应很快', '带来热度'],
+    notes: ['你的主动会让很多关系拥有真正开始的机会。', '有能量不等于必须一直输出，停下来也不会失去你的光。', '为自己保留无回应时段，会让下一次靠近更真。']
+  }
+};
+
+function bigFiveVisual(code, definition) {
+  return {
+    template: 'illustrated-poster',
+    kicker: '你的人格底色是',
+    title: definition.title,
+    hero: definition.hero,
+    heroIncludesKicker: true,
+    analysisEyebrow: `PERSONALITY NOTES · ${code.toUpperCase()}`,
+    analysisHeadingLines: definition.heading,
+    analysisLabels: ['能量底色', '内在拉扯', '压力反差', '关系误读', '真正需要', '调整方向'],
+    analysisProfile: definition.analysis,
+    previewScores: definition.previewScores,
+    aiIcon: '/assets/result-ai-observer.webp',
+    quote: definition.quote,
+    traits: definition.traits.map(([label, detail], index) => ({ label, detail, tone: tones[index] })),
+    tendencyTitle: '五维底色',
+    tendencyAxes: [
+      { key: 'energy', label: '外向活力', scale: 'likert', tone: 'red' },
+      { key: 'empathy', label: '共情合作', scale: 'likert', tone: 'yellow' },
+      { key: 'order', label: '自律秩序', scale: 'likert', tone: 'green' },
+      { key: 'sensitivity', label: '情绪敏感', scale: 'likert', tone: 'purple' },
+      { key: 'openness', label: '开放想象', scale: 'likert', tone: 'blue' }
+    ],
+    friendTags: definition.friendTags,
+    notes: definition.notes
+  };
+}
+
+const bigfive = Object.fromEntries(Object.entries(bigFiveTypes).map(([code, definition]) => [code, bigFiveVisual(code, definition)]));
+
 const attachmentTypes = {
   secure: {
     title: '安全型依恋',
@@ -796,6 +900,6 @@ const social = {
   })
 };
 
-const RESULT_VISUALS = { cognitive, attachment, social };
+const RESULT_VISUALS = { cognitive, attachment, bigfive, social };
 
-module.exports = { RESULT_VISUALS, cognitiveTypes, attachmentTypes };
+module.exports = { RESULT_VISUALS, cognitiveTypes, attachmentTypes, bigFiveTypes };

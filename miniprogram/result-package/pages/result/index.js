@@ -300,7 +300,27 @@ Page({
     const ctx = wx.createCanvasContext('sharePoster', this);
     const { result, visual } = this.data;
     if (visual) {
-      const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83' };
+      const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83', blue: '#4F78A8' };
+      const compactWideHero = result.assessmentId === 'bigfive';
+      const posterLayout = compactWideHero ? {
+        heroY: 82,
+        heroHeight: 430,
+        quoteY: 520,
+        traitsY: 706,
+        titleY: 1050,
+        subtitleY: 1090,
+        dividerY: 1195,
+        footerY: 1240
+      } : {
+        heroY: 76,
+        heroHeight: 630,
+        quoteY: 720,
+        traitsY: 906,
+        titleY: 1210,
+        subtitleY: 1248,
+        dividerY: 1276,
+        footerY: 1310
+      };
       ctx.setFillStyle('#FFF8E8');
       ctx.fillRect(0, 0, 750, 1334);
       ctx.setFillStyle('rgba(240,73,50,.05)');
@@ -316,19 +336,19 @@ Page({
       ctx.fillText(`PERSONALITY PUZZLE · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
       ctx.setFillStyle('#E94B35');
       ctx.fillRect(42, 62, 56, 6);
-      drawImageContain(ctx, imageInfo, 30, 76, 690, 630);
-      drawRoundRect(ctx, 42, 720, 666, 164, 30, 'rgba(255,253,248,.96)');
+      drawImageContain(ctx, imageInfo, 30, posterLayout.heroY, 690, posterLayout.heroHeight);
+      drawRoundRect(ctx, 42, posterLayout.quoteY, 666, 164, 30, 'rgba(255,253,248,.96)');
       ctx.setFillStyle('#EF4934');
       ctx.setFontSize(58);
-      ctx.fillText('“', 72, 778);
+      ctx.fillText('“', 72, posterLayout.quoteY + 58);
       ctx.setFillStyle('#2F2B25');
       ctx.setFontSize(27);
-      drawWrappedText(ctx, visual.quote || resonance, 122, 774, 530, 43, 3);
+      drawWrappedText(ctx, visual.quote || resonance, 122, posterLayout.quoteY + 54, 530, 43, 3);
       (visual.traits || []).slice(0, 4).forEach((trait, index) => {
         const column = index % 2;
         const row = Math.floor(index / 2);
         const x = 42 + (column * 339);
-        const y = 906 + (row * 126);
+        const y = posterLayout.traitsY + (row * 126);
         drawRoundRect(ctx, x, y, 327, 108, 24, '#FFFDF8');
         ctx.setFillStyle(toneColors[trait.tone] || '#685F54');
         ctx.fillRect(x, y, 7, 108);
@@ -340,18 +360,18 @@ Page({
       });
       ctx.setFillStyle('#26231F');
       ctx.setFontSize(28);
-      ctx.fillText(`我是「${displayTitle}」`, 42, 1210);
+      ctx.fillText(`我是「${displayTitle}」`, 42, posterLayout.titleY);
       ctx.setFillStyle('#777063');
       ctx.setFontSize(21);
-      ctx.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 1248);
+      ctx.fillText('人格不是标签，是一张继续认识自己的地图。', 42, posterLayout.subtitleY);
       ctx.setFillStyle('rgba(74,65,53,.16)');
-      ctx.fillRect(42, 1276, 666, 2);
+      ctx.fillRect(42, posterLayout.dividerY, 666, 2);
       ctx.setFillStyle('#E94B35');
       ctx.setFontSize(19);
-      ctx.fillText('人格拼图', 42, 1310);
+      ctx.fillText('人格拼图', 42, posterLayout.footerY);
       ctx.setFillStyle('#777063');
       ctx.setFontSize(18);
-      ctx.fillText('分享给朋友，看看你会拼出什么', 456, 1310);
+      ctx.fillText('分享给朋友，看看你会拼出什么', 456, posterLayout.footerY);
       this.exportPosterCanvas(ctx);
       return;
     }
@@ -390,7 +410,7 @@ Page({
   drawFullReport(heroImage, aiImage) {
     const ctx = wx.createCanvasContext('fullReportPoster', this);
     const { result, visual, pieces, completedCount, displayTitle, resonance } = this.data;
-    const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83' };
+    const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83', blue: '#4F78A8' };
 
     ctx.setFillStyle('#FFF8E8');
     ctx.fillRect(0, 0, 750, 4200);
@@ -434,7 +454,7 @@ Page({
     ctx.setFillStyle('#27231F');
     ctx.setFontSize(30);
     ctx.fillText(visual.tendencyTitle || '人格维度', 72, 1172);
-    (visual.tendencies || []).slice(0, 4).forEach((item, index) => {
+    (visual.tendencies || []).slice(0, 5).forEach((item, index) => {
       const y = 1220 + (index * 58);
       const percent = Math.max(0, Math.min(100, Number(item.percent) || 0));
       ctx.setFillStyle('#595248');

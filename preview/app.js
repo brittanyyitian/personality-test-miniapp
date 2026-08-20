@@ -96,10 +96,16 @@ const visualTendencyPercent = (result, axis, tendencyScale = 50) => {
     const value = Number(scores[axis.key]) || 0;
     return clampPercent(axis.direction === -1 ? 100 - value : value);
   }
+  if (axis.scale === 'likert') {
+    const value = Number(scores[axis.key]) || 0;
+    const percent = ((value - 1) / 4) * 100;
+    return clampPercent(axis.direction === -1 ? 100 - percent : percent);
+  }
   return clampPercent(50 + (Number(scores[axis.key]) || 0) * tendencyScale * (axis.direction || 1));
 };
 const resultVisual = (result) => {
-  const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[result?.typeCode] || null;
+  const visualCode = result?.visualCode || result?.typeCode;
+  const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[visualCode] || null;
   if (!visual) return null;
   const analysis = illustratedAnalysis(result, visual);
   const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
@@ -336,7 +342,27 @@ const createIllustratedPoster = async (result, visual) => {
   const heroImage = await loadPosterImage(visual.hero);
   const title = visual.title || resultKeyword(result) || '新的一面';
   const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
-  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83' };
+  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
+  const compactWideHero = result.assessmentId === 'bigfive';
+  const posterLayout = compactWideHero ? {
+    heroY: 82,
+    heroHeight: 430,
+    quoteY: 520,
+    traitsY: 706,
+    titleY: 1050,
+    subtitleY: 1090,
+    dividerY: 1195,
+    footerY: 1240
+  } : {
+    heroY: 76,
+    heroHeight: 630,
+    quoteY: 720,
+    traitsY: 906,
+    titleY: 1210,
+    subtitleY: 1248,
+    dividerY: 1276,
+    footerY: 1310
+  };
 
   context.fillStyle = '#fff8e8';
   context.fillRect(0, 0, 750, 1334);
@@ -355,22 +381,22 @@ const createIllustratedPoster = async (result, visual) => {
   context.fillStyle = '#e94b35';
   context.fillRect(42, 62, 56, 6);
 
-  drawPosterImageContain(context, heroImage, 30, 76, 690, 630);
+  drawPosterImageContain(context, heroImage, 30, posterLayout.heroY, 690, posterLayout.heroHeight);
 
-  drawPosterRoundRect(context, 42, 720, 666, 164, 30, 'rgba(255, 253, 248, .96)');
+  drawPosterRoundRect(context, 42, posterLayout.quoteY, 666, 164, 30, 'rgba(255, 253, 248, .96)');
   context.fillStyle = '#ef4934';
   context.font = '700 58px Georgia, serif';
-  context.fillText('“', 72, 778);
+  context.fillText('“', 72, posterLayout.quoteY + 58);
   context.fillStyle = '#2f2b25';
   context.font = '600 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  drawPosterText(context, quote, 122, 774, 530, 43, 3);
+  drawPosterText(context, quote, 122, posterLayout.quoteY + 54, 530, 43, 3);
 
   const traits = Array.isArray(visual.traits) ? visual.traits.slice(0, 4) : [];
   traits.forEach((trait, index) => {
     const column = index % 2;
     const row = Math.floor(index / 2);
     const x = 42 + (column * 339);
-    const y = 906 + (row * 126);
+    const y = posterLayout.traitsY + (row * 126);
     drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
     context.fillStyle = toneColors[trait.tone] || '#685f54';
     context.fillRect(x, y, 7, 108);
@@ -383,17 +409,17 @@ const createIllustratedPoster = async (result, visual) => {
 
   context.fillStyle = '#26231f';
   context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`我是「${title}」`, 42, 1210);
+  context.fillText(`我是「${title}」`, 42, posterLayout.titleY);
   context.fillStyle = '#777063';
   context.font = '21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 1248);
-  drawPosterRoundRect(context, 42, 1276, 666, 2, 1, 'rgba(74, 65, 53, .16)');
+  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, posterLayout.subtitleY);
+  drawPosterRoundRect(context, 42, posterLayout.dividerY, 666, 2, 1, 'rgba(74, 65, 53, .16)');
   context.fillStyle = '#e94b35';
   context.font = '700 19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格拼图', 42, 1310);
+  context.fillText('人格拼图', 42, posterLayout.footerY);
   context.fillStyle = '#777063';
   context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('分享给朋友，看看你会拼出什么', 468, 1310);
+  context.fillText('分享给朋友，看看你会拼出什么', 468, posterLayout.footerY);
   return canvas.toDataURL('image/png');
 };
 
@@ -407,7 +433,7 @@ const createIllustratedFullReport = async (result, visual) => {
   const [heroImage, ...restImages] = images;
   const aiImage = restImages.pop();
   const puzzleImages = restImages;
-  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83' };
+  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
   const completed = collection.filter((item) => item.result).length;
 
   context.fillStyle = '#fff8e8';
@@ -453,7 +479,7 @@ const createIllustratedFullReport = async (result, visual) => {
   context.fillStyle = '#27231f';
   context.font = '700 30px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText(visual.tendencyTitle || '人格维度', 72, 1172);
-  (visual.tendencies || []).slice(0, 4).forEach((item, index) => {
+  (visual.tendencies || []).slice(0, 5).forEach((item, index) => {
     const y = 1220 + (index * 58);
     context.fillStyle = '#595248';
     context.font = '20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
@@ -798,7 +824,7 @@ const renderResult = (stage = 'core') => {
   const metrics = resultMetrics(result);
   const story = resultStory(result);
   if (visual) {
-    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId} result-type-${String(result.typeCode || '').toLowerCase()}`;
+    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId} result-type-${String(result.typeCode || '').toLowerCase()} result-visual-${String(result.visualCode || '').toLowerCase()}`;
     app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
       <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
       ${result.assessmentId === 'attachment' && result.profileTitle ? `<div class="poster-profile"><span>当前画像</span><b>${escapeHtml(result.profileTitle)}</b></div>` : ''}
@@ -858,9 +884,15 @@ const shareLink = () => {
 const renderShare = async () => {
   const result = state.result;
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
+  const bigFiveLevel = { low: '低', mid: '中', high: '高' }[String(result.visualCode || '').split('-').pop()];
+  const resultBadge = result.assessmentId === 'bigfive' && bigFiveLevel
+    ? `外向活力 · ${bigFiveLevel}`
+    : (result.typeCode || '');
   const previewType = String(result.id || '').startsWith('preview-cognitive-')
     || String(result.id || '').startsWith('preview-social-')
     ? result.typeCode
+    : String(result.id || '').startsWith('preview-bigfive-')
+      ? `bigfive-${result.visualCode}`
     : String(result.id || '').startsWith('preview-attachment-')
       ? `attachment-${result.typeCode}`
       : '';
@@ -872,7 +904,7 @@ const renderShare = async () => {
   if (!app.classList.contains('web-share-screen')) return;
   const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
   if (!app.classList.contains('web-share-screen')) return;
-  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(result.typeCode || '')}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${download.url}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
+  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(resultBadge)}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${download.url}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
   bind('[data-action="result"]', () => renderResult('core'));
   bind('[data-action="home"]', renderHome);
   let fullReportDownload = null;
@@ -1132,13 +1164,18 @@ const boot = async () => {
     const coupleDemo = String(query.get('demo') || '').toLowerCase();
     const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
     const attachmentPreviewIdMatch = String(id || '').match(/^preview-attachment-(secure|anxious|avoidant|fearful-avoidant)$/i);
-    const previewRaw = String(query.get('preview') || previewIdMatch?.[2] || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : ''));
+    const bigFivePreviewIdMatch = String(id || '').match(/^preview-bigfive-(energy-(?:low|mid|high))$/i);
+    const previewRaw = String(query.get('preview') || previewIdMatch?.[2]
+      || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : '')
+      || (bigFivePreviewIdMatch ? `bigfive-${bigFivePreviewIdMatch[1]}` : ''));
     const previewType = previewRaw.toUpperCase();
     const previewAssessment = previewIdMatch?.[1]?.toLowerCase()
       || (state.catalog.resultVisuals?.cognitive?.[previewType] ? 'cognitive' : '')
       || (state.catalog.resultVisuals?.social?.[previewType] ? 'social' : '');
     const attachmentPreviewMatch = previewRaw.toLowerCase().match(/^attachment-(secure|anxious|avoidant|fearful-avoidant)$/);
     const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
+    const bigFivePreviewMatch = previewRaw.toLowerCase().match(/^bigfive-(energy-(?:low|mid|high))$/);
+    const bigFivePreviewType = bigFivePreviewMatch?.[1] || '';
     state.couplePartnerCode = query.get('code') || '';
     if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {
       const previewVisual = state.catalog.resultVisuals[previewAssessment][previewType];
@@ -1187,6 +1224,37 @@ const boot = async () => {
       };
       state.result = previewResult;
       state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== previewAssessment)];
+      if (view === 'share') return renderShare();
+      if (view === 'poster') return renderPoster();
+      return renderResult('core');
+    }
+    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.bigfive?.[bigFivePreviewType]) {
+      const previewVisual = state.catalog.resultVisuals.bigfive[bigFivePreviewType];
+      const previewProfile = previewVisual.analysisProfile;
+      const previewResult = {
+        id: `preview-bigfive-${bigFivePreviewType}`,
+        assessmentId: 'bigfive',
+        visualCode: bigFivePreviewType,
+        title: previewVisual.title,
+        summary: previewVisual.quote,
+        shareLine: previewVisual.quote,
+        scores: previewVisual.previewScores,
+        insights: [
+          { title: '你的底色不是一个标签', body: previewProfile.driver },
+          { title: '别人先看到的你', body: previewVisual.quote },
+          { title: '熟悉以后才会看见的部分', body: previewProfile.conflict },
+          { title: '压力下可能出现的反差', body: previewProfile.stress },
+          { title: '更适合你的调整方式', body: previewProfile.recovery }
+        ],
+        sections: [
+          { title: '你自然的样子', body: previewProfile.driver },
+          { title: '你习惯的生活节奏', body: previewProfile.conflict },
+          { title: '关系里的你', body: previewProfile.misread },
+          { title: '容易卡住的时刻', body: previewProfile.stress }
+        ]
+      };
+      state.result = previewResult;
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'bigfive')];
       if (view === 'share') return renderShare();
       if (view === 'poster') return renderPoster();
       return renderResult('core');
