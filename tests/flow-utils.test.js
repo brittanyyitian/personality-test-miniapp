@@ -20,10 +20,88 @@ test('未知测评不会被误映射成第一块拼图', () => {
   assert.equal(getPiece('unknown'), null);
 });
 
-test('社交结果不再误用慢性撤退者海报模板', () => {
-  const sparkVisual = getResultVisual({ assessmentId: 'social', typeCode: 'SPARK' });
-  assert.equal(sparkVisual, null);
-  assert.equal(getResultVisual({ assessmentId: 'social', typeCode: 'ROOM' }), null);
+test('未知社交类型不会误用已经接入的海报模板', () => {
+  assert.equal(getResultVisual({ assessmentId: 'social', typeCode: 'UNKNOWN' }), null);
+});
+
+test('MIX 看场合的人接入社交专属插画与分析模板', () => {
+  const visual = getResultVisual({
+    assessmentId: 'social',
+    typeCode: 'MIX',
+    scores: { SA: 1, PF: -1, SH: 0, CB: 1 }
+  });
+  assert.equal(visual.template, 'illustrated-poster');
+  assert.equal(visual.title, '看场合的人');
+  assert.equal(visual.hero, '/result-package/assets/result-social-mix-hero.webp');
+  assert.equal(visual.heroIncludesKicker, true);
+  assert.equal(visual.analysisEyebrow, 'SOCIAL MODE');
+  assert.deepEqual(visual.analysis.map((item) => item.title), ['场合雷达', '切换逻辑', '自动角色', '关系误读', '被理解方式', '散场恢复']);
+  assert.deepEqual(visual.tendencies.map((item) => item.percent), [56, 44, 50, 56]);
+  assert.equal(visual.friendTags.length, 5);
+  assert.equal(visual.notes.length, 3);
+});
+
+test('MIX 正式结果内容会进入社交分析，而不是退化成认知四字母文案', () => {
+  const visual = getResultVisual({
+    assessmentId: 'social', typeCode: 'MIX', scores: {},
+    insights: [
+      { title: '你在人群里的自动角色', body: '来自本次社交答案的自动角色。' },
+      { title: '别人容易误会你的地方', body: '来自本次社交答案的关系误读。' },
+      { title: '散场以后，你真正需要的', body: '来自本次社交答案的恢复方式。' }
+    ],
+    sections: [{ title: '情绪被看见的方式', body: '来自本次社交答案的表达矛盾。' }],
+    deepDive: { body: '来自本次社交答案的场合雷达。', sections: [] }
+  });
+  assert.match(visual.analysis[0].body, /场合雷达/);
+  assert.match(visual.analysis[1].body, /表达矛盾/);
+  assert.match(visual.analysis[2].body, /自动角色/);
+  assert.match(visual.analysis[3].body, /关系误读/);
+  assert.match(visual.analysis[5].body, /恢复方式/);
+  assert.doesNotMatch(visual.analysis.map((item) => item.body).join('|'), /四个字母/);
+});
+
+test('17 种社交素材全部匹配正式题库类型并复用同一模板', () => {
+  const expected = {
+    MIX: '看场合的人',
+    SPARK: '全自动气氛组',
+    HOST: '礼貌控场王',
+    ANCHOR: '热闹里的定心丸',
+    STAGE: '职业组局人',
+    POP: '随地开麦体',
+    WAVE: '野生喜剧人',
+    SUN: '人群充电宝',
+    BREEZE: '轻盈过路客',
+    ROOM: '小范围话痨',
+    STEADY: '低调掌舵者',
+    NEST: '熟人限定版',
+    GUARD: '沉默项目经理',
+    NIGHT: '深夜开麦者',
+    SIDE: '随缘观察员',
+    PING: '被动上线体',
+    SLEEP: '省电模式常驻'
+  };
+  Object.entries(expected).forEach(([typeCode, title]) => {
+    const visual = getResultVisual({ assessmentId: 'social', typeCode, scores: {} });
+    assert.equal(visual.template, 'illustrated-poster', typeCode);
+    assert.equal(visual.title, title, typeCode);
+    assert.equal(visual.hero, `/result-package/assets/result-social-${typeCode.toLowerCase()}-hero.webp`, typeCode);
+    assert.equal(visual.heroIncludesKicker, true, typeCode);
+    assert.equal(visual.traits.length, 4, typeCode);
+    assert.equal(visual.tendencies.length, 4, typeCode);
+    assert.equal(visual.analysis.length, 6, typeCode);
+    assert.equal(visual.friendTags.length, 5, typeCode);
+    assert.equal(visual.notes.length, 3, typeCode);
+  });
+});
+
+test('17 种社交页面拥有独立分析内容，不只替换头图和标题', () => {
+  const typeCodes = ['MIX', 'SPARK', 'HOST', 'ANCHOR', 'STAGE', 'POP', 'WAVE', 'SUN', 'BREEZE', 'ROOM', 'STEADY', 'NEST', 'GUARD', 'NIGHT', 'SIDE', 'PING', 'SLEEP'];
+  const profiles = typeCodes.map((typeCode) => {
+    const visual = getResultVisual({ assessmentId: 'social', typeCode, scores: {} });
+    visual.analysis.forEach((item) => assert.ok(item.body.length >= 45, `${typeCode}/${item.title} 内容过短`));
+    return visual.analysis.map((item) => item.body).join('|');
+  });
+  assert.equal(new Set(profiles).size, typeCodes.length);
 });
 
 test('INTJ 静默构图者复用完整海报模板并登记头图', () => {

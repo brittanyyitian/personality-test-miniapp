@@ -85,34 +85,36 @@ function illustratedAnalysis(result, visual) {
   const insightItems = normalized(insights);
   const sectionItems = normalized(sections);
   const deepItems = normalized(deepSections);
+  const labels = visual.analysisLabels || {};
   const core = String(result.deepDive && result.deepDive.body || '').trim()
     || (findAnalysisSection(deepItems, [/一起工作/, /顺起来/]) || {}).body
     || (findAnalysisSection(sectionItems, [/自然的样子/, /两个细节/, /思考顺序/]) || {}).body
+    || (findAnalysisSection(insightItems, [/不是社牛/, /场合雷达/, /进入人群/]) || {}).body
     || profile.driver;
-  const tension = (findAnalysisSection(sectionItems, [/容易卡住/, /生活节奏/]) || {}).body;
-  const stress = (findAnalysisSection(insightItems, [/压力/, /反过来/])
+  const tension = (findAnalysisSection(sectionItems, [/容易卡住/, /生活节奏/, /情绪被看见/]) || {}).body;
+  const stress = (findAnalysisSection(insightItems, [/压力/, /反过来/, /自动角色/])
     || findAnalysisSection(deepItems, [/压力/]) || {}).body;
   const misread = (findAnalysisSection(insightItems, [/误会/, /误读/])
     || findAnalysisSection(sectionItems, [/关系里的你/]) || {}).body;
-  const recovery = (findAnalysisSection(insightItems, [/调整/, /恢复/])
+  const recovery = (findAnalysisSection(insightItems, [/调整/, /恢复/, /散场/])
     || findAnalysisSection(deepItems, [/平衡/, /恢复/]) || {}).body;
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
-  const labels = Array.isArray(visual.analysisLabels) && visual.analysisLabels.length === 6
-    ? visual.analysisLabels
-    : ['核心驱动力', '内在矛盾', '压力反转', '关系误读', '被理解方式', '恢复建议'];
+  const labelFor = (key, index, fallback) => Array.isArray(labels)
+    ? (labels[index] || fallback)
+    : (labels[key] || fallback);
   return [
-    { key: 'driver', index: '01', title: labels[0], body: core || profile.driver },
-    { key: 'conflict', index: '02', title: labels[1], body: conflict },
-    { key: 'stress', index: '03', title: labels[2], body: stress || profile.stress },
-    { key: 'misread', index: '04', title: labels[3], body: misread || profile.misread },
-    { key: 'understood', index: '05', title: labels[4], body: profile.understood },
-    { key: 'recovery', index: '06', title: labels[5], body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labelFor('driver', 0, '核心驱动力'), body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labelFor('conflict', 1, '内在矛盾'), body: conflict },
+    { key: 'stress', index: '03', title: labelFor('stress', 2, '压力反转'), body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labelFor('misread', 3, '关系误读'), body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labelFor('understood', 4, '被理解方式'), body: profile.understood },
+    { key: 'recovery', index: '06', title: labelFor('recovery', 5, '恢复建议'), body: recovery || profile.recovery }
   ];
 }
 
-function visualTendencyPercent(result, axis) {
+function visualTendencyPercent(result, axis, tendencyScale = 50) {
   const scores = result.scores || {};
   if (axis.scale === 'derived-security') {
     const anxiety = Number(scores.anxiety) || 0;
@@ -123,7 +125,7 @@ function visualTendencyPercent(result, axis) {
     const value = Number(scores[axis.key]) || 0;
     return clamp(axis.direction === -1 ? 100 - value : value);
   }
-  return clamp(50 + (Number(scores[axis.key]) || 0) * 50 * (axis.direction || 1));
+  return clamp(50 + (Number(scores[axis.key]) || 0) * tendencyScale * (axis.direction || 1));
 }
 
 function getResultVisual(result) {
@@ -132,13 +134,16 @@ function getResultVisual(result) {
   const visual = assessmentVisuals ? assessmentVisuals[result.typeCode] || null : null;
   if (!visual) return null;
   const analysis = illustratedAnalysis(result, visual);
-  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? { ...visual, analysis } : visual;
+  const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
+    ? visual.analysisHeadingLines
+    : [visual.analysisHeadingLine1, visual.analysisHeadingLine2].filter(Boolean);
+  const normalizedVisual = { ...visual, analysis, analysisHeadingLines };
+  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? normalizedVisual : visual;
   return {
-    ...visual,
-    analysis,
+    ...normalizedVisual,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: visualTendencyPercent(result, axis),
+      percent: visualTendencyPercent(result, axis, visual.tendencyScale || 50),
       tone: axis.tone
     }))
   };

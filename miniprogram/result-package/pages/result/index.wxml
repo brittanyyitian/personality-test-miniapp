@@ -1,4 +1,4 @@
-<view wx:if="{{result && piece}}" class="result-page result-stage-{{stage}} result-kind-{{result.assessmentId}}">
+<view wx:if="{{result && piece}}" class="result-page result-stage-{{stage}} result-kind-{{result.assessmentId}} result-type-{{result.typeCode}}">
   <view wx:if="{{stage === 'reveal'}}" class="reveal-screen" bindtap="showCore">
     <view class="reveal-title">拼图 +1</view>
     <image class="reveal-shape" src="{{piece.image}}" mode="aspectFit" />

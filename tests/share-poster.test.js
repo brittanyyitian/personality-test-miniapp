@@ -11,8 +11,9 @@ test('网页插画结果分享使用类型头图并直接展示可保存海报',
   assert.match(source, /createIllustratedPoster/);
   assert.match(source, /loadPosterImage\(visual\.hero\)/);
   assert.match(source, /if \(visual\) return createIllustratedPoster\(result, visual\)/);
-  assert.match(source, /preview-cognitive-\(\[a-z\]\{4\}\)/i);
+  assert.match(source, /preview-\(cognitive\|social\)-\(\[a-z0-9\]\+\)/i);
   assert.match(source, /\['result', 'share', 'poster'\]\.includes\(view\)/);
+  assert.match(source, /resultVisuals\?\.social\?\.\[previewType\]/);
   assert.match(source, /SHARE YOUR PIECE/);
   assert.doesNotMatch(source, /<h1>这是我的一块<\/h1>/);
 });

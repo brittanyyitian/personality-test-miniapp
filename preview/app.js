@@ -59,33 +59,35 @@ const illustratedAnalysis = (result, visual) => {
   const sections = normalize(result.sections);
   const deepSections = normalize(result.deepDive?.sections);
   const profile = visual.analysisProfile;
+  const labels = visual.analysisLabels || {};
   const core = String(result.deepDive?.body || '').trim()
     || findVisualSection(deepSections, [/一起工作/, /顺起来/])?.body
     || findVisualSection(sections, [/自然的样子/, /两个细节/, /思考顺序/])?.body
+    || findVisualSection(insights, [/不是社牛/, /场合雷达/, /进入人群/])?.body
     || profile.driver;
-  const tension = findVisualSection(sections, [/容易卡住/, /生活节奏/])?.body;
-  const stress = findVisualSection(insights, [/压力/, /反过来/])?.body
+  const tension = findVisualSection(sections, [/容易卡住/, /生活节奏/, /情绪被看见/])?.body;
+  const stress = findVisualSection(insights, [/压力/, /反过来/, /自动角色/])?.body
     || findVisualSection(deepSections, [/压力/])?.body;
   const misread = findVisualSection(insights, [/误会/, /误读/])?.body
     || findVisualSection(sections, [/关系里的你/])?.body;
-  const recovery = findVisualSection(insights, [/调整/, /恢复/])?.body
+  const recovery = findVisualSection(insights, [/调整/, /恢复/, /散场/])?.body
     || findVisualSection(deepSections, [/平衡/, /恢复/])?.body;
   const conflict = tension && !profile.conflict.includes(tension) && !tension.includes(profile.conflict)
     ? `${profile.conflict} ${tension}`
     : profile.conflict;
-  const labels = Array.isArray(visual.analysisLabels) && visual.analysisLabels.length === 6
-    ? visual.analysisLabels
-    : ['核心驱动力', '内在矛盾', '压力反转', '关系误读', '被理解方式', '恢复建议'];
+  const labelFor = (key, index, fallback) => Array.isArray(labels)
+    ? (labels[index] || fallback)
+    : (labels[key] || fallback);
   return [
-    { key: 'driver', index: '01', title: labels[0], body: core || profile.driver },
-    { key: 'conflict', index: '02', title: labels[1], body: conflict },
-    { key: 'stress', index: '03', title: labels[2], body: stress || profile.stress },
-    { key: 'misread', index: '04', title: labels[3], body: misread || profile.misread },
-    { key: 'understood', index: '05', title: labels[4], body: profile.understood },
-    { key: 'recovery', index: '06', title: labels[5], body: recovery || profile.recovery }
+    { key: 'driver', index: '01', title: labelFor('driver', 0, '核心驱动力'), body: core || profile.driver },
+    { key: 'conflict', index: '02', title: labelFor('conflict', 1, '内在矛盾'), body: conflict },
+    { key: 'stress', index: '03', title: labelFor('stress', 2, '压力反转'), body: stress || profile.stress },
+    { key: 'misread', index: '04', title: labelFor('misread', 3, '关系误读'), body: misread || profile.misread },
+    { key: 'understood', index: '05', title: labelFor('understood', 4, '被理解方式'), body: profile.understood },
+    { key: 'recovery', index: '06', title: labelFor('recovery', 5, '恢复建议'), body: recovery || profile.recovery }
   ];
 };
-const visualTendencyPercent = (result, axis) => {
+const visualTendencyPercent = (result, axis, tendencyScale = 50) => {
   const scores = result?.scores || {};
   if (axis.scale === 'derived-security') {
     return clampPercent(100 - (((Number(scores.anxiety) || 0) + (Number(scores.avoidance) || 0)) / 2));
@@ -94,19 +96,22 @@ const visualTendencyPercent = (result, axis) => {
     const value = Number(scores[axis.key]) || 0;
     return clampPercent(axis.direction === -1 ? 100 - value : value);
   }
-  return clampPercent(50 + (Number(scores[axis.key]) || 0) * 50 * (axis.direction || 1));
+  return clampPercent(50 + (Number(scores[axis.key]) || 0) * tendencyScale * (axis.direction || 1));
 };
 const resultVisual = (result) => {
   const visual = state.catalog?.resultVisuals?.[result?.assessmentId]?.[result?.typeCode] || null;
   if (!visual) return null;
   const analysis = illustratedAnalysis(result, visual);
-  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? { ...visual, analysis } : visual;
+  const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
+    ? visual.analysisHeadingLines
+    : [visual.analysisHeadingLine1, visual.analysisHeadingLine2].filter(Boolean);
+  const normalizedVisual = { ...visual, analysis, analysisHeadingLines };
+  if (!Array.isArray(visual.tendencyAxes)) return analysis.length ? normalizedVisual : visual;
   return {
-    ...visual,
-    analysis,
+    ...normalizedVisual,
     tendencies: visual.tendencyAxes.map((axis) => ({
       label: axis.label,
-      percent: visualTendencyPercent(result, axis),
+      percent: visualTendencyPercent(result, axis, visual.tendencyScale || 50),
       tone: axis.tone
     }))
   };
@@ -418,7 +423,7 @@ const createIllustratedFullReport = async (result, visual) => {
 
   context.fillStyle = '#776f62';
   context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`FULL PERSONALITY REPORT · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+  context.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
   context.fillStyle = '#e94b35';
   context.fillRect(42, 62, 72, 6);
   drawPosterImageContain(context, heroImage, 30, 78, 690, 570);
@@ -793,7 +798,7 @@ const renderResult = (stage = 'core') => {
   const metrics = resultMetrics(result);
   const story = resultStory(result);
   if (visual) {
-    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId}`;
+    app.className = `screen illustrated-result-screen result-kind-${result.assessmentId} result-type-${String(result.typeCode || '').toLowerCase()}`;
     app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
       <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
       ${result.assessmentId === 'attachment' && result.profileTitle ? `<div class="poster-profile"><span>当前画像</span><b>${escapeHtml(result.profileTitle)}</b></div>` : ''}
@@ -854,6 +859,7 @@ const renderShare = async () => {
   const result = state.result;
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
   const previewType = String(result.id || '').startsWith('preview-cognitive-')
+    || String(result.id || '').startsWith('preview-social-')
     ? result.typeCode
     : String(result.id || '').startsWith('preview-attachment-')
       ? `attachment-${result.typeCode}`
@@ -1124,32 +1130,47 @@ const boot = async () => {
     const view = query.get('view');
     const id = query.get('id');
     const coupleDemo = String(query.get('demo') || '').toLowerCase();
-    const previewIdMatch = String(id || '').match(/^preview-cognitive-([a-z]{4})$/i);
-    const previewRaw = String(query.get('preview') || previewIdMatch?.[1] || '');
+    const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
+    const attachmentPreviewIdMatch = String(id || '').match(/^preview-attachment-(secure|anxious|avoidant|fearful-avoidant)$/i);
+    const previewRaw = String(query.get('preview') || previewIdMatch?.[2] || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : ''));
     const previewType = previewRaw.toUpperCase();
+    const previewAssessment = previewIdMatch?.[1]?.toLowerCase()
+      || (state.catalog.resultVisuals?.cognitive?.[previewType] ? 'cognitive' : '')
+      || (state.catalog.resultVisuals?.social?.[previewType] ? 'social' : '');
     const attachmentPreviewMatch = previewRaw.toLowerCase().match(/^attachment-(secure|anxious|avoidant|fearful-avoidant)$/);
     const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
     state.couplePartnerCode = query.get('code') || '';
-    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.cognitive?.[previewType]) {
-      const previewVisual = state.catalog.resultVisuals.cognitive[previewType];
+    if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {
+      const previewVisual = state.catalog.resultVisuals[previewAssessment][previewType];
       const previewProfile = previewVisual.analysisProfile;
+      const isSocialPreview = previewAssessment === 'social';
       const previewResult = {
-        id: `preview-cognitive-${previewType.toLowerCase()}`,
-        assessmentId: 'cognitive',
+        id: `preview-${previewAssessment}-${previewType.toLowerCase()}`,
+        assessmentId: previewAssessment,
         typeCode: previewType,
         typeName: previewVisual.title,
         title: `${previewType} · ${previewVisual.title}`,
         summary: previewVisual.quote,
         shareLine: previewVisual.quote,
         scores: previewVisual.previewScores,
-        insights: [
+        insights: isSocialPreview ? [
+          { title: '这不是社牛或社恐那么简单', body: previewProfile.driver },
+          { title: '你在人群里的自动角色', body: previewProfile.stress },
+          { title: '别人容易误会你的地方', body: previewProfile.misread },
+          { title: '散场以后，你真正需要的', body: previewProfile.recovery }
+        ] : [
           { title: '别人先看到的你', body: previewVisual.quote },
           { title: '你心里真正发生的', body: previewProfile.driver },
           { title: '压力一来，你可能会反过来', body: previewProfile.stress },
           { title: '关系里容易被误会的地方', body: previewProfile.misread },
           { title: '更适合你的调整方式', body: previewProfile.recovery }
         ],
-        sections: [
+        sections: isSocialPreview ? [
+          { title: '你如何进入人群', body: previewProfile.driver },
+          { title: '情绪被看见的方式', body: previewProfile.conflict },
+          { title: '你在局里的功能', body: previewProfile.stress },
+          { title: '容易被误会的地方', body: previewProfile.misread }
+        ] : [
           { title: '你自然的样子', body: previewProfile.driver },
           { title: '你习惯的生活节奏', body: previewProfile.conflict },
           { title: '关系里的你', body: previewProfile.misread },
@@ -1165,7 +1186,7 @@ const boot = async () => {
         }
       };
       state.result = previewResult;
-      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'cognitive')];
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== previewAssessment)];
       if (view === 'share') return renderShare();
       if (view === 'poster') return renderPoster();
       return renderResult('core');

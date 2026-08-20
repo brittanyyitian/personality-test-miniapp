@@ -404,7 +404,7 @@ Page({
     ctx.fill();
     ctx.setFillStyle('#776F62');
     ctx.setFontSize(21);
-    ctx.fillText(`FULL PERSONALITY REPORT · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
+    ctx.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
     ctx.setFillStyle('#E94B35');
     ctx.fillRect(42, 62, 72, 6);
     drawImageContain(ctx, heroImage, 30, 78, 690, 570);
