@@ -123,7 +123,7 @@ final result: passed
 - Typography and readability: passed。素材内标题在 375 px 内容宽度下仍清楚；共鸣句、2 × 2 特征卡、五维标签与百分比没有缩小或溢出。
 - Copy and resonance: passed。低 / 中 / 高分别表达“保留判断”“理解与立场并存”“很容易把别人放进心里”，四个特征和六段分析均围绕同一连续维度展开，没有把低共情误写成冷漠，也没有把高共情只写成优点。
 - Scoring integrity: passed。五因素仍分别连续计分；主视觉只在当前有素材的外向活力与共情合作之间选择离量尺中点更远的一维，同等显著时保持外向活力，未新增固定人格类型。
-- Package fit: passed。六张主视觉统一为 900 px 宽透明 WebP；主包为 1.62 MB，仍低于 2 MB 限制。
+- Package fit: passed。现有九张人格底色主视觉统一为 720 px 宽透明 WebP；在手机内容宽度上仍接近 2× 清晰度，主包为 1.69 MB，仍低于 2 MB 限制。
 
 ### Interaction And Runtime Checks
 
@@ -132,7 +132,7 @@ final result: passed
 - 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
 - Browser console errors: none。
 - Automated tests: 70 passed, 0 failed。
-- Static package check: passed；7 个主包页面，1 个分包，主包 1.62 MB。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
 
 final result: passed
 
@@ -191,5 +191,44 @@ final result: passed
 - Browser console errors: none。
 - Automated tests: 69 passed, 0 failed。
 - Static package check: passed；7 个主包页面，1 个分包，主包 1.73 MB，结果分包低于 2 MB。
+
+final result: passed
+
+## 人格底色「秩序自律」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-b5594103-934f-4ee1-b676-1021ce600847.png` — 秩序自律低，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-dbbe92c8-a7d4-4606-8511-63591404e427.png` — 秩序自律中，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-2a25783f-22f5-429c-b6df-ef150827071e.png` — 秩序自律高，1536 × 1024 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-order-low-mobile-first.png`
+  - `preview/bigfive-order-mid-mobile-first.png`
+  - `preview/bigfive-order-high-mobile-first.png`
+  - `preview/bigfive-order-high-share-mobile.png`
+- Full-view combined comparison input: `preview/bigfive-order-source-vs-implementation.jpg`。
+- Focused-region comparison was not needed: each source is itself the complete hero region, and the combined board preserves readable hero lettering, crop and mobile placement for all three states.
+- Browser viewport override: 390 × 844 CSS px；保存内容面为 375 px 宽，1× density。
+- States: `?view=result&preview=bigfive-order-low|mid|high`，以及 `?view=share&preview=bigfive-order-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。素材内手写标题、档位徽标和页面正文均清楚；四个特征与五维数字没有缩小、截断或异常换行。
+- Spacing and layout rhythm: passed。低、中两张保持 2:1 横图比例；高档保留原始 3:2 完整构图，虽比前两档高约 61 px，但首屏仍能看到四个特征、五维分数和分析标题，没有产生无意义留白。
+- Colors and visual tokens: passed。奶油底、红绿手写字和既有结果母版保持一致；素材透明区域与页面底色融合，没有黑底或边框。
+- Image quality and asset fidelity: passed。三张源图压缩为 720 px 宽透明 WebP，在 365 px 页面内容宽度下保持接近 2× 清晰度；主体、文案、比例和透明边缘均保留，高档未为追求统一比例而硬裁切。
+- Copy and content: passed。低档表达“更依赖当下动力”，中档表达“有框架也留余地”，高档表达“确定感来自有条理”；低档没有被写成懒散，高档也同时呈现稳定优势与变化压力。
+- Scoring integrity: passed。完整五因素继续独立计分；主视觉只在已有素材覆盖的外向活力、共情合作、秩序自律中选择离中点最远的一维，同分时保持旧维度优先，未新增固定人格类型。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“秩序自律 · 高”，成功生成 750 × 1334 海报，并保留完整报告入口。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Automated tests: 71 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
 
 final result: passed
