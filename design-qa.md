@@ -99,6 +99,43 @@ Interaction checks:
 
 final result: passed
 
+## 人格底色「共情合作」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-8456f34a-97f2-4f06-aa10-97aa9ece8819.png` — 共情合作低，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-071dd55d-72f8-458e-9af9-655bbab6f908.png` — 共情合作中，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-8913a115-1559-4536-b40a-e7a58815aba5.png` — 共情合作高，1774 × 887 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-empathy-low-mobile-first.png`
+  - `preview/bigfive-empathy-mid-mobile-first.png`
+  - `preview/bigfive-empathy-high-mobile-first.png`
+  - `preview/bigfive-empathy-high-share-mobile.png`
+- Combined source-versus-implementation input: `preview/bigfive-empathy-source-vs-implementation.jpg`。
+- Browser viewport override: 390 × 844 px；in-app browser 保存出的内容面为 375 px 宽，1× density。
+- States: `?view=result&preview=bigfive-empathy-low|mid|high`，以及 `?view=share&preview=bigfive-empathy-high`。
+
+### Required Fidelity Surfaces
+
+- Asset fidelity: passed。三张页面直接使用用户给出的透明插画，人物、手写标题、档位徽标和横向构图均未重绘、未裁断。
+- Layout and spacing: passed。素材按 2:1 比例落在结果页首屏顶部，没有回到竖向人物图的高槽位；主视觉到共鸣句之间只保留现有母版的必要呼吸感，首屏可完整看到四个特征与五维分数。
+- Typography and readability: passed。素材内标题在 375 px 内容宽度下仍清楚；共鸣句、2 × 2 特征卡、五维标签与百分比没有缩小或溢出。
+- Copy and resonance: passed。低 / 中 / 高分别表达“保留判断”“理解与立场并存”“很容易把别人放进心里”，四个特征和六段分析均围绕同一连续维度展开，没有把低共情误写成冷漠，也没有把高共情只写成优点。
+- Scoring integrity: passed。五因素仍分别连续计分；主视觉只在当前有素材的外向活力与共情合作之间选择离量尺中点更远的一维，同等显著时保持外向活力，未新增固定人格类型。
+- Package fit: passed。六张主视觉统一为 900 px 宽透明 WebP；主包为 1.62 MB，仍低于 2 MB 限制。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览入口均正确显示对应主视觉、独立共鸣句、四个特征、五条连续分数与六段分析。
+- 共情高分享页正确显示“共情合作 · 高”，成功生成 750 × 1334 短海报，并保留“保存完整报告”入口。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Automated tests: 70 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.62 MB。
+
+final result: passed
+
 ## 人格底色分享海报横向素材间距复验
 
 - User-reported issue: 750 × 1334 分享海报仍沿用竖向人物插画的 630 px 高主视觉槽；横向素材按 contain 居中后，画面上下产生了两段无意义空白。

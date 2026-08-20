@@ -884,9 +884,11 @@ const shareLink = () => {
 const renderShare = async () => {
   const result = state.result;
   const title = resultVisual(result)?.title || resultKeyword(result) || '新的一面';
-  const bigFiveLevel = { low: '低', mid: '中', high: '高' }[String(result.visualCode || '').split('-').pop()];
-  const resultBadge = result.assessmentId === 'bigfive' && bigFiveLevel
-    ? `外向活力 · ${bigFiveLevel}`
+  const [bigFiveDimension, bigFiveBand] = String(result.visualCode || '').split('-');
+  const bigFiveLevel = { low: '低', mid: '中', high: '高' }[bigFiveBand];
+  const bigFiveDimensionLabel = { energy: '外向活力', empathy: '共情合作' }[bigFiveDimension];
+  const resultBadge = result.assessmentId === 'bigfive' && bigFiveLevel && bigFiveDimensionLabel
+    ? `${bigFiveDimensionLabel} · ${bigFiveLevel}`
     : (result.typeCode || '');
   const previewType = String(result.id || '').startsWith('preview-cognitive-')
     || String(result.id || '').startsWith('preview-social-')
@@ -1164,7 +1166,7 @@ const boot = async () => {
     const coupleDemo = String(query.get('demo') || '').toLowerCase();
     const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
     const attachmentPreviewIdMatch = String(id || '').match(/^preview-attachment-(secure|anxious|avoidant|fearful-avoidant)$/i);
-    const bigFivePreviewIdMatch = String(id || '').match(/^preview-bigfive-(energy-(?:low|mid|high))$/i);
+    const bigFivePreviewIdMatch = String(id || '').match(/^preview-bigfive-((?:energy|empathy)-(?:low|mid|high))$/i);
     const previewRaw = String(query.get('preview') || previewIdMatch?.[2]
       || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : '')
       || (bigFivePreviewIdMatch ? `bigfive-${bigFivePreviewIdMatch[1]}` : ''));
@@ -1174,7 +1176,7 @@ const boot = async () => {
       || (state.catalog.resultVisuals?.social?.[previewType] ? 'social' : '');
     const attachmentPreviewMatch = previewRaw.toLowerCase().match(/^attachment-(secure|anxious|avoidant|fearful-avoidant)$/);
     const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
-    const bigFivePreviewMatch = previewRaw.toLowerCase().match(/^bigfive-(energy-(?:low|mid|high))$/);
+    const bigFivePreviewMatch = previewRaw.toLowerCase().match(/^bigfive-((?:energy|empathy)-(?:low|mid|high))$/);
     const bigFivePreviewType = bigFivePreviewMatch?.[1] || '';
     state.couplePartnerCode = query.get('code') || '';
     if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {

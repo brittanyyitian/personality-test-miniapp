@@ -313,18 +313,31 @@ test('人格底色三张素材按外向活力区间切换，但保留完整五�
   scored.forEach((result) => assert.deepEqual(Object.keys(result.scores).sort(), ['empathy', 'energy', 'openness', 'order', 'sensitivity']));
 });
 
-test('人格底色三档复用长结果母版，并把 1–5 分换算成五条可视化位置', () => {
+test('共情合作比外向活力更显著时切换对应主视觉', () => {
+  const assessment = assessments.bigfive;
+  const scored = ['low', 'mid', 'high'].map((level) => {
+    const answers = assessment.questions.map((question, index) => {
+      if (question.dimension !== 'empathy') return 3;
+      const target = level === 'low' ? 1 : level === 'high' ? 5 : (index % 2 === 0 ? 2 : 3);
+      return question.reverse ? 6 - target : target;
+    });
+    return scoreAssessment('bigfive', answers, assessment.questions.map((question) => question.id));
+  });
+  assert.deepEqual(scored.map((result) => result.visualCode), ['empathy-low', 'empathy-mid', 'empathy-high']);
+  scored.forEach((result) => assert.deepEqual(Object.keys(result.scores).sort(), ['empathy', 'energy', 'openness', 'order', 'sensitivity']));
+});
+
+test('人格底色六档复用长结果母版，并把 1–5 分换算成五条可视化位置', () => {
   const expected = {
-    'energy-low': ['能量更愿意往内收', 'result-bigfive-energy-low-hero.webp'],
-    'energy-mid': ['看人，也看场合', 'result-bigfive-energy-mid-hero.webp'],
-    'energy-high': ['连接会带来能量', 'result-bigfive-energy-high-hero.webp']
+    'energy-low': ['能量更愿意往内收', 'result-bigfive-energy-low-hero.webp', '能量底色'],
+    'energy-mid': ['看人，也看场合', 'result-bigfive-energy-mid-hero.webp', '能量底色'],
+    'energy-high': ['连接会带来能量', 'result-bigfive-energy-high-hero.webp', '能量底色'],
+    'empathy-low': ['更愿意保持判断', 'result-bigfive-empathy-low-hero.webp', '共情底色'],
+    'empathy-mid': ['理解与立场都保留', 'result-bigfive-empathy-mid-hero.webp', '共情底色'],
+    'empathy-high': ['很容易把别人放进心里', 'result-bigfive-empathy-high-hero.webp', '共情底色']
   };
-  Object.entries(expected).forEach(([visualCode, [title, filename]]) => {
-    const scores = visualCode === 'energy-low'
-      ? { energy: 1.8, empathy: 3.7, order: 3.3, sensitivity: 3.8, openness: 3.6 }
-      : visualCode === 'energy-high'
-        ? { energy: 4.4, empathy: 3.9, order: 3.1, sensitivity: 3.2, openness: 4.1 }
-        : { energy: 3, empathy: 3.8, order: 3.2, sensitivity: 3.4, openness: 3.7 };
+  Object.entries(expected).forEach(([visualCode, [title, filename, firstAnalysisLabel]]) => {
+    const scores = require('../miniprogram/data/result-visuals').bigFiveTypes[visualCode].previewScores;
     const visual = getResultVisual({ assessmentId: 'bigfive', visualCode, scores });
     assert.equal(visual.template, 'illustrated-poster', visualCode);
     assert.equal(visual.title, title, visualCode);
@@ -333,7 +346,7 @@ test('人格底色三档复用长结果母版，并把 1–5 分换算成五条�
     assert.equal(visual.traits.length, 4, visualCode);
     assert.equal(visual.tendencies.length, 5, visualCode);
     assert.equal(visual.analysis.length, 6, visualCode);
-    assert.deepEqual(visual.analysis.map((item) => item.title), ['能量底色', '内在拉扯', '压力反差', '关系误读', '真正需要', '调整方向']);
+    assert.deepEqual(visual.analysis.map((item) => item.title), [firstAnalysisLabel, '内在拉扯', '压力反差', '关系误读', '真正需要', '调整方向']);
     visual.tendencies.forEach((item) => assert.ok(item.percent >= 4 && item.percent <= 96, `${visualCode}:${item.label}`));
   });
 });

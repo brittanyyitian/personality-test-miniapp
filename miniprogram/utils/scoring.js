@@ -841,8 +841,11 @@ function scoreBigFive(answers) {
   return {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
-    // 主视觉展示外向活力所处的连续区间；完整结果仍由五个维度共同组成。
-    visualCode: `energy-${energyBand}`,
+    // 主视觉只在当前已有素材覆盖的维度中选择更显著的一条；完整结果仍由五个维度共同组成。
+    // 同等显著时沿用外向活力，确保中点和旧结果的展示稳定。
+    visualCode: Math.abs(scores.empathy - 3) > Math.abs(scores.energy - 3)
+      ? `empathy-${empathyBand}`
+      : `energy-${energyBand}`,
     title: primaryTitle,
     tags: balanced
       ? ['五维相对均衡', '看情境切换', '连续维度']
