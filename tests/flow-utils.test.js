@@ -341,7 +341,21 @@ test('秩序自律比已接入维度更显著时切换对应主视觉', () => {
   scored.forEach((result) => assert.deepEqual(Object.keys(result.scores).sort(), ['empathy', 'energy', 'openness', 'order', 'sensitivity']));
 });
 
-test('人格底色九档复用长结果母版，并把 1–5 分换算成五条可视化位置', () => {
+test('情绪敏感比已接入维度更显著时切换对应主视觉', () => {
+  const assessment = assessments.bigfive;
+  const scored = ['low', 'mid', 'high'].map((level) => {
+    const answers = assessment.questions.map((question, index) => {
+      if (question.dimension !== 'sensitivity') return 3;
+      const target = level === 'low' ? 1 : level === 'high' ? 5 : (index % 2 === 0 ? 2 : 3);
+      return question.reverse ? 6 - target : target;
+    });
+    return scoreAssessment('bigfive', answers, assessment.questions.map((question) => question.id));
+  });
+  assert.deepEqual(scored.map((result) => result.visualCode), ['sensitivity-low', 'sensitivity-mid', 'sensitivity-high']);
+  scored.forEach((result) => assert.deepEqual(Object.keys(result.scores).sort(), ['empathy', 'energy', 'openness', 'order', 'sensitivity']));
+});
+
+test('人格底色十二档复用长结果母版，并把 1–5 分换算成五条可视化位置', () => {
   const expected = {
     'energy-low': ['能量更愿意往内收', 'result-bigfive-energy-low-hero.webp', '能量底色'],
     'energy-mid': ['看人，也看场合', 'result-bigfive-energy-mid-hero.webp', '能量底色'],
@@ -351,7 +365,10 @@ test('人格底色九档复用长结果母版，并把 1–5 分换算成五条�
     'empathy-high': ['很容易把别人放进心里', 'result-bigfive-empathy-high-hero.webp', '共情底色'],
     'order-low': ['更依赖当下动力', 'result-bigfive-order-low-hero.webp', '秩序底色'],
     'order-mid': ['有框架，也留余地', 'result-bigfive-order-mid-hero.webp', '秩序底色'],
-    'order-high': ['确定感来自有条理', 'result-bigfive-order-high-hero.webp', '秩序底色']
+    'order-high': ['确定感来自有条理', 'result-bigfive-order-high-hero.webp', '秩序底色'],
+    'sensitivity-low': ['不容易被波动带走', 'result-bigfive-sensitivity-low-hero.webp', '敏感底色'],
+    'sensitivity-mid': ['会波动，也能回来', 'result-bigfive-sensitivity-mid-hero.webp', '敏感底色'],
+    'sensitivity-high': ['很早就能感觉到变化', 'result-bigfive-sensitivity-high-hero.webp', '敏感底色']
   };
   Object.entries(expected).forEach(([visualCode, [title, filename, firstAnalysisLabel]]) => {
     const scores = require('../miniprogram/data/result-visuals').bigFiveTypes[visualCode].previewScores;

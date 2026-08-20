@@ -841,7 +841,8 @@ function scoreBigFive(answers) {
   const visualDimension = [
     { key: 'energy', level: energyBand },
     { key: 'empathy', level: empathyBand },
-    { key: 'order', level: orderBand }
+    { key: 'order', level: orderBand },
+    { key: 'sensitivity', level: sensitivityBand }
   ].reduce((current, candidate) => (
     Math.abs(scores[candidate.key] - 3) > Math.abs(scores[current.key] - 3) ? candidate : current
   ));

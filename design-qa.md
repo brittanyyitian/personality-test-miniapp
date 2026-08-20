@@ -125,6 +125,45 @@ final result: passed
 
 final result: passed
 
+## 人格底色「情绪敏感」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-a4fd3f4b-374d-416f-b9e3-2e5d784ebc20.png` — 情绪敏感低，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-9eddeaa7-78ed-44a5-9f3e-5ca29e903117.png` — 情绪敏感中，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-484c4b53-aaf1-4e60-b049-5fa1d362006a.png` — 情绪敏感高，1672 × 941 px，透明 PNG。
+- Browser-rendered implementation:
+  - `preview/bigfive-sensitivity-low-mobile-first.png`
+  - `preview/bigfive-sensitivity-mid-mobile-first.png`
+  - `preview/bigfive-sensitivity-high-mobile-first.png`
+  - `preview/bigfive-sensitivity-high-share-mobile.png`
+- Focused same-ratio comparison: `preview/bigfive-sensitivity-source-vs-implementation.jpg`。三行左侧为源素材，右侧为结果页实际主视觉区域；均归一化到 720 × 405 px 后比较。
+- Browser viewport override: 390 × 844 CSS px；in-app browser 页面内容面为 375 × 812 px，device density 1×。
+- States: `?view=result&preview=bigfive-sensitivity-low|mid|high`，以及 `?view=share&preview=bigfive-sensitivity-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。素材里的手写标题、低中高徽标均作为源图完整保留；结果正文沿用现有人格底色母版，四个特征与五维数字清楚、无截断。
+- Spacing and layout rhythm: passed。三张素材同为 16:9，统一进入 365 × 205.3 px 的首屏主视觉槽；顶部沿用刚收紧后的 8 px 起始位置，共鸣卡从 y=217.3 px 开始，没有恢复旧的大块留白。
+- Colors and visual tokens: passed。雨天蓝、奶油白、红绿手写字和现有页面底色自然衔接；透明边缘未出现黑底或明显白边。
+- Image quality and asset fidelity: passed。源图等比转成 720 × 405 透明 WebP，页面以约 2× 实际显示密度使用；主体、图中文字、比例和透明通道均保留，无裁切与拉伸。
+- Copy and content: passed。低档强调稳定且可能晚一点觉察，中档同时呈现真实波动与恢复力，高档强调更早、更细地接收变化；没有把低敏感写成冷漠，也没有把高敏感诊断化。
+- Scoring integrity: passed。情绪敏感仅在其相对中点的偏离大于已接入维度时成为主视觉；`energy / empathy / order / sensitivity / openness` 五个连续维度和正式分析仍完整保留，同分时继续保持原有素材优先级。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、独立共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“情绪敏感 · 高”，短海报生成成功；“保存分享海报”“保存完整报告”“复制链接”“发给朋友”四个动作均存在。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Comparison history: 首轮归一化对照未发现可执行 P0 / P1 / P2 差异，因此无需视觉返工；焦点对照已经能清楚判断文字、透明边缘、比例与裁切，不需要额外局部放大。
+- Automated tests: 73 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.83 MB。
+
+final result: passed
+
 ## 人格底色「共情合作」三档主视觉接入验收
 
 ### Evidence
