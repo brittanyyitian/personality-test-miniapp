@@ -836,11 +836,23 @@ function scoreBigFive(answers) {
     { title: '别人先看到的你', body: socialFace },
     { title: '熟悉以后才会看见的部分', body: hiddenSide },
     { title: '压力下可能出现的反差', body: stressContrast },
-    { title: '更适合你的调整方式', body: fitReminder }
+      { title: '更适合你的调整方式', body: fitReminder }
   ];
+  const visualDimension = [
+    { key: 'energy', level: energyBand },
+    { key: 'empathy', level: empathyBand },
+    { key: 'order', level: orderBand },
+    { key: 'sensitivity', level: sensitivityBand },
+    { key: 'openness', level: opennessBand }
+  ].reduce((current, candidate) => (
+    Math.abs(scores[candidate.key] - 3) > Math.abs(scores[current.key] - 3) ? candidate : current
+  ));
   return {
     assessmentId: assessment.id,
     assessmentTitle: assessment.title,
+    // 主视觉只在当前已有素材覆盖的维度中选择更显著的一条；完整结果仍由五个维度共同组成。
+    // 同等显著时沿用较早已接入的维度，确保中点和旧结果的展示稳定。
+    visualCode: `${visualDimension.key}-${visualDimension.level}`,
     title: primaryTitle,
     tags: balanced
       ? ['五维相对均衡', '看情境切换', '连续维度']

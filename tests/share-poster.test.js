@@ -12,6 +12,8 @@ test('网页插画结果分享使用类型头图并直接展示可保存海报',
   assert.match(source, /loadPosterImage\(visual\.hero\)/);
   assert.match(source, /if \(visual\) return createIllustratedPoster\(result, visual\)/);
   assert.match(source, /preview-\(cognitive\|social\)-\(\[a-z0-9\]\+\)/i);
+  assert.match(source, /preview-bigfive-\(\(\?:energy\|empathy\|order\|sensitivity\|openness\)/i);
+  assert.match(source, /resultVisuals\?\.bigfive\?\.\[bigFivePreviewType\]/);
   assert.match(source, /\['result', 'share', 'poster'\]\.includes\(view\)/);
   assert.match(source, /resultVisuals\?\.social\?\.\[previewType\]/);
   assert.match(source, /SHARE YOUR PIECE/);
@@ -27,6 +29,15 @@ test('网页完整报告按需接入结果页全部核心内容', () => {
   assert.match(source, /visual\.notes/);
   assert.match(source, /data-action="full-report"/);
   assert.match(source, /finally\s*\{\s*button\.disabled = false/);
+});
+
+test('人格底色结果页移除隐藏标题占位并同步收紧网页与小程序顶距', () => {
+  const web = read('preview/styles.css');
+  const mini = read('miniprogram/result-package/pages/result/index.wxss');
+  assert.match(web, /\.illustrated-result-screen\.result-kind-bigfive\s*\{\s*padding-top:\s*10px/);
+  assert.match(web, /\.result-kind-bigfive \.poster-kicker-hidden\s*\{\s*display:\s*none/);
+  assert.match(mini, /\.core-screen-illustrated\.result-kind-bigfive\s*\{\s*padding-top:\s*calc\(18rpx \+ env\(safe-area-inset-top\)\)/);
+  assert.match(mini, /\.result-kind-bigfive \.poster-kicker-hidden\s*\{\s*display:\s*none/);
 });
 
 test('小程序分享页预览正式海报且保存同一张生成图片', () => {

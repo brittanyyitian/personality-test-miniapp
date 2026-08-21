@@ -98,3 +98,241 @@ Interaction checks:
 - 默认态渲染 3 行，展开态渲染 6 行，“查看另外 3 项 / 收起另外 3 项”交互已在网页预览验证。
 
 final result: passed
+
+## 人格底色结果页顶部间距复验
+
+### Evidence
+
+- User-reported source: `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-3ab2fe1a-88fa-47db-968d-4679c10008b2.png`。
+- Same-state wide viewport before / after: `preview/bigfive-spacing-before-wide.png`、`preview/bigfive-spacing-after-wide.png`，1074 × 942 CSS px。
+- Combined comparison input: `preview/bigfive-spacing-before-after.jpg`。
+- Mobile verification: `preview/bigfive-spacing-after-mobile.png`，390 × 844 CSS px。
+- State: `?view=result&preview=bigfive-empathy-low`。
+
+### Finding And Fix
+
+- P2 before fix: 人格底色主视觉上方同时存在 26 px 页面顶距、18.5 px 的隐藏标题占位，以及 4 px 主视觉上边距，形成了用户截图里没有信息价值的大块空白。
+- Fix: 网页人格底色结果页顶距改为 10 px，隐藏标题从 `visibility: hidden` 的占位状态改为 `display: none`，主视觉上边距改为 -2 px；小程序同步为 18rpx、`display: none` 和 -4rpx。
+- Measured result: 同一 1074 × 942 页面中，主视觉顶部从 y=78.5 px 移到 y=38 px，共收紧 40.5 px；共鸣卡同步从 y=292.5 px 移到 y=252 px。
+- Scope control: 素材宽度、比例、`object-fit`、裁切、共鸣卡和特征卡内部样式均未修改，只有人格底色结果页顶部垂直节奏变化。
+
+### Runtime Checks
+
+- Wide and mobile layouts: passed；主视觉未裁切，后续模块未遮挡，无横向溢出。
+- Broken images: 0。
+- Automated tests: 72 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
+
+final result: passed
+
+## 人格底色「开放想象」三档主视觉与五维素材完结验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-76771344-f059-42df-807c-087c4944e00d.png` — 开放想象低，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-b53f93fa-c4f4-42fe-a305-93790a326dcd.png` — 开放想象中，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-9278e216-9774-417a-86f6-ab10a00d61dd.png` — 开放想象高，1672 × 941 px，透明 PNG。
+- Browser-rendered implementation:
+  - `preview/bigfive-openness-low-mobile-first.png`
+  - `preview/bigfive-openness-mid-mobile-first.png`
+  - `preview/bigfive-openness-high-mobile-first.png`
+  - `preview/bigfive-openness-high-share-mobile.png`
+- Focused same-ratio comparison: `preview/bigfive-openness-source-vs-implementation.jpg`。三行左侧为源素材，右侧为结果页实际主视觉区域；均归一化到 720 × 405 px 后比较。
+- Browser viewport override: 390 × 844 CSS px；in-app browser 页面内容面为 375 × 812 px，device density 1×。
+- States: `?view=result&preview=bigfive-openness-low|mid|high`，以及 `?view=share&preview=bigfive-openness-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。源素材内“开放想象”档位与手写结果标题完整保留；页面文字层级、四个特征和五维数值清晰，无截断、叠字或异常换行。
+- Spacing and layout rhythm: passed。三张素材均以 16:9 进入 365 × 205.3 px 主视觉槽，顶部 y=8 px、共鸣卡 y=217.3 px，延续已经确认的紧凑顶部节奏。
+- Colors and visual tokens: passed。三档从实用暖色到蓝色想象场景的层次保留，透明素材与奶油页面底自然融合，没有黑底、遮罩或额外卡片。
+- Image quality and asset fidelity: passed。源图等比转为 720 × 405 透明 WebP；为满足微信主包 2MB 限制采用质量 52、约 2× 页面实际显示宽度，实际手机首屏中文字与关键细节清楚，无肉眼可见块状压缩和透明边缘破损。
+- Copy and content: passed。低档表达“想法需要具体和可落地”，中档表达“在现实与新鲜之间切换”，高档表达“容易被新的可能吸引”；低开放不等同于缺乏想象，高开放也同时说明收束成本。
+- Scoring integrity: passed。主视觉现已覆盖 `energy / empathy / order / sensitivity / openness` 全五维，每维低、中、高三档，共 15 种；仍按相对中点偏离最大的维度选主视觉，五条连续分数与完整分析不被压缩成固定人格分类。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、独立共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“开放想象 · 高”，短海报生成成功，并保留保存分享海报、保存完整报告、复制链接和发给朋友四个动作。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Comparison history: 首轮归一化对照未发现可执行 P0 / P1 / P2 差异；为满足发布门槛只调整 WebP 压缩质量，尺寸、透明通道、构图和页面布局均未改变，压缩后重新在真实页面复验通过。
+- Automated tests: 74 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 2,092,310 bytes，低于 2,097,152 bytes 上限。
+
+final result: passed
+
+## 人格底色「情绪敏感」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-a4fd3f4b-374d-416f-b9e3-2e5d784ebc20.png` — 情绪敏感低，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-9eddeaa7-78ed-44a5-9f3e-5ca29e903117.png` — 情绪敏感中，1672 × 941 px，透明 PNG。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-484c4b53-aaf1-4e60-b049-5fa1d362006a.png` — 情绪敏感高，1672 × 941 px，透明 PNG。
+- Browser-rendered implementation:
+  - `preview/bigfive-sensitivity-low-mobile-first.png`
+  - `preview/bigfive-sensitivity-mid-mobile-first.png`
+  - `preview/bigfive-sensitivity-high-mobile-first.png`
+  - `preview/bigfive-sensitivity-high-share-mobile.png`
+- Focused same-ratio comparison: `preview/bigfive-sensitivity-source-vs-implementation.jpg`。三行左侧为源素材，右侧为结果页实际主视觉区域；均归一化到 720 × 405 px 后比较。
+- Browser viewport override: 390 × 844 CSS px；in-app browser 页面内容面为 375 × 812 px，device density 1×。
+- States: `?view=result&preview=bigfive-sensitivity-low|mid|high`，以及 `?view=share&preview=bigfive-sensitivity-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。素材里的手写标题、低中高徽标均作为源图完整保留；结果正文沿用现有人格底色母版，四个特征与五维数字清楚、无截断。
+- Spacing and layout rhythm: passed。三张素材同为 16:9，统一进入 365 × 205.3 px 的首屏主视觉槽；顶部沿用刚收紧后的 8 px 起始位置，共鸣卡从 y=217.3 px 开始，没有恢复旧的大块留白。
+- Colors and visual tokens: passed。雨天蓝、奶油白、红绿手写字和现有页面底色自然衔接；透明边缘未出现黑底或明显白边。
+- Image quality and asset fidelity: passed。源图等比转成 720 × 405 透明 WebP，页面以约 2× 实际显示密度使用；主体、图中文字、比例和透明通道均保留，无裁切与拉伸。
+- Copy and content: passed。低档强调稳定且可能晚一点觉察，中档同时呈现真实波动与恢复力，高档强调更早、更细地接收变化；没有把低敏感写成冷漠，也没有把高敏感诊断化。
+- Scoring integrity: passed。情绪敏感仅在其相对中点的偏离大于已接入维度时成为主视觉；`energy / empathy / order / sensitivity / openness` 五个连续维度和正式分析仍完整保留，同分时继续保持原有素材优先级。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、独立共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“情绪敏感 · 高”，短海报生成成功；“保存分享海报”“保存完整报告”“复制链接”“发给朋友”四个动作均存在。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Comparison history: 首轮归一化对照未发现可执行 P0 / P1 / P2 差异，因此无需视觉返工；焦点对照已经能清楚判断文字、透明边缘、比例与裁切，不需要额外局部放大。
+- Automated tests: 73 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.83 MB。
+
+final result: passed
+
+## 人格底色「共情合作」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-8456f34a-97f2-4f06-aa10-97aa9ece8819.png` — 共情合作低，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-071dd55d-72f8-458e-9af9-655bbab6f908.png` — 共情合作中，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-8913a115-1559-4536-b40a-e7a58815aba5.png` — 共情合作高，1774 × 887 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-empathy-low-mobile-first.png`
+  - `preview/bigfive-empathy-mid-mobile-first.png`
+  - `preview/bigfive-empathy-high-mobile-first.png`
+  - `preview/bigfive-empathy-high-share-mobile.png`
+- Combined source-versus-implementation input: `preview/bigfive-empathy-source-vs-implementation.jpg`。
+- Browser viewport override: 390 × 844 px；in-app browser 保存出的内容面为 375 px 宽，1× density。
+- States: `?view=result&preview=bigfive-empathy-low|mid|high`，以及 `?view=share&preview=bigfive-empathy-high`。
+
+### Required Fidelity Surfaces
+
+- Asset fidelity: passed。三张页面直接使用用户给出的透明插画，人物、手写标题、档位徽标和横向构图均未重绘、未裁断。
+- Layout and spacing: passed。素材按 2:1 比例落在结果页首屏顶部，没有回到竖向人物图的高槽位；主视觉到共鸣句之间只保留现有母版的必要呼吸感，首屏可完整看到四个特征与五维分数。
+- Typography and readability: passed。素材内标题在 375 px 内容宽度下仍清楚；共鸣句、2 × 2 特征卡、五维标签与百分比没有缩小或溢出。
+- Copy and resonance: passed。低 / 中 / 高分别表达“保留判断”“理解与立场并存”“很容易把别人放进心里”，四个特征和六段分析均围绕同一连续维度展开，没有把低共情误写成冷漠，也没有把高共情只写成优点。
+- Scoring integrity: passed。五因素仍分别连续计分；主视觉只在当前有素材的外向活力与共情合作之间选择离量尺中点更远的一维，同等显著时保持外向活力，未新增固定人格类型。
+- Package fit: passed。现有九张人格底色主视觉统一为 720 px 宽透明 WebP；在手机内容宽度上仍接近 2× 清晰度，主包为 1.69 MB，仍低于 2 MB 限制。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览入口均正确显示对应主视觉、独立共鸣句、四个特征、五条连续分数与六段分析。
+- 共情高分享页正确显示“共情合作 · 高”，成功生成 750 × 1334 短海报，并保留“保存完整报告”入口。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Automated tests: 70 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
+
+final result: passed
+
+## 人格底色分享海报横向素材间距复验
+
+- User-reported issue: 750 × 1334 分享海报仍沿用竖向人物插画的 630 px 高主视觉槽；横向素材按 contain 居中后，画面上下产生了两段无意义空白。
+- Same-state evidence:
+  - Before: `preview/bigfive-energy-low-share-final.png`，375 × 812 px。
+  - After: `preview/bigfive-energy-low-share-spacing-mobile-final.png`，375 × 812 px。
+  - Combined comparison: `preview/bigfive-share-spacing-before-after.jpg`。
+- Fix: 只对 `assessmentId === 'bigfive'` 的短分享海报启用横向主视觉布局，把主视觉槽从 630 px 压到 430 px，并同步前移共鸣句、四个特征、结果署名和页脚。认知、依恋与社交海报保持原坐标不变。
+- Web and mini-program parity: passed。网页 Canvas 与微信小程序 Canvas 使用同一组人格底色专属坐标。
+- Visual result: passed。主视觉上下仍保留必要呼吸感，但标题到素材、素材到共鸣句之间不再出现大段空白；内容整体仍完整落在 750 × 1334 画布内。
+- Browser console errors: none。
+- Automated tests: 69 passed, 0 failed；静态分包检查通过。
+
+final result: passed
+
+## 人格底色三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-84787c59-710b-43e8-bae3-3d766b23e161.png` — 外向活力低，1920 × 819 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-bb4aa1b7-5a33-429c-affd-c0be2d2f042d.png` — 外向活力中，1942 × 809 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-a224c6db-96cb-4ac3-ad26-9a2f2bc2bab6.png` — 外向活力高，2048 × 768 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-energy-low-mobile-final.png`
+  - `preview/bigfive-energy-mid-mobile-final.png`
+  - `preview/bigfive-energy-high-mobile-final.png`
+  - `preview/bigfive-energy-low-share-final.png`
+- Combined comparison input: `preview/bigfive-low-source-vs-implementation.jpg`。左侧为透明源素材落在同一奶油色底上的原图，右侧为手机结果页首屏。
+- Browser viewport override: 390 × 844 px；in-app browser 保存出的页面内容面为 375 × 812 px，1× density。
+- States: `?view=result&preview=bigfive-energy-low|mid|high`，以及 `?view=share&preview=bigfive-energy-low`。
+
+### Required Fidelity Surfaces
+
+- Asset fidelity: passed。三张页面均直接使用用户提供的真实插画与手写字，透明背景、构图比例、标题和能量档位没有被重新绘制或裁切。
+- Layout and hierarchy: passed。沿用已经落地的认知 / 依恋 / 社交长结果母版，顺序为主视觉 → 共鸣句 → 四个可感知特征 → 五维连续分数 → 六段深度分析 → 拼图进度 → 朋友标签 → AI 观察 → 行动区。
+- Mobile readability: passed。人格底色的四个特征从原母版四列调整为两列两行，正文提升到 11 px 网页等效字号；五维分数完整保留，未压缩成三种人格标签。
+- Scoring integrity: passed。三张素材只由 `scores.energy` 的低 / 中 / 高区间选择；`energy / empathy / order / sensitivity / openness` 五个原始连续维度、原标题和正式分析数据仍然独立保留。
+- Share result: passed。短海报正确复用同一张能量档位素材，分享页档位徽标显示“外向活力 · 低 / 中 / 高”，完整报告入口存在。
+
+### Comparison History
+
+- Iteration 1: 直接套用既有四列特征卡后，手机上正文只有约 9 px，信息虽齐但过密。
+- Fix: 仅对人格底色结果改为 2 × 2 特征卡，扩大标题、正文、五维标签和数值，不改动其他已上线结果母版。
+- Iteration 2: 分享页因人格底色没有 `typeCode`，右上角出现空白胶囊。
+- Fix: 分享页改用 `visualCode` 显示明确档位，例如“外向活力 · 低”。
+- Post-fix comparison: `preview/bigfive-low-source-vs-implementation.jpg`；三档手机截图均确认主视觉、文本和五维分数无截断、无横向溢出。
+
+### Interaction And Runtime Checks
+
+- 三个预览入口均加载对应素材与独立文案，DOM 中均存在四个特征、五条分数和六段分析。
+- 分享页生成短海报成功，同时出现“保存分享海报”和“保存完整报告”。
+- Browser console errors: none。
+- Automated tests: 69 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.73 MB，结果分包低于 2 MB。
+
+final result: passed
+
+## 人格底色「秩序自律」三档主视觉接入验收
+
+### Evidence
+
+- Source visual truth:
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-b5594103-934f-4ee1-b676-1021ce600847.png` — 秩序自律低，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-dbbe92c8-a7d4-4606-8511-63591404e427.png` — 秩序自律中，1774 × 887 px。
+  - `/var/folders/91/3cfcmnr17dgfn1g40f_2k2tw0000gn/T/codex-clipboard-2a25783f-22f5-429c-b6df-ef150827071e.png` — 秩序自律高，1536 × 1024 px。
+- Browser-rendered implementation:
+  - `preview/bigfive-order-low-mobile-first.png`
+  - `preview/bigfive-order-mid-mobile-first.png`
+  - `preview/bigfive-order-high-mobile-first.png`
+  - `preview/bigfive-order-high-share-mobile.png`
+- Full-view combined comparison input: `preview/bigfive-order-source-vs-implementation.jpg`。
+- Focused-region comparison was not needed: each source is itself the complete hero region, and the combined board preserves readable hero lettering, crop and mobile placement for all three states.
+- Browser viewport override: 390 × 844 CSS px；保存内容面为 375 px 宽，1× density。
+- States: `?view=result&preview=bigfive-order-low|mid|high`，以及 `?view=share&preview=bigfive-order-high`。
+
+### Findings And Required Fidelity Surfaces
+
+- P0 / P1 / P2 findings: none after normalized comparison。
+- Fonts and typography: passed。素材内手写标题、档位徽标和页面正文均清楚；四个特征与五维数字没有缩小、截断或异常换行。
+- Spacing and layout rhythm: passed。低、中两张保持 2:1 横图比例；高档保留原始 3:2 完整构图，虽比前两档高约 61 px，但首屏仍能看到四个特征、五维分数和分析标题，没有产生无意义留白。
+- Colors and visual tokens: passed。奶油底、红绿手写字和既有结果母版保持一致；素材透明区域与页面底色融合，没有黑底或边框。
+- Image quality and asset fidelity: passed。三张源图压缩为 720 px 宽透明 WebP，在 365 px 页面内容宽度下保持接近 2× 清晰度；主体、文案、比例和透明边缘均保留，高档未为追求统一比例而硬裁切。
+- Copy and content: passed。低档表达“更依赖当下动力”，中档表达“有框架也留余地”，高档表达“确定感来自有条理”；低档没有被写成懒散，高档也同时呈现稳定优势与变化压力。
+- Scoring integrity: passed。完整五因素继续独立计分；主视觉只在已有素材覆盖的外向活力、共情合作、秩序自律中选择离中点最远的一维，同分时保持旧维度优先，未新增固定人格类型。
+
+### Interaction And Runtime Checks
+
+- 三个结果预览均正确显示对应素材、共鸣句、四个特征、五条连续分数和六段分析。
+- 高档分享页显示“秩序自律 · 高”，成功生成 750 × 1334 海报，并保留完整报告入口。
+- 移动端 DOM 检查：无横向溢出，图片损坏数为 0。
+- Browser console errors: none。
+- Automated tests: 71 passed, 0 failed。
+- Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
+
+final result: passed
