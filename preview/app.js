@@ -337,22 +337,12 @@ const drawPosterImageContain = (context, image, x, y, width, height) => {
 const createIllustratedPoster = async (result, visual) => {
   const heroImage = await loadPosterImage(visual.hero);
   const wideHero = Boolean(heroImage && (heroImage.naturalWidth / heroImage.naturalHeight) > 1.6);
-  const compactWideHero = result.assessmentId === 'bigfive';
-  const posterLayout = compactWideHero ? {
-    canvasHeight: 1334,
-    heroY: 82,
-    heroHeight: 430,
-    quoteY: 520,
-    traitsY: 706,
-    titleY: 1050,
-    subtitleY: 1090,
-    dividerY: 1195,
-    footerY: 1240
-  } : wideHero ? {
+  const layout = wideHero ? {
     canvasHeight: 1000,
     heroY: 76,
     heroHeight: 260,
     quoteY: 354,
+    quoteTextY: 408,
     traitsY: 540,
     titleY: 834,
     subtitleY: 872,
@@ -363,6 +353,7 @@ const createIllustratedPoster = async (result, visual) => {
     heroY: 76,
     heroHeight: 630,
     quoteY: 720,
+    quoteTextY: 774,
     traitsY: 906,
     titleY: 1210,
     subtitleY: 1248,
@@ -371,14 +362,14 @@ const createIllustratedPoster = async (result, visual) => {
   };
   const canvas = document.createElement('canvas');
   canvas.width = 750;
-  canvas.height = posterLayout.canvasHeight;
+  canvas.height = layout.canvasHeight;
   const context = canvas.getContext('2d');
   const title = visual.title || resultKeyword(result) || '新的一面';
   const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
   const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
 
   context.fillStyle = '#fff8e8';
-  context.fillRect(0, 0, 750, posterLayout.canvasHeight);
+  context.fillRect(0, 0, 750, layout.canvasHeight);
   context.fillStyle = 'rgba(240, 73, 50, .05)';
   context.beginPath();
   context.arc(652, 88, 170, 0, Math.PI * 2);
@@ -394,22 +385,22 @@ const createIllustratedPoster = async (result, visual) => {
   context.fillStyle = '#e94b35';
   context.fillRect(42, 62, 56, 6);
 
-  drawPosterImageContain(context, heroImage, 30, posterLayout.heroY, 690, posterLayout.heroHeight);
+  drawPosterImageContain(context, heroImage, 30, layout.heroY, 690, layout.heroHeight);
 
-  drawPosterRoundRect(context, 42, posterLayout.quoteY, 666, 164, 30, 'rgba(255, 253, 248, .96)');
+  drawPosterRoundRect(context, 42, layout.quoteY, 666, 164, 30, 'rgba(255, 253, 248, .96)');
   context.fillStyle = '#ef4934';
   context.font = '700 58px Georgia, serif';
-  context.fillText('“', 72, posterLayout.quoteY + 58);
+  context.fillText('“', 72, layout.quoteTextY + 4);
   context.fillStyle = '#2f2b25';
   context.font = '600 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  drawPosterText(context, quote, 122, posterLayout.quoteY + 54, 530, 43, 3);
+  drawPosterText(context, quote, 122, layout.quoteTextY, 530, 43, 3);
 
   const traits = Array.isArray(visual.traits) ? visual.traits.slice(0, 4) : [];
   traits.forEach((trait, index) => {
     const column = index % 2;
     const row = Math.floor(index / 2);
     const x = 42 + (column * 339);
-    const y = posterLayout.traitsY + (row * 126);
+    const y = layout.traitsY + (row * 126);
     drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
     context.fillStyle = toneColors[trait.tone] || '#685f54';
     context.fillRect(x, y, 7, 108);
@@ -422,17 +413,17 @@ const createIllustratedPoster = async (result, visual) => {
 
   context.fillStyle = '#26231f';
   context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`我是「${title}」`, 42, posterLayout.titleY);
+  context.fillText(`我是「${title}」`, 42, layout.titleY);
   context.fillStyle = '#777063';
   context.font = '21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, posterLayout.subtitleY);
-  drawPosterRoundRect(context, 42, posterLayout.dividerY, 666, 2, 1, 'rgba(74, 65, 53, .16)');
+  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, layout.subtitleY);
+  drawPosterRoundRect(context, 42, layout.dividerY, 666, 2, 1, 'rgba(74, 65, 53, .16)');
   context.fillStyle = '#e94b35';
   context.font = '700 19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格拼图', 42, posterLayout.footerY);
+  context.fillText('人格拼图', 42, layout.footerY);
   context.fillStyle = '#777063';
   context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('分享给朋友，看看你会拼出什么', 468, posterLayout.footerY);
+  context.fillText('分享给朋友，看看你会拼出什么', 468, layout.footerY);
   return canvas.toDataURL('image/png');
 };
 
