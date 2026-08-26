@@ -309,17 +309,41 @@ const drawPosterImageContain = (context, image, x, y, width, height) => {
 };
 
 const createIllustratedPoster = async (result, visual) => {
+  const heroImage = await loadPosterImage(visual.hero);
+  const wideHero = Boolean(heroImage && (heroImage.naturalWidth / heroImage.naturalHeight) > 1.6);
+  const layout = wideHero ? {
+    canvasHeight: 1000,
+    heroY: 76,
+    heroHeight: 260,
+    quoteY: 354,
+    quoteTextY: 408,
+    traitsY: 540,
+    titleY: 834,
+    subtitleY: 872,
+    dividerY: 912,
+    footerY: 954
+  } : {
+    canvasHeight: 1334,
+    heroY: 76,
+    heroHeight: 630,
+    quoteY: 720,
+    quoteTextY: 774,
+    traitsY: 906,
+    titleY: 1210,
+    subtitleY: 1248,
+    dividerY: 1276,
+    footerY: 1310
+  };
   const canvas = document.createElement('canvas');
   canvas.width = 750;
-  canvas.height = 1334;
+  canvas.height = layout.canvasHeight;
   const context = canvas.getContext('2d');
-  const heroImage = await loadPosterImage(visual.hero);
   const title = visual.title || resultKeyword(result) || '新的一面';
   const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
   const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83' };
 
   context.fillStyle = '#fff8e8';
-  context.fillRect(0, 0, 750, 1334);
+  context.fillRect(0, 0, 750, layout.canvasHeight);
   context.fillStyle = 'rgba(240, 73, 50, .05)';
   context.beginPath();
   context.arc(652, 88, 170, 0, Math.PI * 2);
@@ -335,22 +359,22 @@ const createIllustratedPoster = async (result, visual) => {
   context.fillStyle = '#e94b35';
   context.fillRect(42, 62, 56, 6);
 
-  drawPosterImageContain(context, heroImage, 30, 76, 690, 630);
+  drawPosterImageContain(context, heroImage, 30, layout.heroY, 690, layout.heroHeight);
 
-  drawPosterRoundRect(context, 42, 720, 666, 164, 30, 'rgba(255, 253, 248, .96)');
+  drawPosterRoundRect(context, 42, layout.quoteY, 666, 164, 30, 'rgba(255, 253, 248, .96)');
   context.fillStyle = '#ef4934';
   context.font = '700 58px Georgia, serif';
-  context.fillText('“', 72, 778);
+  context.fillText('“', 72, layout.quoteTextY + 4);
   context.fillStyle = '#2f2b25';
   context.font = '600 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  drawPosterText(context, quote, 122, 774, 530, 43, 3);
+  drawPosterText(context, quote, 122, layout.quoteTextY, 530, 43, 3);
 
   const traits = Array.isArray(visual.traits) ? visual.traits.slice(0, 4) : [];
   traits.forEach((trait, index) => {
     const column = index % 2;
     const row = Math.floor(index / 2);
     const x = 42 + (column * 339);
-    const y = 906 + (row * 126);
+    const y = layout.traitsY + (row * 126);
     drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
     context.fillStyle = toneColors[trait.tone] || '#685f54';
     context.fillRect(x, y, 7, 108);
@@ -363,17 +387,17 @@ const createIllustratedPoster = async (result, visual) => {
 
   context.fillStyle = '#26231f';
   context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText(`我是「${title}」`, 42, 1210);
+  context.fillText(`我是「${title}」`, 42, layout.titleY);
   context.fillStyle = '#777063';
   context.font = '21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 1248);
-  drawPosterRoundRect(context, 42, 1276, 666, 2, 1, 'rgba(74, 65, 53, .16)');
+  context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, layout.subtitleY);
+  drawPosterRoundRect(context, 42, layout.dividerY, 666, 2, 1, 'rgba(74, 65, 53, .16)');
   context.fillStyle = '#e94b35';
   context.font = '700 19px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('人格拼图', 42, 1310);
+  context.fillText('人格拼图', 42, layout.footerY);
   context.fillStyle = '#777063';
   context.font = '18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
-  context.fillText('分享给朋友，看看你会拼出什么', 468, 1310);
+  context.fillText('分享给朋友，看看你会拼出什么', 468, layout.footerY);
   return canvas.toDataURL('image/png');
 };
 
@@ -824,11 +848,26 @@ const renderShare = async () => {
   app.className = 'screen web-share-screen';
   app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-loading"><i></i><p>正在生成你的人格海报…</p></div>';
   bind('[data-action="result"]', () => renderResult('core'));
-  const posterData = await createResultPoster(result);
+  let posterData = '';
+  try {
+    posterData = await createResultPoster(result);
+    if (!app.classList.contains('web-share-screen')) return;
+  } catch (error) {
+    if (!app.classList.contains('web-share-screen')) return;
+    app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-error"><b>海报生成失败</b><p>没有一直加载，请重新生成一次。</p><button type="button" data-action="retry-share">重新生成</button></div>';
+    bind('[data-action="result"]', () => renderResult('core'));
+    bind('[data-action="retry-share"]', renderShare);
+    return;
+  }
+  let downloadUrl = posterData;
+  try {
+    const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
+    downloadUrl = download.url || posterData;
+  } catch (error) {
+    console.warn('[share-poster] 下载接口不可用，已切换为浏览器本地下载');
+  }
   if (!app.classList.contains('web-share-screen')) return;
-  const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
-  if (!app.classList.contains('web-share-screen')) return;
-  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(result.typeCode || '')}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${download.url}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
+  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(result.typeCode || '')}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${downloadUrl}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
   bind('[data-action="result"]', () => renderResult('core'));
   bind('[data-action="home"]', renderHome);
   let fullReportDownload = null;

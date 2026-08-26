@@ -10,11 +10,17 @@ test('网页插画结果分享使用类型头图并直接展示可保存海报',
   const source = read('preview/app.js');
   assert.match(source, /createIllustratedPoster/);
   assert.match(source, /loadPosterImage\(visual\.hero\)/);
+  assert.match(source, /const wideHero = Boolean/);
+  assert.match(source, /canvasHeight: 1000/);
+  assert.match(source, /canvasHeight: 1334/);
   assert.match(source, /if \(visual\) return createIllustratedPoster\(result, visual\)/);
   assert.match(source, /preview-\(cognitive\|social\)-\(\[a-z0-9\]\+\)/i);
   assert.match(source, /\['result', 'share', 'poster'\]\.includes\(view\)/);
   assert.match(source, /resultVisuals\?\.social\?\.\[previewType\]/);
   assert.match(source, /SHARE YOUR PIECE/);
+  assert.match(source, /let downloadUrl = posterData/);
+  assert.match(source, /data-action="retry-share"/);
+  assert.match(source, /下载接口不可用，已切换为浏览器本地下载/);
   assert.doesNotMatch(source, /<h1>这是我的一块<\/h1>/);
 });
 
