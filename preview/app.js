@@ -335,16 +335,11 @@ const drawPosterImageContain = (context, image, x, y, width, height) => {
 };
 
 const createIllustratedPoster = async (result, visual) => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 750;
-  canvas.height = 1334;
-  const context = canvas.getContext('2d');
   const heroImage = await loadPosterImage(visual.hero);
-  const title = visual.title || resultKeyword(result) || '新的一面';
-  const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
-  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
+  const wideHero = Boolean(heroImage && (heroImage.naturalWidth / heroImage.naturalHeight) > 1.6);
   const compactWideHero = result.assessmentId === 'bigfive';
   const posterLayout = compactWideHero ? {
+    canvasHeight: 1334,
     heroY: 82,
     heroHeight: 430,
     quoteY: 520,
@@ -353,7 +348,18 @@ const createIllustratedPoster = async (result, visual) => {
     subtitleY: 1090,
     dividerY: 1195,
     footerY: 1240
+  } : wideHero ? {
+    canvasHeight: 1000,
+    heroY: 76,
+    heroHeight: 260,
+    quoteY: 354,
+    traitsY: 540,
+    titleY: 834,
+    subtitleY: 872,
+    dividerY: 912,
+    footerY: 954
   } : {
+    canvasHeight: 1334,
     heroY: 76,
     heroHeight: 630,
     quoteY: 720,
@@ -363,9 +369,16 @@ const createIllustratedPoster = async (result, visual) => {
     dividerY: 1276,
     footerY: 1310
   };
+  const canvas = document.createElement('canvas');
+  canvas.width = 750;
+  canvas.height = posterLayout.canvasHeight;
+  const context = canvas.getContext('2d');
+  const title = visual.title || resultKeyword(result) || '新的一面';
+  const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
+  const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
 
   context.fillStyle = '#fff8e8';
-  context.fillRect(0, 0, 750, 1334);
+  context.fillRect(0, 0, 750, posterLayout.canvasHeight);
   context.fillStyle = 'rgba(240, 73, 50, .05)';
   context.beginPath();
   context.arc(652, 88, 170, 0, Math.PI * 2);
@@ -902,11 +915,26 @@ const renderShare = async () => {
   app.className = 'screen web-share-screen';
   app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-loading"><i></i><p>正在生成你的人格海报…</p></div>';
   bind('[data-action="result"]', () => renderResult('core'));
-  const posterData = await createResultPoster(result);
+  let posterData = '';
+  try {
+    posterData = await createResultPoster(result);
+    if (!app.classList.contains('web-share-screen')) return;
+  } catch (error) {
+    if (!app.classList.contains('web-share-screen')) return;
+    app.innerHTML = '<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-error"><b>海报生成失败</b><p>没有一直加载，请重新生成一次。</p><button type="button" data-action="retry-share">重新生成</button></div>';
+    bind('[data-action="result"]', () => renderResult('core'));
+    bind('[data-action="retry-share"]', renderShare);
+    return;
+  }
+  let downloadUrl = posterData;
+  try {
+    const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
+    downloadUrl = download.url || posterData;
+  } catch (error) {
+    console.warn('[share-poster] 下载接口不可用，已切换为浏览器本地下载');
+  }
   if (!app.classList.contains('web-share-screen')) return;
-  const download = await api('/api/poster', { dataUrl: posterData, filename: `${title}-人格海报.png` });
-  if (!app.classList.contains('web-share-screen')) return;
-  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(resultBadge)}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${download.url}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
+  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(resultBadge)}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${downloadUrl}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
   bind('[data-action="result"]', () => renderResult('core'));
   bind('[data-action="home"]', renderHome);
   let fullReportDownload = null;
