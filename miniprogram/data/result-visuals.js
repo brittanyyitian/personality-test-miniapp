@@ -223,6 +223,7 @@ const cognitive = Object.fromEntries(Object.entries(cognitiveTypes).map(([code, 
 const attachmentTypes = {
   secure: {
     title: '安全型依恋',
+    heroSubtitle: '越稳定，越能够自在靠近',
     analysisHeadingLines: ['不只是一句「安全」，', '这是你让亲密稳定运转的方式'],
     hero: '/result-package/assets/attachment/result-attachment-secure-hero-v2.webp',
     quote: '你不是从不不安，而是多数时候相信：需要可以说，距离可以留，关系也会回来。',
@@ -250,6 +251,7 @@ const attachmentTypes = {
   },
   anxious: {
     title: '焦虑型依恋',
+    heroSubtitle: '越重要，越需要确认连接',
     analysisHeadingLines: ['不只是一句「需要回应」，', '这是你确认连接的内在逻辑'],
     hero: '/result-package/assets/attachment/result-attachment-anxious-hero-v2.webp',
     quote: '你等的常常不只是一条消息，而是一个更深的确认：我对你仍然重要，你没有准备离开。',
@@ -277,6 +279,7 @@ const attachmentTypes = {
   },
   avoidant: {
     title: '回避型依恋',
+    heroSubtitle: '越靠近，越需要保有空间',
     analysisHeadingLines: ['不只是一句「独立」，', '这是你保护空间与关系的方式'],
     hero: '/result-package/assets/attachment/result-attachment-avoidant-hero-v2.webp',
     quote: '你不是没有感情。只是亲密一旦像压力涌来，你会先退回自己的空间，等重新找回掌控。',
@@ -304,6 +307,7 @@ const attachmentTypes = {
   },
   'fearful-avoidant': {
     title: '恐惧—回避型依恋',
+    heroSubtitle: '越想靠近，越担心失去自己',
     analysisHeadingLines: ['不只是一句“矛盾”，', '这是你靠近与退后的内在逻辑'],
     hero: '/result-package/assets/attachment/result-attachment-fearful-avoidant-hero-v2.webp',
     quote: '你不是故意忽冷忽热。想靠近是真的，靠得太近时想退回去保护自己，也是真的。',
@@ -336,6 +340,7 @@ function attachmentVisual(typeCode, definition) {
     template: 'illustrated-poster',
     kicker: '你的依恋类型是',
     title: definition.title,
+    heroSubtitle: definition.heroSubtitle,
     hero: definition.hero,
     heroIncludesKicker: false,
     analysisEyebrow: `ATTACHMENT NOTES · ${typeCode.toUpperCase()}`,

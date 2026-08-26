@@ -11,7 +11,22 @@
   <view wx:if="{{stage === 'core'}}" class="core-screen {{visual ? 'core-screen-illustrated' : ''}}">
     <block wx:if="{{visual}}">
       <view class="poster-kicker {{visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}}">{{visual.kicker}}</view>
-      <image class="poster-hero" src="{{visual.hero}}" mode="widthFix" />
+      <view wx:if="{{result.assessmentId === 'attachment'}}" class="attachment-hero-shell">
+        <view class="attachment-hero-title">{{visual.title}}</view>
+        <view class="attachment-hero-subtitle">{{visual.heroSubtitle}}</view>
+        <view class="attachment-scene-frame">
+          <view class="attachment-scene-crop">
+            <image class="attachment-scene-image" src="{{visual.hero}}" mode="widthFix" />
+          </view>
+          <view class="attachment-wood-frame">
+            <view class="wood-frame-rail wood-frame-rail-top"></view>
+            <view class="wood-frame-rail wood-frame-rail-right"></view>
+            <view class="wood-frame-rail wood-frame-rail-bottom"></view>
+            <view class="wood-frame-rail wood-frame-rail-left"></view>
+          </view>
+        </view>
+      </view>
+      <image wx:else class="poster-hero" src="{{visual.hero}}" mode="widthFix" />
 
       <view wx:if="{{result.assessmentId === 'attachment' && result.profileTitle}}" class="poster-profile">
         <text>当前画像</text>
@@ -179,7 +194,7 @@
         <view class="share-eyebrow">SHARE YOUR PIECE</view>
         <view class="share-heading">保存并分享这张人格海报</view>
       </view>
-      <view class="share-type-code">{{result.typeCode}}</view>
+      <view class="share-type-code">{{result.assessmentId === 'attachment' ? displayTitle : result.typeCode}}</view>
     </view>
     <view class="share-help">长按海报也可以直接保存到相册。</view>
     <view class="share-poster-frame">
