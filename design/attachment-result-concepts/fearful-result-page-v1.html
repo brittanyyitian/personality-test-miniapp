@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>恐惧—回避型依恋｜完整结果概念稿</title>
+  <style>
+    :root {
+      --paper: #fbf4e3;
+      --paper-strong: #f2e6ca;
+      --ink: #17140f;
+      --muted: #776f61;
+      --line: #d9ccb2;
+      --red: #d94b2b;
+      --yellow: #e5ae24;
+      --green: #3f8050;
+      --blue: #315fa8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #ddd9d0; color: var(--ink); }
+    body { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+    .phone {
+      width: 430px;
+      min-height: 100vh;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--paper);
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 24px 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.6px;
+    }
+    .topbar span:last-child { color: var(--red); }
+    .hero-copy { padding: 24px 24px 0; }
+    .eyebrow {
+      margin: 0 0 11px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.7px;
+    }
+    h1 {
+      margin: 0;
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 41px;
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: -2.2px;
+    }
+    .profile {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 7px 12px;
+      border: 1.5px solid var(--red);
+      border-radius: 999px;
+      color: var(--red);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .hero {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 24px 16px 0;
+      border: 1px solid rgba(70, 56, 33, .12);
+      border-radius: 24px;
+    }
+    .resonance {
+      margin: 18px 24px 0;
+      padding: 20px 20px 21px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .5);
+    }
+    .resonance strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--red);
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+    .resonance p { margin: 0; font-size: 15px; line-height: 1.75; }
+    .section { padding: 38px 24px 0; }
+    .section-kicker {
+      margin-bottom: 8px;
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+    }
+    h2 {
+      margin: 0;
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 27px;
+      line-height: 1.3;
+      letter-spacing: -1px;
+    }
+    .metrics {
+      margin-top: 18px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffaf0;
+    }
+    .metric + .metric { margin-top: 16px; }
+    .metric-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .track { height: 8px; overflow: hidden; border-radius: 99px; background: #e8dfcb; }
+    .fill { height: 100%; border-radius: inherit; }
+    .fill.red { width: 96%; background: var(--red); }
+    .fill.blue { width: 96%; background: var(--blue); }
+    .fill.green { width: 4%; background: var(--green); }
+    .axis-note { margin: 14px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .story { margin-top: 18px; border-top: 1px solid var(--line); }
+    .story-item {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 12px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .number {
+      padding-top: 2px;
+      color: var(--red);
+      font-family: Georgia, serif;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .story-item h3 { margin: 0 0 8px; font-size: 17px; line-height: 1.45; }
+    .story-item p { margin: 0; color: #4e493f; font-size: 14px; line-height: 1.78; }
+    .switches {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .switch-card { min-height: 190px; padding: 17px; border-radius: 18px; }
+    .switch-card.trigger { border: 1px solid #e6aa92; background: #f9e5da; }
+    .switch-card.protect { border: 1px solid #a9b9d6; background: #e8edf5; }
+    .switch-card span { display: block; margin-bottom: 14px; font-size: 11px; font-weight: 800; letter-spacing: 1.3px; }
+    .switch-card h3 { margin: 0 0 10px; font-size: 17px; line-height: 1.35; }
+    .switch-card p { margin: 0; font-size: 13px; line-height: 1.65; }
+    .need {
+      margin-top: 18px;
+      padding: 24px 22px;
+      border: 2px solid var(--green);
+      border-radius: 18px;
+      background: #edf3e8;
+    }
+    .need span { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
+    .need blockquote {
+      margin: 12px 0 0;
+      font-family: "Songti SC", "STSong", serif;
+      font-size: 21px;
+      font-weight: 800;
+      line-height: 1.55;
+    }
+    .practice {
+      margin-top: 18px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffaf0;
+    }
+    .practice h3 { margin: 0 0 12px; font-size: 17px; }
+    .practice p { margin: 0; font-size: 14px; line-height: 1.75; }
+    .script {
+      margin-top: 14px;
+      padding: 14px 15px;
+      border-left: 4px solid var(--yellow);
+      background: #f8edca;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .puzzle {
+      margin: 42px 16px 0;
+      padding: 22px 16px 20px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fffaf0;
+    }
+    .puzzle-head { display: flex; justify-content: space-between; align-items: baseline; }
+    .puzzle-head strong { font-size: 16px; }
+    .puzzle-head span { color: var(--red); font-size: 13px; font-weight: 800; }
+    .piece-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 17px; }
+    .piece { text-align: center; }
+    .piece img { width: 48px; height: 48px; object-fit: contain; opacity: .28; filter: grayscale(1); }
+    .piece.done img { opacity: 1; filter: none; }
+    .piece small { display: block; margin-top: 6px; color: var(--muted); font-size: 9px; }
+    .boundary {
+      margin: 14px 24px 0;
+      padding: 15px 0 0;
+      border-top: 1px dashed #bfb39d;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+    .actions { padding: 26px 24px 42px; }
+    button {
+      display: block;
+      width: 100%;
+      height: 52px;
+      border: 0;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .primary { background: var(--ink); color: white; }
+    .secondary { margin-top: 11px; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+    .source { margin-top: 18px; height: auto; background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <div class="topbar"><span>PIECE 02 / 05</span><span>依恋模式</span></div>
+
+    <header class="hero-copy">
+      <p class="eyebrow">你的依恋倾向是</p>
+      <h1>恐惧—回避型依恋</h1>
+      <span class="profile">怕失去，也怕靠得太近</span>
+    </header>
+
+    <img class="hero" src="attachment-fearful-avoidant-v1.png" alt="想靠近，也准备退回门后的两个人" />
+
+    <section class="resonance">
+      <strong>你不是故意忽冷忽热。</strong>
+      <p>关系对你很重要，但真正靠近时，你也可能紧张。你想确认对方还在，又担心自己的需要暴露以后，反而更容易受伤。</p>
+    </section>
+
+    <section class="section">
+      <div class="section-kicker">YOUR ATTACHMENT MAP</div>
+      <h2>你怎样靠近，<br />也怎样保护自己</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-head"><span>回应敏感</span><span>96%</span></div>
+          <div class="track"><div class="fill red"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head"><span>独立倾向</span><span>96%</span></div>
+          <div class="track"><div class="fill blue"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head"><span>连接安全</span><span>4%</span></div>
+          <div class="track"><div class="fill green"></div></div>
+        </div>
+        <p class="axis-note">这不是人格定型，而是你在这段重要关系里更常出现的反应。</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-kicker">WHY THIS FEELS LIKE YOU</div>
+      <h2>不是矛盾，<br />是两种保护同时出现</h2>
+      <div class="story">
+        <article class="story-item">
+          <span class="number">01</span>
+          <div><h3>一个很像你的瞬间</h3><p>你盯着一条迟迟没来的回复，心里很想问清楚；可对方真的靠近时，你又怕自己显得太需要，于是先冷下来，说一句“没事”。</p></div>
+        </article>
+        <article class="story-item">
+          <span class="number">02</span>
+          <div><h3>最容易掉进去的循环</h3><p>你可能先追着确认，得不到想要的回应后又突然撤回。对方只看见你的忽近忽远，你却同时经历着“怕失去”和“怕暴露”。</p></div>
+        </article>
+        <article class="story-item">
+          <span class="number">03</span>
+          <div><h3>别人可能误会你的地方</h3><p>别人可能以为你故意让人猜。其实你不是想制造距离，而是不确定自己的需要能不能被安全接住。</p></div>
+        </article>
+        <article class="story-item">
+          <span class="number">04</span>
+          <div><h3>这份反应在保护什么</h3><p>靠近可以降低失去关系的焦虑，退开又能避免自己暴露得太多。两种动作都在保护你，只是一起出现时，会让连接变得很累。</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-kicker">TWO SENSITIVE SWITCHES</div>
+      <h2>最容易被碰到的<br />两个开关</h2>
+      <div class="switches">
+        <article class="switch-card trigger">
+          <span>触发你的地方</span>
+          <h3>回应突然变少</h3>
+          <p>摩擦迟迟没有收尾时，你更容易把变化理解成：这段关系可能正在远离。</p>
+        </article>
+        <article class="switch-card protect">
+          <span>保护自己的方式</span>
+          <h3>先把情绪收回来</h3>
+          <p>这样可以保护脆弱，却也可能让对方晚一点才知道你真正需要什么。</p>
+        </article>
+      </div>
+      <div class="need">
+        <span>你真正需要的关系信号</span>
+        <blockquote>“你可以表达需要，也可以暂停；但我们都会回来。”</blockquote>
+      </div>
+      <div class="practice">
+        <h3>下一次，可以把试探换成一个小请求</h3>
+        <p>不用一次解释整段关系，只说清楚此刻发生了什么、你有什么感受，以及一个对方能够回答的小请求。</p>
+        <div class="script">“刚才一直没有回应，我有点不安。你方便告诉我，今晚什么时候可以聊十分钟吗？”</div>
+      </div>
+    </section>
+
+    <section class="puzzle">
+      <div class="puzzle-head"><strong>你的拼图</strong><span>已拼出 2 / 5 块</span></div>
+      <div class="piece-row">
+        <div class="piece done"><img src="../../miniprogram/assets/doodle-relationship.png" alt="" /><small>恋爱模式</small></div>
+        <div class="piece done"><img src="../../miniprogram/assets/doodle-attachment.png" alt="" /><small>依恋模式</small></div>
+        <div class="piece"><img src="../../miniprogram/assets/doodle-bigfive.png" alt="" /><small>人格底色</small></div>
+        <div class="piece"><img src="../../miniprogram/assets/doodle-cognitive.png" alt="" /><small>思考模式</small></div>
+        <div class="piece"><img src="../../miniprogram/assets/doodle-social.png" alt="" /><small>社交模式</small></div>
+      </div>
+    </section>
+
+    <p class="boundary">依据与边界：结果观察依恋焦虑与依恋回避两条连续维度，仅用于自我理解，不是临床诊断，也不会替你判断一段关系。</p>
+
+    <footer class="actions">
+      <button class="primary">分享我的结果</button>
+      <button class="secondary">继续拼下一块</button>
+      <button class="source">查看完整依据与使用边界</button>
+    </footer>
+  </main>
+</body>
+</html>
