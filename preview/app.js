@@ -334,9 +334,95 @@ const drawPosterImageContain = (context, image, x, y, width, height) => {
   context.drawImage(image, x + ((width - drawWidth) / 2), y + ((height - drawHeight) / 2), drawWidth, drawHeight);
 };
 
+const drawAttachmentPosterHero = (context, image, visual, result, layout = {}) => {
+  const frame = layout.frame || { x: 62, y: 177, width: 626, height: 454, rail: 28 };
+  const title = visual.title || '依恋画像';
+  const titleY = layout.titleY || 112;
+  const subtitleY = layout.subtitleY || 151;
+  const profileY = layout.profileY || 685;
+
+  context.save();
+  context.textAlign = 'center';
+  context.fillStyle = '#d93621';
+  context.font = '900 54px Georgia, "Songti SC", serif';
+  context.fillText(title, 375, titleY);
+  context.fillStyle = '#382b22';
+  context.font = '650 22px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(visual.heroSubtitle || '', 375, subtitleY);
+
+  context.shadowColor = 'rgba(54, 29, 15, .34)';
+  context.shadowBlur = 20;
+  context.shadowOffsetY = 13;
+  context.fillStyle = '#4a2512';
+  context.fillRect(frame.x, frame.y, frame.width, frame.height);
+  context.shadowColor = 'transparent';
+
+  if (image) {
+    context.drawImage(
+      image,
+      image.naturalWidth * .048,
+      image.naturalHeight * .1875,
+      image.naturalWidth * .904,
+      image.naturalHeight * .7193,
+      frame.x,
+      frame.y,
+      frame.width,
+      frame.height
+    );
+  } else {
+    context.fillStyle = '#f7ebc8';
+    context.fillRect(frame.x, frame.y, frame.width, frame.height);
+  }
+
+  const horizontalWood = context.createLinearGradient(0, frame.y, 0, frame.y + frame.rail);
+  horizontalWood.addColorStop(0, '#74401f');
+  horizontalWood.addColorStop(.2, '#a56a38');
+  horizontalWood.addColorStop(.48, '#5d3018');
+  horizontalWood.addColorStop(.72, '#8b5129');
+  horizontalWood.addColorStop(1, '#43210f');
+  const verticalWood = context.createLinearGradient(frame.x, 0, frame.x + frame.rail, 0);
+  verticalWood.addColorStop(0, '#6d391c');
+  verticalWood.addColorStop(.2, '#9d6233');
+  verticalWood.addColorStop(.48, '#542914');
+  verticalWood.addColorStop(.72, '#814824');
+  verticalWood.addColorStop(1, '#3c1d0d');
+  const { x, y, width, height, rail } = frame;
+  const railPath = (points, fill) => {
+    context.beginPath();
+    context.moveTo(points[0][0], points[0][1]);
+    points.slice(1).forEach(([pointX, pointY]) => context.lineTo(pointX, pointY));
+    context.closePath();
+    context.fillStyle = fill;
+    context.fill();
+  };
+  railPath([[x, y], [x + width, y], [x + width - rail, y + rail], [x + rail, y + rail]], horizontalWood);
+  railPath([[x, y + height], [x + width, y + height], [x + width - rail, y + height - rail], [x + rail, y + height - rail]], horizontalWood);
+  railPath([[x, y], [x + rail, y + rail], [x + rail, y + height - rail], [x, y + height]], verticalWood);
+  railPath([[x + width, y], [x + width, y + height], [x + width - rail, y + height - rail], [x + width - rail, y + rail]], verticalWood);
+
+  context.strokeStyle = 'rgba(232, 190, 128, .58)';
+  context.lineWidth = 3;
+  context.strokeRect(x + 6, y + 6, width - 12, height - 12);
+  context.strokeStyle = '#e9d9ba';
+  context.lineWidth = 8;
+  context.strokeRect(x + rail - 4, y + rail - 4, width - ((rail - 4) * 2), height - ((rail - 4) * 2));
+  context.strokeStyle = '#58321c';
+  context.lineWidth = 3;
+  context.strokeRect(x + rail, y + rail, width - (rail * 2), height - (rail * 2));
+
+  context.fillStyle = 'rgba(232, 190, 128, .18)';
+  for (let offset = 11; offset < width - 30; offset += 62) context.fillRect(x + offset, y + 12, 35, 2);
+
+  context.fillStyle = '#6b4c37';
+  context.font = '700 18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+  context.fillText(`当前画像 ｜ ${result.profileTitle || title}`, 375, profileY);
+  context.restore();
+};
+
 const createIllustratedPoster = async (result, visual) => {
   const heroImage = await loadPosterImage(visual.hero);
-  const wideHero = Boolean(heroImage && (heroImage.naturalWidth / heroImage.naturalHeight) > 1.6);
+  const isAttachment = result.assessmentId === 'attachment';
+  const wideHero = Boolean(!isAttachment && heroImage && (heroImage.naturalWidth / heroImage.naturalHeight) > 1.6);
   const layout = wideHero ? {
     canvasHeight: 1000,
     heroY: 76,
@@ -368,24 +454,30 @@ const createIllustratedPoster = async (result, visual) => {
   const quote = String(visual.quote || result.summary || result.shareLine || '').trim();
   const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
 
-  context.fillStyle = '#fff8e8';
+  context.fillStyle = isAttachment ? '#f1e6d0' : '#fff8e8';
   context.fillRect(0, 0, 750, layout.canvasHeight);
-  context.fillStyle = 'rgba(240, 73, 50, .05)';
-  context.beginPath();
-  context.arc(652, 88, 170, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = 'rgba(247, 196, 35, .08)';
-  context.beginPath();
-  context.arc(70, 560, 220, 0, Math.PI * 2);
-  context.fill();
+  if (isAttachment) {
+    context.fillStyle = 'rgba(111, 75, 40, .04)';
+    for (let y = 12; y < layout.canvasHeight; y += 24) context.fillRect(0, y, 750, 1);
+  } else {
+    context.fillStyle = 'rgba(240, 73, 50, .05)';
+    context.beginPath();
+    context.arc(652, 88, 170, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = 'rgba(247, 196, 35, .08)';
+    context.beginPath();
+    context.arc(70, 560, 220, 0, Math.PI * 2);
+    context.fill();
+  }
 
-  context.fillStyle = '#776f62';
+  context.fillStyle = isAttachment ? '#6c4b36' : '#776f62';
   context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText(`PERSONALITY PUZZLE · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
-  context.fillStyle = '#e94b35';
+  context.fillStyle = isAttachment ? '#8b5530' : '#e94b35';
   context.fillRect(42, 62, 56, 6);
 
-  drawPosterImageContain(context, heroImage, 30, layout.heroY, 690, layout.heroHeight);
+  if (isAttachment) drawAttachmentPosterHero(context, heroImage, visual, result);
+  else drawPosterImageContain(context, heroImage, 30, layout.heroY, 690, layout.heroHeight);
 
   drawPosterRoundRect(context, 42, layout.quoteY, 666, 164, 30, 'rgba(255, 253, 248, .96)');
   context.fillStyle = '#ef4934';
@@ -439,24 +531,41 @@ const createIllustratedFullReport = async (result, visual) => {
   const puzzleImages = restImages;
   const toneColors = { red: '#c95746', yellow: '#a87908', green: '#42775d', purple: '#705c83', blue: '#4f78a8' };
   const completed = collection.filter((item) => item.result).length;
+  const isAttachment = result.assessmentId === 'attachment';
+  const reportSurface = isAttachment ? '#f8efdd' : '#fffdf8';
+  const reportAccent = isAttachment ? '#865130' : '#e84b35';
 
-  context.fillStyle = '#fff8e8';
+  context.fillStyle = isAttachment ? '#f1e6d0' : '#fff8e8';
   context.fillRect(0, 0, 750, 4200);
-  context.fillStyle = 'rgba(240,73,50,.045)';
-  context.beginPath();
-  context.arc(640, 130, 210, 0, Math.PI * 2);
-  context.fill();
-  context.fillStyle = 'rgba(247,196,35,.07)';
-  context.beginPath();
-  context.arc(70, 670, 250, 0, Math.PI * 2);
-  context.fill();
+  if (isAttachment) {
+    context.fillStyle = 'rgba(111,75,40,.04)';
+    for (let y = 12; y < 4200; y += 24) context.fillRect(0, y, 750, 1);
+  } else {
+    context.fillStyle = 'rgba(240,73,50,.045)';
+    context.beginPath();
+    context.arc(640, 130, 210, 0, Math.PI * 2);
+    context.fill();
+    context.fillStyle = 'rgba(247,196,35,.07)';
+    context.beginPath();
+    context.arc(70, 670, 250, 0, Math.PI * 2);
+    context.fill();
+  }
 
-  context.fillStyle = '#776f62';
+  context.fillStyle = isAttachment ? '#6c4b36' : '#776f62';
   context.font = '700 21px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
-  context.fillStyle = '#e94b35';
+  context.fillStyle = isAttachment ? '#8b5530' : '#e94b35';
   context.fillRect(42, 62, 72, 6);
-  drawPosterImageContain(context, heroImage, 30, 78, 690, 570);
+  if (isAttachment) {
+    drawAttachmentPosterHero(context, heroImage, visual, result, {
+      frame: { x: 72, y: 160, width: 606, height: 440, rail: 27 },
+      titleY: 104,
+      subtitleY: 138,
+      profileY: 638
+    });
+  } else {
+    drawPosterImageContain(context, heroImage, 30, 78, 690, 570);
+  }
 
   drawPosterRoundRect(context, 42, 668, 666, 166, 30, 'rgba(255,253,248,.96)');
   context.fillStyle = '#ef4934';
@@ -469,7 +578,7 @@ const createIllustratedFullReport = async (result, visual) => {
   (visual.traits || []).slice(0, 4).forEach((trait, index) => {
     const x = 42 + ((index % 2) * 339);
     const y = 858 + (Math.floor(index / 2) * 126);
-    drawPosterRoundRect(context, x, y, 327, 108, 24, '#fffdf8');
+    drawPosterRoundRect(context, x, y, 327, 108, 24, isAttachment ? ['#e8c8ad', '#ead8aa', '#cbd4b8', '#c9d0cd'][index] : '#fffdf8');
     context.fillStyle = toneColors[trait.tone] || '#685f54';
     context.fillRect(x, y, 7, 108);
     context.font = '700 24px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
@@ -479,7 +588,7 @@ const createIllustratedFullReport = async (result, visual) => {
     drawPosterText(context, trait.detail, x + 25, y + 72, 276, 28, 2);
   });
 
-  drawPosterRoundRect(context, 42, 1122, 666, 350, 30, '#fffdf8');
+  drawPosterRoundRect(context, 42, 1122, 666, 350, 30, reportSurface);
   context.fillStyle = '#27231f';
   context.font = '700 30px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText(visual.tendencyTitle || '人格维度', 72, 1172);
@@ -495,11 +604,11 @@ const createIllustratedFullReport = async (result, visual) => {
     context.fillText(`${item.percent}%`, 614, y + 17);
   });
 
-  drawPosterRoundRect(context, 42, 1500, 666, 154, 30, '#f7ded1');
-  context.fillStyle = '#e84b35';
+  drawPosterRoundRect(context, 42, 1500, 666, 154, 30, isAttachment ? '#6a3b21' : '#f7ded1');
+  context.fillStyle = isAttachment ? '#dfbd77' : '#e84b35';
   context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText(visual.analysisEyebrow || `TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
-  context.fillStyle = '#3d3028';
+  context.fillStyle = isAttachment ? '#fff5df' : '#3d3028';
   context.font = '800 34px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
     ? visual.analysisHeadingLines
@@ -507,13 +616,13 @@ const createIllustratedFullReport = async (result, visual) => {
   analysisHeadingLines.slice(0, 2).forEach((line, index) => context.fillText(line, 72, 1590 + (index * 40)));
   (visual.analysis || []).slice(0, 6).forEach((item, index) => {
     const y = 1678 + (index * 232);
-    drawPosterRoundRect(context, 42, y, 666, 212, 25, '#fffdf8');
-    context.strokeStyle = index === 5 ? '#31805e' : '#e84b35';
+    drawPosterRoundRect(context, 42, y, 666, 212, 25, reportSurface);
+    context.strokeStyle = index === 5 ? '#526648' : reportAccent;
     context.lineWidth = 2;
     context.beginPath();
     context.arc(83, y + 44, 25, 0, Math.PI * 2);
     context.stroke();
-    context.fillStyle = index === 5 ? '#31805e' : '#e84b35';
+    context.fillStyle = index === 5 ? '#526648' : reportAccent;
     context.font = '800 17px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
     context.fillText(item.index, 71, y + 50);
     context.fillStyle = '#28241f';
@@ -524,7 +633,7 @@ const createIllustratedFullReport = async (result, visual) => {
     drawPosterText(context, item.body, 126, y + 87, 530, 30, 5);
   });
 
-  drawPosterRoundRect(context, 42, 3090, 666, 236, 30, '#fffdf8');
+  drawPosterRoundRect(context, 42, 3090, 666, 236, 30, reportSurface);
   context.fillStyle = '#28241f';
   context.font = '700 28px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText('✱ 你的人格拼图进度', 72, 3140);
@@ -544,7 +653,7 @@ const createIllustratedFullReport = async (result, visual) => {
   });
   context.textAlign = 'left';
 
-  drawPosterRoundRect(context, 42, 3354, 666, 166, 30, '#fffdf8');
+  drawPosterRoundRect(context, 42, 3354, 666, 166, 30, reportSurface);
   context.fillStyle = '#28241f';
   context.font = '700 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText('朋友眼中的你', 72, 3402);
@@ -560,7 +669,7 @@ const createIllustratedFullReport = async (result, visual) => {
     chipX += width + 10;
   });
 
-  drawPosterRoundRect(context, 42, 3548, 666, 330, 30, '#fffdf8');
+  drawPosterRoundRect(context, 42, 3548, 666, 330, 30, reportSurface);
   drawPosterImageContain(context, aiImage, 68, 3582, 120, 88);
   context.fillStyle = '#244937';
   context.font = '700 27px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
@@ -584,7 +693,7 @@ const createIllustratedFullReport = async (result, visual) => {
   context.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 4020);
   context.fillStyle = 'rgba(74,65,53,.16)';
   context.fillRect(42, 4056, 666, 2);
-  context.fillStyle = '#e94b35';
+  context.fillStyle = isAttachment ? '#865130' : '#e94b35';
   context.font = '700 20px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
   context.fillText('人格拼图 · 完整报告', 42, 4100);
   context.fillStyle = '#777063';
@@ -828,9 +937,13 @@ const renderResult = (stage = 'core') => {
   const metrics = resultMetrics(result);
   const story = resultStory(result);
   if (visual) {
+    const heroImage = `<img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />`;
+    const heroMarkup = result.assessmentId === 'attachment'
+      ? `<div class="attachment-hero-shell"><h1 class="attachment-hero-title">${escapeHtml(visual.title)}</h1><p class="attachment-hero-subtitle">${escapeHtml(visual.heroSubtitle || '')}</p><div class="attachment-scene-frame"><div class="attachment-scene-crop"><img class="attachment-scene-image" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 故事场景" /></div><div class="attachment-wood-frame" aria-hidden="true"><span class="wood-frame-rail wood-frame-rail-top"></span><span class="wood-frame-rail wood-frame-rail-right"></span><span class="wood-frame-rail wood-frame-rail-bottom"></span><span class="wood-frame-rail wood-frame-rail-left"></span></div></div></div>`
+      : heroImage;
     app.className = `screen illustrated-result-screen result-kind-${result.assessmentId} result-type-${String(result.typeCode || '').toLowerCase()} result-visual-${String(result.visualCode || '').toLowerCase()}`;
     app.innerHTML = `<p class="poster-kicker ${visual.heroIncludesKicker ? 'poster-kicker-hidden' : ''}">${escapeHtml(visual.kicker)}</p>
-      <img class="poster-hero" src="${asset(visual.hero)}" alt="${escapeHtml(visual.title)} 主视觉" />
+      ${heroMarkup}
       ${result.assessmentId === 'attachment' && result.profileTitle ? `<div class="poster-profile"><span>当前画像</span><b>${escapeHtml(result.profileTitle)}</b></div>` : ''}
       <section class="poster-quote"><b>“</b><p>${escapeHtml(visual.quote)}</p></section>
       <section class="poster-traits">${visual.traits.map((item) => `<article class="poster-trait poster-tone-${escapeHtml(item.tone)}"><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(item.detail)}</p></article>`).join('')}</section>
@@ -925,7 +1038,8 @@ const renderShare = async () => {
     console.warn('[share-poster] 下载接口不可用，已切换为浏览器本地下载');
   }
   if (!app.classList.contains('web-share-screen')) return;
-  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(resultBadge)}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${downloadUrl}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
+  const shareBadge = result.assessmentId === 'attachment' ? title : resultBadge;
+  app.innerHTML = `<button class="share-back" type="button" data-action="result">返回结果</button><div class="share-title-row"><div><p>SHARE YOUR PIECE</p><h1>保存并分享这张人格海报</h1></div><span>${escapeHtml(shareBadge)}</span></div><p class="share-help">短海报适合分享；完整报告会保存全部分析内容。</p><figure class="web-share-poster"><img src="${posterData}" alt="${escapeHtml(title)}人格海报" /></figure><div class="web-share-actions"><a href="${downloadUrl}" download="${escapeHtml(title)}-人格海报.png">保存分享海报</a><button class="share-full-report" type="button" data-action="full-report">保存完整报告</button><button type="button" data-action="copy-link">复制链接</button><button type="button" data-action="system-share">发给朋友</button></div><button class="share-home" type="button" data-action="home">回到我的拼图</button>`;
   bind('[data-action="result"]', () => renderResult('core'));
   bind('[data-action="home"]', renderHome);
   let fullReportDownload = null;

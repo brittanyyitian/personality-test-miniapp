@@ -67,6 +67,84 @@ function drawImageContain(ctx, imageInfo, x, y, width, height) {
   ctx.drawImage(imageInfo.path, x + ((width - drawWidth) / 2), y + ((height - drawHeight) / 2), drawWidth, drawHeight);
 }
 
+function drawAttachmentPosterHero(ctx, imageInfo, visual, result, layout = {}) {
+  const frame = layout.frame || { x: 62, y: 177, width: 626, height: 454, rail: 28 };
+  const title = visual.title || '依恋画像';
+  const titleY = layout.titleY || 112;
+  const subtitleY = layout.subtitleY || 151;
+  const profileY = layout.profileY || 685;
+  ctx.setTextAlign('center');
+  ctx.setFillStyle('#D93621');
+  ctx.setFontSize(54);
+  ctx.fillText(title, 375, titleY);
+  ctx.setFillStyle('#382B22');
+  ctx.setFontSize(22);
+  ctx.fillText(visual.heroSubtitle || '', 375, subtitleY);
+
+  ctx.setShadow(0, 13, 20, 'rgba(54,29,15,.34)');
+  ctx.setFillStyle('#4A2512');
+  ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
+  ctx.setShadow(0, 0, 0, 'rgba(0,0,0,0)');
+  if (imageInfo && imageInfo.path && imageInfo.width && imageInfo.height) {
+    ctx.drawImage(
+      imageInfo.path,
+      imageInfo.width * .048,
+      imageInfo.height * .1875,
+      imageInfo.width * .904,
+      imageInfo.height * .7193,
+      frame.x,
+      frame.y,
+      frame.width,
+      frame.height
+    );
+  } else {
+    ctx.setFillStyle('#F7EBC8');
+    ctx.fillRect(frame.x, frame.y, frame.width, frame.height);
+  }
+
+  const horizontalWood = ctx.createLinearGradient(0, frame.y, 0, frame.y + frame.rail);
+  horizontalWood.addColorStop(0, '#74401F');
+  horizontalWood.addColorStop(.2, '#A56A38');
+  horizontalWood.addColorStop(.48, '#5D3018');
+  horizontalWood.addColorStop(.72, '#8B5129');
+  horizontalWood.addColorStop(1, '#43210F');
+  const verticalWood = ctx.createLinearGradient(frame.x, 0, frame.x + frame.rail, 0);
+  verticalWood.addColorStop(0, '#6D391C');
+  verticalWood.addColorStop(.2, '#9D6233');
+  verticalWood.addColorStop(.48, '#542914');
+  verticalWood.addColorStop(.72, '#814824');
+  verticalWood.addColorStop(1, '#3C1D0D');
+  const { x, y, width, height, rail } = frame;
+  const railPath = (points, fill) => {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    points.slice(1).forEach(([pointX, pointY]) => ctx.lineTo(pointX, pointY));
+    ctx.closePath();
+    ctx.setFillStyle(fill);
+    ctx.fill();
+  };
+  railPath([[x, y], [x + width, y], [x + width - rail, y + rail], [x + rail, y + rail]], horizontalWood);
+  railPath([[x, y + height], [x + width, y + height], [x + width - rail, y + height - rail], [x + rail, y + height - rail]], horizontalWood);
+  railPath([[x, y], [x + rail, y + rail], [x + rail, y + height - rail], [x, y + height]], verticalWood);
+  railPath([[x + width, y], [x + width, y + height], [x + width - rail, y + height - rail], [x + width - rail, y + rail]], verticalWood);
+  ctx.setStrokeStyle('rgba(232,190,128,.58)');
+  ctx.setLineWidth(3);
+  ctx.strokeRect(x + 6, y + 6, width - 12, height - 12);
+  ctx.setStrokeStyle('#E9D9BA');
+  ctx.setLineWidth(8);
+  ctx.strokeRect(x + rail - 4, y + rail - 4, width - ((rail - 4) * 2), height - ((rail - 4) * 2));
+  ctx.setStrokeStyle('#58321C');
+  ctx.setLineWidth(3);
+  ctx.strokeRect(x + rail, y + rail, width - (rail * 2), height - (rail * 2));
+  ctx.setFillStyle('rgba(232,190,128,.18)');
+  for (let offset = 11; offset < width - 30; offset += 62) ctx.fillRect(x + offset, y + 12, 35, 2);
+
+  ctx.setFillStyle('#6B4C37');
+  ctx.setFontSize(18);
+  ctx.fillText(`当前画像 ｜ ${result.profileTitle || title}`, 375, profileY);
+  ctx.setTextAlign('left');
+}
+
 function loadCanvasImage(src) {
   return new Promise((resolve) => {
     if (!src) {
@@ -302,6 +380,7 @@ Page({
     if (visual) {
       const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83', blue: '#4F78A8' };
       const compactWideHero = result.assessmentId === 'bigfive';
+      const isAttachment = result.assessmentId === 'attachment';
       const posterLayout = compactWideHero ? {
         heroY: 82,
         heroHeight: 430,
@@ -321,22 +400,28 @@ Page({
         dividerY: 1276,
         footerY: 1310
       };
-      ctx.setFillStyle('#FFF8E8');
+      ctx.setFillStyle(isAttachment ? '#F1E6D0' : '#FFF8E8');
       ctx.fillRect(0, 0, 750, 1334);
-      ctx.setFillStyle('rgba(240,73,50,.05)');
-      ctx.beginPath();
-      ctx.arc(652, 88, 170, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.setFillStyle('rgba(247,196,35,.08)');
-      ctx.beginPath();
-      ctx.arc(70, 560, 220, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.setFillStyle('#776F62');
+      if (isAttachment) {
+        ctx.setFillStyle('rgba(111,75,40,.04)');
+        for (let y = 12; y < 1334; y += 24) ctx.fillRect(0, y, 750, 1);
+      } else {
+        ctx.setFillStyle('rgba(240,73,50,.05)');
+        ctx.beginPath();
+        ctx.arc(652, 88, 170, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.setFillStyle('rgba(247,196,35,.08)');
+        ctx.beginPath();
+        ctx.arc(70, 560, 220, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.setFillStyle(isAttachment ? '#6C4B36' : '#776F62');
       ctx.setFontSize(21);
       ctx.fillText(`PERSONALITY PUZZLE · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
-      ctx.setFillStyle('#E94B35');
+      ctx.setFillStyle(isAttachment ? '#8B5530' : '#E94B35');
       ctx.fillRect(42, 62, 56, 6);
-      drawImageContain(ctx, imageInfo, 30, posterLayout.heroY, 690, posterLayout.heroHeight);
+      if (isAttachment) drawAttachmentPosterHero(ctx, imageInfo, visual, result);
+      else drawImageContain(ctx, imageInfo, 30, posterLayout.heroY, 690, posterLayout.heroHeight);
       drawRoundRect(ctx, 42, posterLayout.quoteY, 666, 164, 30, 'rgba(255,253,248,.96)');
       ctx.setFillStyle('#EF4934');
       ctx.setFontSize(58);
@@ -411,23 +496,40 @@ Page({
     const ctx = wx.createCanvasContext('fullReportPoster', this);
     const { result, visual, pieces, completedCount, displayTitle, resonance } = this.data;
     const toneColors = { red: '#C95746', yellow: '#A87908', green: '#42775D', purple: '#705C83', blue: '#4F78A8' };
+    const isAttachment = result.assessmentId === 'attachment';
+    const reportSurface = isAttachment ? '#F8EFDD' : '#FFFDF8';
+    const reportAccent = isAttachment ? '#865130' : '#E84B35';
 
-    ctx.setFillStyle('#FFF8E8');
+    ctx.setFillStyle(isAttachment ? '#F1E6D0' : '#FFF8E8');
     ctx.fillRect(0, 0, 750, 4200);
-    ctx.setFillStyle('rgba(240,73,50,.045)');
-    ctx.beginPath();
-    ctx.arc(640, 130, 210, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.setFillStyle('rgba(247,196,35,.07)');
-    ctx.beginPath();
-    ctx.arc(70, 670, 250, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.setFillStyle('#776F62');
+    if (isAttachment) {
+      ctx.setFillStyle('rgba(111,75,40,.04)');
+      for (let y = 12; y < 4200; y += 24) ctx.fillRect(0, y, 750, 1);
+    } else {
+      ctx.setFillStyle('rgba(240,73,50,.045)');
+      ctx.beginPath();
+      ctx.arc(640, 130, 210, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.setFillStyle('rgba(247,196,35,.07)');
+      ctx.beginPath();
+      ctx.arc(70, 670, 250, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.setFillStyle(isAttachment ? '#6C4B36' : '#776F62');
     ctx.setFontSize(21);
     ctx.fillText(`${result.assessmentId === 'social' ? 'FULL SOCIAL MODE REPORT' : 'FULL PERSONALITY REPORT'} · ${result.typeCode || result.assessmentId.toUpperCase()}`, 42, 48);
-    ctx.setFillStyle('#E94B35');
+    ctx.setFillStyle(isAttachment ? '#8B5530' : '#E94B35');
     ctx.fillRect(42, 62, 72, 6);
-    drawImageContain(ctx, heroImage, 30, 78, 690, 570);
+    if (isAttachment) {
+      drawAttachmentPosterHero(ctx, heroImage, visual, result, {
+        frame: { x: 72, y: 160, width: 606, height: 440, rail: 27 },
+        titleY: 104,
+        subtitleY: 138,
+        profileY: 638
+      });
+    } else {
+      drawImageContain(ctx, heroImage, 30, 78, 690, 570);
+    }
 
     drawRoundRect(ctx, 42, 668, 666, 166, 30, 'rgba(255,253,248,.96)');
     ctx.setFillStyle('#EF4934');
@@ -440,7 +542,7 @@ Page({
     (visual.traits || []).slice(0, 4).forEach((trait, index) => {
       const x = 42 + ((index % 2) * 339);
       const y = 858 + (Math.floor(index / 2) * 126);
-      drawRoundRect(ctx, x, y, 327, 108, 24, '#FFFDF8');
+      drawRoundRect(ctx, x, y, 327, 108, 24, isAttachment ? ['#E8C8AD', '#EAD8AA', '#CBD4B8', '#C9D0CD'][index] : '#FFFDF8');
       ctx.setFillStyle(toneColors[trait.tone] || '#685F54');
       ctx.fillRect(x, y, 7, 108);
       ctx.setFontSize(24);
@@ -450,7 +552,7 @@ Page({
       drawWrappedText(ctx, trait.detail, x + 25, y + 72, 276, 28, 2);
     });
 
-    drawRoundRect(ctx, 42, 1122, 666, 350, 30, '#FFFDF8');
+    drawRoundRect(ctx, 42, 1122, 666, 350, 30, reportSurface);
     ctx.setFillStyle('#27231F');
     ctx.setFontSize(30);
     ctx.fillText(visual.tendencyTitle || '人格维度', 72, 1172);
@@ -467,11 +569,11 @@ Page({
       ctx.fillText(`${percent}%`, 614, y + 17);
     });
 
-    drawRoundRect(ctx, 42, 1500, 666, 154, 30, '#F7DED1');
-    ctx.setFillStyle('#E84B35');
+    drawRoundRect(ctx, 42, 1500, 666, 154, 30, isAttachment ? '#6A3B21' : '#F7DED1');
+    ctx.setFillStyle(isAttachment ? '#DFBD77' : '#E84B35');
     ctx.setFontSize(17);
     ctx.fillText(visual.analysisEyebrow || `TYPE NOTES · ${result.typeCode || ''}`, 72, 1543);
-    ctx.setFillStyle('#3D3028');
+    ctx.setFillStyle(isAttachment ? '#FFF5DF' : '#3D3028');
     ctx.setFontSize(34);
     const analysisHeadingLines = Array.isArray(visual.analysisHeadingLines) && visual.analysisHeadingLines.length
       ? visual.analysisHeadingLines
@@ -479,13 +581,13 @@ Page({
     analysisHeadingLines.slice(0, 2).forEach((line, index) => ctx.fillText(line, 72, 1590 + (index * 40)));
     (visual.analysis || []).slice(0, 6).forEach((item, index) => {
       const y = 1678 + (index * 232);
-      drawRoundRect(ctx, 42, y, 666, 212, 25, '#FFFDF8');
-      ctx.setStrokeStyle(index === 5 ? '#31805E' : '#E84B35');
+      drawRoundRect(ctx, 42, y, 666, 212, 25, reportSurface);
+      ctx.setStrokeStyle(index === 5 ? '#526648' : reportAccent);
       ctx.setLineWidth(2);
       ctx.beginPath();
       ctx.arc(83, y + 44, 25, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.setFillStyle(index === 5 ? '#31805E' : '#E84B35');
+      ctx.setFillStyle(index === 5 ? '#526648' : reportAccent);
       ctx.setFontSize(17);
       ctx.fillText(String(item.index || '').padStart(2, '0'), 71, y + 50);
       ctx.setFillStyle('#28241F');
@@ -496,7 +598,7 @@ Page({
       drawWrappedText(ctx, item.body, 126, y + 87, 530, 30, 5);
     });
 
-    drawRoundRect(ctx, 42, 3090, 666, 236, 30, '#FFFDF8');
+    drawRoundRect(ctx, 42, 3090, 666, 236, 30, reportSurface);
     ctx.setFillStyle('#28241F');
     ctx.setFontSize(28);
     ctx.fillText('✱ 你的人格拼图进度', 72, 3140);
@@ -517,7 +619,7 @@ Page({
       ctx.fillText(piece.done ? '已完成' : '待解锁', x + 15, 3311);
     });
 
-    drawRoundRect(ctx, 42, 3354, 666, 166, 30, '#FFFDF8');
+    drawRoundRect(ctx, 42, 3354, 666, 166, 30, reportSurface);
     ctx.setFillStyle('#28241F');
     ctx.setFontSize(27);
     ctx.fillText('朋友眼中的你', 72, 3402);
@@ -536,7 +638,7 @@ Page({
       chipX += width + 10;
     });
 
-    drawRoundRect(ctx, 42, 3548, 666, 330, 30, '#FFFDF8');
+    drawRoundRect(ctx, 42, 3548, 666, 330, 30, reportSurface);
     drawImageContain(ctx, aiImage, 68, 3582, 120, 88);
     ctx.setFillStyle('#244937');
     ctx.setFontSize(27);
@@ -560,7 +662,7 @@ Page({
     ctx.fillText('人格不是标签，是一张继续认识自己的地图。', 42, 4020);
     ctx.setFillStyle('rgba(74,65,53,.16)');
     ctx.fillRect(42, 4056, 666, 2);
-    ctx.setFillStyle('#E94B35');
+    ctx.setFillStyle(isAttachment ? '#865130' : '#E94B35');
     ctx.setFontSize(20);
     ctx.fillText('人格拼图 · 完整报告', 42, 4100);
     ctx.setFillStyle('#777063');

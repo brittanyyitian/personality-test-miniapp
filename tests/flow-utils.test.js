@@ -163,6 +163,7 @@ test('四种依恋结果复用依恋母版，但拥有独立头图与六段关�
     assert.equal(visual.title, title, typeCode);
     assert.equal(visual.hero, `/result-package/assets/attachment/result-attachment-${typeCode}-hero-v2.webp`, typeCode);
     assert.equal(visual.heroIncludesKicker, false, typeCode);
+    assert.ok(visual.heroSubtitle.length >= 8, typeCode);
     assert.equal(visual.traits.length, 4, typeCode);
     assert.equal(visual.tendencies.length, 3, typeCode);
     assert.equal(visual.friendTags.length, 5, typeCode);

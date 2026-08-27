@@ -46,6 +46,28 @@ test('人格底色结果页移除隐藏标题占位并同步收紧网页与小�
   assert.match(mini, /\.result-kind-bigfive \.poster-kicker-hidden\s*\{\s*display:\s*none/);
 });
 
+test('依恋结果头图只在故事场景上叠加斜切木质画框', () => {
+  const web = read('preview/app.js');
+  const webStyle = read('preview/styles.css');
+  const template = read('miniprogram/result-package/pages/result/index.wxml');
+  const miniStyle = read('miniprogram/result-package/pages/result/index.wxss');
+  assert.match(web, /result\.assessmentId === 'attachment'/);
+  assert.match(web, /attachment-wood-frame/);
+  assert.match(template, /result\.assessmentId === 'attachment'/);
+  assert.match(template, /wood-frame-rail-top/);
+  assert.match(webStyle, /\.attachment-wood-frame/);
+  assert.match(miniStyle, /\.attachment-wood-frame/);
+  assert.match(webStyle, /result-kind-attachment\.illustrated-result-screen/);
+  assert.match(miniStyle, /result-kind-attachment \.poster-analysis-head/);
+  assert.match(web, /attachment-scene-crop/);
+  assert.doesNotMatch(template, /attachment-hero-caption/);
+  assert.match(web, /drawAttachmentPosterHero\(context, heroImage, visual, result\)/);
+  assert.match(web, /drawAttachmentPosterHero\(context, heroImage, visual, result, \{/);
+  assert.match(read('miniprogram/result-package/pages/result/index.js'), /drawAttachmentPosterHero\(ctx, imageInfo, visual, result\)/);
+  assert.match(read('miniprogram/result-package/pages/result/index.js'), /drawAttachmentPosterHero\(ctx, heroImage, visual, result, \{/);
+  assert.match(template, /result\.assessmentId === 'attachment' \? displayTitle : result\.typeCode/);
+});
+
 test('小程序分享页预览正式海报且保存同一张生成图片', () => {
   const logic = read('miniprogram/result-package/pages/result/index.js');
   const template = read('miniprogram/result-package/pages/result/index.wxml');
