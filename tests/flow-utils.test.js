@@ -403,12 +403,15 @@ test('人格底色十五档复用长结果母版，并把 1–5 分换算成五�
   });
 });
 
-test('恋爱模式四张素材复用长结果母版，并展示五种真实关系资源', () => {
+test('恋爱模式七张素材复用长结果母版，并展示五种真实关系资源', () => {
   const expected = {
     commitment_appreciation: '像队友，也看得见彼此',
     appreciation_response: '被看见，也能被接住',
     commitment_response: '一起承担，也接得住情绪',
-    commitment_repair: '遇到问题，仍愿意并肩回来'
+    commitment_repair: '遇到问题，仍愿意并肩回来',
+    commitment_trust: '既站在一起，也保有边界',
+    appreciation_repair: '有温度，也愿意把话说回来',
+    appreciation_trust: '欣赏彼此，也能安心做自己'
   };
   const types = require('../miniprogram/data/result-visuals').relationshipTypes;
   Object.entries(expected).forEach(([visualCode, title]) => {

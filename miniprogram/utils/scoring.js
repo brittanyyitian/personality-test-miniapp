@@ -948,6 +948,9 @@ const relationshipVisualPairs = new Set([
   'commitment_appreciation',
   'commitment_response',
   'commitment_repair',
+  'commitment_trust',
+  'appreciation_repair',
+  'appreciation_trust',
   'appreciation_response'
 ]);
 

@@ -8,5 +8,10 @@
 | 被看见，也能被接住 | `appreciation_response` | `appreciation-response-needs-transparent-source.png` | 待替换，1146×1372，棋盘格已烘入且没有透明通道 |
 | 一起承担，也接得住情绪 | `commitment_response` | `commitment-response.png` | 可用，1536×1024，透明背景 |
 | 遇到问题，仍愿意并肩回来 | `commitment_repair` | `commitment-repair.png` | 可用，1536×1024，透明背景 |
+| 既站在一起，也保有边界 | `commitment_trust` | `commitment-trust.png` | 可用，1536×1024，透明背景 |
+| 有温度，也愿意把话说回来 | `appreciation_repair` | `appreciation-repair.png` | 可用，1536×1024，透明背景；帐篷构图作为正式素材 |
+| 欣赏彼此，也能安心做自己 | `appreciation_trust` | `appreciation-trust.png` | 可用，1536×1024，透明背景 |
+
+`appreciation-repair-sofa-alt.png` 是同一结果的沙发场景备选源图，暂不进入小程序分包。
 
 后续素材应优先使用 1536×1024 的透明 PNG，并保持标题已经包含在插画中。
