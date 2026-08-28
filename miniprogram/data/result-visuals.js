@@ -761,6 +761,131 @@ function attachmentVisual(typeCode, definition) {
 
 const attachment = Object.fromEntries(Object.entries(attachmentTypes).map(([code, definition]) => [code, attachmentVisual(code, definition)]));
 
+const relationshipTypes = {
+  commitment_appreciation: {
+    title: '像队友，也看得见彼此',
+    hero: '/relationship-result-package/assets/relationship-commitment-appreciation.webp',
+    quote: '你们的靠近不只靠情绪，也靠具体参与和明确看见：有人一起承担，也有人认真回应那些没说出口的付出。',
+    previewScores: { commitment: 4.7, appreciation: 4.5, response: 3.7, repair: 3.5, trust: 3.9 },
+    traits: [
+      ['一起参与', '重要的事不总落在一个人身上，双方都愿意进入共同生活。'],
+      ['付出被看见', '感谢不是默认存在，而会被具体说出来、做出来。'],
+      ['现实里靠近', '爱意会落进安排、分工与兑现，而不只停在态度里。'],
+      ['保留彼此', '成为队友不等于失去自己，边界与连接可以同时存在。']
+    ],
+    heading: ['不只是相处顺利，', '是你们愿意把彼此放进生活里'],
+    analysis: {
+      driver: '这段关系最有力量的地方，是“我们”不只出现在口头上。有人愿意把共同的事接过来，也有人能让日常付出被看见。',
+      conflict: '越习惯配合默契，越容易默认对方应该知道自己的心意。没有被说出的感谢和疲惫，仍可能在稳定关系里慢慢累积。',
+      stress: '压力变大时，你们可能重新退回各自完成任务的模式：事情做完了，感受却没有真正碰面。',
+      misread: '一方用承担表达爱，另一方可能更需要语言与回应；两个人都在付出，却会短暂觉得自己没有被理解。',
+      understood: '最能让你安心的，是对方既愿意参与具体生活，也能清楚说出“我看见你做了什么”。',
+      recovery: '每周挑一件共同完成的小事，再补一句具体感谢，让队友感和被看见感继续同时发生。'
+    },
+    friendTags: ['像一支队伍', '会看见付出', '共同参与', '行动式在意', '关系有底气'],
+    notes: ['你们的稳定来自双方都真正参与。', '默契也需要偶尔被说出来。', '具体感谢会让日常投入重新有温度。']
+  },
+  appreciation_response: {
+    title: '被看见，也能被接住',
+    hero: '/relationship-result-package/assets/relationship-appreciation-response.webp',
+    quote: '你在意的不是一句笼统的“我爱你”，而是表达以后，对方真的听见了你的感受，也愿意留在这里回应。',
+    previewScores: { commitment: 3.7, appreciation: 4.7, response: 4.6, repair: 3.5, trust: 4.0 },
+    traits: [
+      ['感受被听见', '难受时不用先整理成正确答案，也能得到认真回应。'],
+      ['付出有回声', '那些容易被忽略的小事，会被具体看见和感谢。'],
+      ['先陪再解决', '面对情绪时不急着讲道理，先确认此刻真正需要什么。'],
+      ['脆弱有位置', '靠近不只发生在开心时，也允许不完美的状态出现。']
+    ],
+    heading: ['不只是有人陪，', '是你的感受在关系里有位置'],
+    analysis: {
+      driver: '这段关系更有力量的地方，是情绪和付出都能得到回声。你不必把自己整理得很好，才有资格被靠近。',
+      conflict: '被理解的期待越高，偶尔错过回应时就越容易失落。一次没接住，可能会被感受到像是整段关系突然退远。',
+      stress: '压力下，一方可能急着解释和解决，另一方则更想先被听见；出发点都在保护关系，节奏却容易错开。',
+      misread: '需要回应不等于依赖，先讲感受也不等于拒绝解决问题。你只是希望关系先确认“我听见了”。',
+      understood: '最适合你们的回应，是先问清“你想被听见，还是想一起想办法”，再进入下一步。',
+      recovery: '把需求说得更具体：先听、抱一会儿、给建议，或晚一点再聊。对方越知道怎样接，连接越不必靠猜。'
+    },
+    friendTags: ['回应有温度', '能听见情绪', '付出有回声', '允许脆弱', '靠近很具体'],
+    notes: ['你需要的不是完美答案，而是真正被听见。', '回应方式说具体，比反复猜测更容易靠近。', '先接住感受，再处理问题。']
+  },
+  commitment_response: {
+    title: '一起承担，也接得住情绪',
+    hero: '/relationship-result-package/assets/relationship-commitment-response.webp',
+    quote: '你们的关系不只在顺利时像一队，也愿意在压力出现时，一边处理现实，一边照顾彼此的感受。',
+    previewScores: { commitment: 4.7, appreciation: 3.7, response: 4.6, repair: 3.8, trust: 4.0 },
+    traits: [
+      ['共同扛事', '现实压力出现时，不让一个人独自负责全部后果。'],
+      ['情绪有回应', '处理问题的同时，也会留意彼此是不是已经撑不住。'],
+      ['需要能开口', '不用等到耗尽，便可以提出陪伴、分担或暂停。'],
+      ['行动能兑现', '安慰之后会进入具体下一步，让支持真正落在生活里。']
+    ],
+    heading: ['不只是一起解决，', '是问题和情绪都有人接住'],
+    analysis: {
+      driver: '这段关系更有力量的地方，是现实与情绪不会被迫二选一。你们愿意一起处理事情，也愿意照顾处理事情的人。',
+      conflict: '越想尽快扛过压力，越可能把情绪照顾推到最后。事情结束了，委屈和疲惫却未必一起结束。',
+      stress: '压力集中时，一方可能加速做决定，另一方则更需要确认感受；节奏不一致会让“我在帮你”听起来像“你别再添乱”。',
+      misread: '主动解决不是冷淡，需要安慰也不是不成熟。你们只是用不同顺序确认安全。',
+      understood: '真正有用的支持，是先问对方此刻需要分担、陪伴还是方案，再决定谁负责下一步。',
+      recovery: '把问题拆成一件可承担的事和一个需要被回应的感受，两部分都有人负责，关系才不会只剩下硬撑。'
+    },
+    friendTags: ['能一起扛事', '情绪不落单', '支持会落地', '需要能开口', '现实里可靠'],
+    notes: ['支持既要解决事情，也要照顾人。', '先确认需要，再分配行动。', '不必让任何一个人一直扮演坚强角色。']
+  },
+  commitment_repair: {
+    title: '遇到问题，仍愿意并肩回来',
+    hero: '/relationship-result-package/assets/relationship-commitment-repair.webp',
+    quote: '你们并不是从不争执，而是在不愉快以后，仍愿意重新回到同一边，把没有说完的话接回来。',
+    previewScores: { commitment: 4.6, appreciation: 3.8, response: 3.7, repair: 4.7, trust: 4.0 },
+    traits: [
+      ['愿意回来', '暂停不是消失，情绪落下后会有人主动重启对话。'],
+      ['问题能收尾', '不只恢复表面正常，也会确认同一件事下次怎样不同。'],
+      ['关系不对打', '有分歧时仍记得双方要解决的是问题，不是彼此。'],
+      ['改变可观察', '道歉以后会出现具体行动，让修复不只停在态度里。']
+    ],
+    heading: ['不只是没有分开，', '是冲突以后还能重新站到一起'],
+    analysis: {
+      driver: '这段关系更有力量的地方，是冲突没有自动等于关系结束。你们仍愿意回来、重新理解，并把共同生活继续接起来。',
+      conflict: '愿意和好有时会让真正的问题被太快放下。气氛恢复了，不代表触发争执的分工、边界或伤害已经改变。',
+      stress: '情绪高涨时，一方可能追着解决，另一方先退开保护自己。没有约定回来时间，暂停就容易被感受到像抛下。',
+      misread: '需要空间不等于不在意，想尽快谈完也不等于控制。真正重要的是双方都知道这次暂停以后还会回来。',
+      understood: '最能保护关系的信号，是清楚说出“我现在需要停一下，但会在几点回来继续聊”。',
+      recovery: '每次修复只确认一个变化：下一次从哪一步开始不同。能观察到的改变，比反复保证“以后不会了”更让人安心。'
+    },
+    friendTags: ['冲突后会回来', '愿意重新靠近', '把问题说完', '修复有行动', '仍站在一边'],
+    notes: ['会争执不等于关系失败。', '暂停需要约定回来时间。', '修复的证据，是下一次真的有所不同。']
+  }
+};
+
+function relationshipVisual(code, definition) {
+  return {
+    template: 'illustrated-poster',
+    kicker: '你们更靠近的关系画像',
+    title: definition.title,
+    hero: definition.hero,
+    heroIncludesKicker: true,
+    analysisEyebrow: `RELATIONSHIP NOTES · ${code.toUpperCase()}`,
+    analysisHeadingLines: definition.heading,
+    analysisLabels: ['关系支点', '内在拉扯', '压力循环', '容易误读', '真正需要', '修复方向'],
+    analysisProfile: definition.analysis,
+    previewScores: definition.previewScores,
+    aiIcon: '/assets/result-ai-observer.webp',
+    quote: definition.quote,
+    traits: definition.traits.map(([label, detail], index) => ({ label, detail, tone: tones[index] })),
+    tendencyTitle: '五种关系资源',
+    tendencyAxes: [
+      { key: 'commitment', label: '共同投入', scale: 'likert', tone: 'red' },
+      { key: 'appreciation', label: '被看见感', scale: 'likert', tone: 'yellow' },
+      { key: 'response', label: '情绪回应', scale: 'likert', tone: 'green' },
+      { key: 'repair', label: '冲突修复', scale: 'likert', tone: 'purple' },
+      { key: 'trust', label: '信任边界', scale: 'likert', tone: 'blue' }
+    ],
+    friendTags: definition.friendTags,
+    notes: definition.notes
+  };
+}
+
+const relationship = Object.fromEntries(Object.entries(relationshipTypes).map(([code, definition]) => [code, relationshipVisual(code, definition)]));
+
 // 社交模式与认知模式共用同一套 illustrated-poster 页面骨架，但内容、
 // 维度和分析标题全部由各自类型配置提供。后续 16 张素材可以逐个加入这里。
 const socialAnalysisLabels = {
@@ -1193,6 +1318,6 @@ const social = {
   })
 };
 
-const RESULT_VISUALS = { cognitive, attachment, bigfive, social };
+const RESULT_VISUALS = { cognitive, attachment, bigfive, relationship, social };
 
-module.exports = { RESULT_VISUALS, cognitiveTypes, attachmentTypes, bigFiveTypes };
+module.exports = { RESULT_VISUALS, cognitiveTypes, attachmentTypes, bigFiveTypes, relationshipTypes };

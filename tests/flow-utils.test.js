@@ -403,6 +403,27 @@ test('人格底色十五档复用长结果母版，并把 1–5 分换算成五�
   });
 });
 
+test('恋爱模式四张素材复用长结果母版，并展示五种真实关系资源', () => {
+  const expected = {
+    commitment_appreciation: '像队友，也看得见彼此',
+    appreciation_response: '被看见，也能被接住',
+    commitment_response: '一起承担，也接得住情绪',
+    commitment_repair: '遇到问题，仍愿意并肩回来'
+  };
+  const types = require('../miniprogram/data/result-visuals').relationshipTypes;
+  Object.entries(expected).forEach(([visualCode, title]) => {
+    const visual = getResultVisual({ assessmentId: 'relationship', visualCode, scores: types[visualCode].previewScores });
+    assert.equal(visual.template, 'illustrated-poster', visualCode);
+    assert.equal(visual.title, title, visualCode);
+    assert.match(visual.hero, /^\/relationship-result-package\/assets\/relationship-.+\.webp$/);
+    assert.equal(visual.heroIncludesKicker, true, visualCode);
+    assert.equal(visual.traits.length, 4, visualCode);
+    assert.equal(visual.tendencies.length, 5, visualCode);
+    assert.equal(visual.analysis.length, 6, visualCode);
+    assert.deepEqual(visual.analysis.map((item) => item.title), ['关系支点', '内在拉扯', '压力循环', '容易误读', '真正需要', '修复方向']);
+  });
+});
+
 test('五套测试的高低典型回答会产生不同分析内容', () => {
   const profileA = [1, 2, 4, 5];
   const profileB = [5, 4, 2, 1];

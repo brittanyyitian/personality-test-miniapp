@@ -668,6 +668,16 @@ aside { position: relative; overflow: hidden; margin-top: 28px; padding: 20px; b
 .result-kind-bigfive .poster-tendency > b { font-size: 10.5px; }
 .result-kind-bigfive .poster-analysis-head { background: #efe4bd; }
 .result-kind-bigfive .poster-analysis-head p { color: #2e6548; }
+.result-kind-relationship.illustrated-result-screen { padding-top: 10px; background: #fff8f1; }
+.result-kind-relationship .poster-kicker-hidden { display: none; }
+.result-kind-relationship .poster-hero { width: calc(100% + 30px); margin: -2px 0 7px -15px; }
+.result-kind-relationship .poster-traits { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.result-kind-relationship .poster-trait { min-height: 82px; padding: 12px 11px 11px; }
+.result-kind-relationship .poster-trait h2 { font-size: 15px; }
+.result-kind-relationship .poster-trait p { margin-top: 7px; font-size: 11px; line-height: 1.55; }
+.result-kind-relationship .poster-tendencies { grid-template-columns: 86px 1fr; }
+.result-kind-relationship .poster-analysis-head { background: #f4dfd5; }
+.result-kind-relationship .poster-analysis-head p { color: #b5533d; }
 .poster-analysis { margin-top: 12px; overflow: hidden; border: 1px solid rgba(68,55,31,.12); border-radius: 18px; background: #fffdf7; }
 .poster-analysis-head { padding: 18px 18px 17px; color: #3d3028; background: #f7ded1; }
 .poster-analysis-head p { margin: 0 0 9px; color: #e84b35; font-size: 8px; font-weight: 800; letter-spacing: .18em; }

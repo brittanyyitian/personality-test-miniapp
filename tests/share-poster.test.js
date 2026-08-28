@@ -46,6 +46,17 @@ test('人格底色结果页移除隐藏标题占位并同步收紧网页与小�
   assert.match(mini, /\.result-kind-bigfive \.poster-kicker-hidden\s*\{\s*display:\s*none/);
 });
 
+test('同版本旧结果即使没有原始答案也会用连续分数迁移到当前视觉', () => {
+  const source = read('preview/app.js');
+  assert.match(source, /const storedResultVisualCode = \(result\) =>/);
+  assert.match(source, /\['energy', 'empathy', 'order', 'sensitivity', 'openness'\]/);
+  assert.match(source, /const level = value < 2\.5 \? 'low' : value < 3\.5 \? 'mid' : 'high'/);
+  assert.match(source, /const visualCode = result\.visualCode \|\| result\.typeCode/);
+  assert.match(source, /const hasCurrentVisual = Boolean\(state\.catalog\?\.resultVisuals\?\.\[result\.assessmentId\]\?\.\[visualCode\]\)/);
+  assert.match(source, /const migratedResult = canUseInferredVisual \? \{ \.\.\.result, visualCode: inferredVisualCode \} : result/);
+  assert.match(source, /return migratedResult/);
+});
+
 test('依恋结果头图只在故事场景上叠加斜切木质画框', () => {
   const web = read('preview/app.js');
   const webStyle = read('preview/styles.css');

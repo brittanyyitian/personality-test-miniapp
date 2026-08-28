@@ -99,6 +99,31 @@ Interaction checks:
 
 final result: passed
 
+## 恋爱模式新素材与人格底色旧缓存兼容复验（2026-08-28）
+
+### Evidence
+
+- 恋爱模式源素材与页面并排对照：`qa-relationship-source-vs-implementation.jpg`。
+- 四种恋爱模式结果页总览：`qa-relationship-four-results.jpg`。
+- 人格底色首页旧记录升级后的真实页面：`qa-bigfive-stored-result-upgraded.png`。
+- 人格底色显式预览回归：`qa-bigfive-cache-migration-fixed.png`。
+- 浏览器状态：从 `?view=home` 点击已有“人格底色”记录进入结果页；不是直接使用预览参数绕过缓存。
+
+### Findings And Fixes
+
+- P1 before fix：浏览器里同版本的历史人格底色结果没有 `visualCode`，且部分记录不再保留完整原始答案；网页刷新逻辑先检查答案长度并直接返回，因此落入通用旧版结果结构。
+- Fix：在答案校验之前，使用历史结果里仍保留的五维连续分数按正式计分规则推导新版视觉。人格底色沿用 `energy → empathy → order → sensitivity → openness` 的同分优先级与 2.5 / 3.5 档位；恋爱模式也同步支持由五种关系资源推导四张已接入视觉，避免相同缓存问题再次出现。
+- Scope control：没有修改人格底色的题目、分数、结果文案或新版页面布局；只补充旧记录的视觉迁移。恋爱模式的四张素材、五个连续分数与六段关系分析均保持不变。
+
+### Runtime And Regression Checks
+
+- 从首页点击旧人格底色记录后，页面显示“很容易把别人放进心里”主视觉、四个特征、五维底色与六段分析，未再进入通用老版本。
+- 恋爱模式 `relationship-commitment-appreciation` 回归通过：显示对应正式素材、四个特征、五种关系资源和六段分析。
+- Automated tests：81 passed, 0 failed。
+- Static package check：passed；7 个主包页面、2 个分包，主包 1.62 MB。
+
+final result: passed
+
 ## 人格底色结果页顶部间距复验
 
 ### Evidence

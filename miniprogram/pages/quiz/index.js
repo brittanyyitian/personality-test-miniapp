@@ -14,6 +14,12 @@ function isValidAnswer(value) {
   return Number.isInteger(answer) && answer >= 1 && answer <= 5;
 }
 
+function resultPagePath(assessmentId) {
+  return assessmentId === 'relationship'
+    ? '/relationship-result-package/pages/result/index'
+    : '/result-package/pages/result/index';
+}
+
 function restoreDraft(draft, questionCount) {
   const source = draft && Array.isArray(draft.answers) ? draft.answers : [];
   const answers = source.slice(0, questionCount).map((answer) => (isValidAnswer(answer) ? Number(answer) : 0));
@@ -185,7 +191,7 @@ Page({
     this.setData({ finishing: true });
     const returnQuery = this.returnTarget === 'couple' ? '&return=couple' : '';
     wx.redirectTo({
-      url: `/result-package/pages/result/index?id=${encodeURIComponent(this.savedResultId)}${returnQuery}`,
+      url: `${resultPagePath(this.data.assessment.id)}?id=${encodeURIComponent(this.savedResultId)}${returnQuery}`,
       fail: () => {
         this.submitting = false;
         this.setData({ finishing: false, transitioning: false });
