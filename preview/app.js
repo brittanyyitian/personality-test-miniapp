@@ -45,7 +45,7 @@ const persistResult = (result) => {
 
 const asset = (path) => {
   if (!path) return '';
-  if (path.startsWith('/result-package/')) return `/miniprogram${path}`;
+  if (path.startsWith('/result-package/') || path.startsWith('/relationship-result-package/')) return `/miniprogram${path}`;
   return path.replace('/assets/', '/miniprogram/assets/');
 };
 const clampPercent = (value) => Math.max(4, Math.min(96, Math.round(Number(value) || 0)));
@@ -246,12 +246,46 @@ const api = async (url, body) => {
   return data;
 };
 
+const storedResultVisualCode = (result) => {
+  const scores = result?.scores || {};
+  const hasNumericScores = (keys) => keys.every((key) => Number.isFinite(Number(scores[key])));
+  if (result?.assessmentId === 'bigfive') {
+    const keys = ['energy', 'empathy', 'order', 'sensitivity', 'openness'];
+    if (!hasNumericScores(keys)) return '';
+    const strongest = keys.reduce((current, candidate) => (
+      Math.abs(Number(scores[candidate]) - 3) > Math.abs(Number(scores[current]) - 3) ? candidate : current
+    ));
+    const value = Number(scores[strongest]);
+    const level = value < 2.5 ? 'low' : value < 3.5 ? 'mid' : 'high';
+    return `${strongest}-${level}`;
+  }
+  if (result?.assessmentId === 'relationship') {
+    const keys = ['commitment', 'appreciation', 'response', 'repair', 'trust'];
+    if (!hasNumericScores(keys)) return '';
+    const ordered = keys.slice().sort((a, b) => Number(scores[b]) - Number(scores[a]));
+    const pairOrder = ['commitment', 'appreciation', 'response', 'repair', 'trust'];
+    const pair = ordered.slice(0, 2).sort((a, b) => pairOrder.indexOf(a) - pairOrder.indexOf(b)).join('_');
+    if (['commitment_appreciation', 'commitment_response', 'commitment_repair', 'appreciation_response'].includes(pair)) return pair;
+    if (ordered.slice(0, 2).includes('repair')) return 'commitment_repair';
+    if (ordered.slice(0, 2).includes('response')) return 'appreciation_response';
+    return 'commitment_appreciation';
+  }
+  return '';
+};
+
 const refreshStoredResults = async () => {
   let changed = false;
   const refresh = async (result, cognitiveBaseline) => {
     const assessment = state.catalog?.assessments?.[result.assessmentId];
-    if (!assessment || !Array.isArray(result.answers) || result.answers.length !== assessment.questions.length) return result;
-    if (result.version === assessment.version && Array.isArray(result.insights)) return result;
+    if (!assessment) return result;
+    const visualCode = result.visualCode || result.typeCode;
+    const hasCurrentVisual = Boolean(state.catalog?.resultVisuals?.[result.assessmentId]?.[visualCode]);
+    const inferredVisualCode = hasCurrentVisual ? '' : storedResultVisualCode(result);
+    const canUseInferredVisual = Boolean(state.catalog?.resultVisuals?.[result.assessmentId]?.[inferredVisualCode]);
+    const migratedResult = canUseInferredVisual ? { ...result, visualCode: inferredVisualCode } : result;
+    if (canUseInferredVisual) changed = true;
+    if (!Array.isArray(result.answers) || result.answers.length !== assessment.questions.length) return migratedResult;
+    if (result.version === assessment.version && Array.isArray(result.insights) && (hasCurrentVisual || canUseInferredVisual)) return migratedResult;
     try {
       const questionIds = Array.isArray(result.questionIds) && result.questionIds.length === result.answers.length
         ? result.questionIds
@@ -263,9 +297,9 @@ const refreshStoredResults = async () => {
         cognitiveBaseline: result.assessmentId === 'cognitive' ? null : cognitiveBaseline
       });
       changed = true;
-      return { ...result, ...data.result, id: result.id, completedAt: result.completedAt, answers: result.answers.slice(), questionIds };
+      return { ...migratedResult, ...data.result, id: result.id, completedAt: result.completedAt, answers: result.answers.slice(), questionIds };
     } catch (error) {
-      return result;
+      return migratedResult;
     }
   };
   const cognitiveResults = [];
@@ -1300,9 +1334,11 @@ const boot = async () => {
     const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
     const attachmentPreviewIdMatch = String(id || '').match(/^preview-attachment-(secure|anxious|avoidant|fearful-avoidant)$/i);
     const bigFivePreviewIdMatch = String(id || '').match(/^preview-bigfive-((?:energy|empathy|order|sensitivity|openness)-(?:low|mid|high))$/i);
+    const relationshipPreviewIdMatch = String(id || '').match(/^preview-relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair)$/i);
     const previewRaw = String(query.get('preview') || previewIdMatch?.[2]
       || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : '')
-      || (bigFivePreviewIdMatch ? `bigfive-${bigFivePreviewIdMatch[1]}` : ''));
+      || (bigFivePreviewIdMatch ? `bigfive-${bigFivePreviewIdMatch[1]}` : '')
+      || (relationshipPreviewIdMatch ? `relationship-${relationshipPreviewIdMatch[1]}` : ''));
     const previewType = previewRaw.toUpperCase();
     const previewAssessment = previewIdMatch?.[1]?.toLowerCase()
       || (state.catalog.resultVisuals?.cognitive?.[previewType] ? 'cognitive' : '')
@@ -1311,6 +1347,8 @@ const boot = async () => {
     const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
     const bigFivePreviewMatch = previewRaw.toLowerCase().match(/^bigfive-((?:energy|empathy|order|sensitivity|openness)-(?:low|mid|high))$/);
     const bigFivePreviewType = bigFivePreviewMatch?.[1] || '';
+    const relationshipPreviewMatch = previewRaw.toLowerCase().match(/^relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair)$/);
+    const relationshipPreviewType = relationshipPreviewMatch?.[1]?.replaceAll('-', '_') || '';
     state.couplePartnerCode = query.get('code') || '';
     if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {
       const previewVisual = state.catalog.resultVisuals[previewAssessment][previewType];
@@ -1359,6 +1397,39 @@ const boot = async () => {
       };
       state.result = previewResult;
       state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== previewAssessment)];
+      if (view === 'share') return renderShare();
+      if (view === 'poster') return renderPoster();
+      return renderResult('core');
+    }
+    if (['result', 'share', 'poster'].includes(view) && state.catalog.resultVisuals?.relationship?.[relationshipPreviewType]) {
+      const previewVisual = state.catalog.resultVisuals.relationship[relationshipPreviewType];
+      const previewProfile = previewVisual.analysisProfile;
+      const previewResult = {
+        id: `preview-relationship-${relationshipPreviewType.replaceAll('_', '-')}`,
+        assessmentId: 'relationship',
+        typeCode: 'resourced',
+        typeName: '关系有底气',
+        visualCode: relationshipPreviewType,
+        title: previewVisual.title,
+        summary: previewVisual.quote,
+        shareLine: previewVisual.quote,
+        scores: previewVisual.previewScores,
+        metricKeys: ['commitment', 'response', 'repair'],
+        insights: [
+          { title: '你们还拥有的底气', body: previewProfile.driver },
+          { title: '最容易反复的相处循环', body: previewProfile.stress },
+          { title: '你可能已经做了很多', body: previewProfile.misread },
+          { title: '接下来要看行动，不只看态度', body: previewProfile.recovery }
+        ],
+        sections: [
+          { title: '最稳的一处', body: previewProfile.driver },
+          { title: '最需要照顾的一处', body: previewProfile.conflict },
+          { title: '关系里的你', body: previewProfile.misread },
+          { title: '你真正需要的', body: previewProfile.understood }
+        ]
+      };
+      state.result = previewResult;
+      state.results = [previewResult, ...state.results.filter((result) => result.assessmentId !== 'relationship')];
       if (view === 'share') return renderShare();
       if (view === 'poster') return renderPoster();
       return renderResult('core');

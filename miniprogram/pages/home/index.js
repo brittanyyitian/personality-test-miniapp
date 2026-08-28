@@ -2,6 +2,12 @@ const { assessments } = require('../../data/assessments');
 const { getLatestByAssessment } = require('../../utils/storage');
 const { PIECES, resultKeyword } = require('../../utils/puzzle');
 
+function resultPagePath(assessmentId) {
+  return assessmentId === 'relationship'
+    ? '/relationship-result-package/pages/result/index'
+    : '/result-package/pages/result/index';
+}
+
 Page({
   data: {
     pieces: [],
@@ -46,7 +52,7 @@ Page({
       const resultQuery = resultId
         ? `id=${encodeURIComponent(resultId)}`
         : `assessment=${encodeURIComponent(id)}`;
-      wx.navigateTo({ url: `/result-package/pages/result/index?${resultQuery}&view=core` });
+      wx.navigateTo({ url: `${resultPagePath(id)}?${resultQuery}&view=core` });
       return;
     }
     wx.navigateTo({ url: `/pages/quiz/index?id=${encodeURIComponent(id)}` });

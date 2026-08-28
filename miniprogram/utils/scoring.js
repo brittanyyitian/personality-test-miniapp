@@ -944,10 +944,25 @@ const relationshipStrainPairs = {
   repair_trust: '冲突之后，连接很难安全地回来'
 };
 
+const relationshipVisualPairs = new Set([
+  'commitment_appreciation',
+  'commitment_response',
+  'commitment_repair',
+  'appreciation_response'
+]);
+
 function relationshipPairKey(keys) {
   return keys.slice(0, 2)
     .sort((a, b) => relationshipPairOrder.indexOf(a) - relationshipPairOrder.indexOf(b))
     .join('_');
+}
+
+function relationshipVisualCode(primary, secondary) {
+  const direct = relationshipPairKey([primary, secondary]);
+  if (relationshipVisualPairs.has(direct)) return direct;
+  if ([primary, secondary].includes('repair')) return 'commitment_repair';
+  if ([primary, secondary].includes('response')) return 'appreciation_response';
+  return 'commitment_appreciation';
 }
 
 function relationshipExtensions(scores, strongest, weakest, balanced = false) {
@@ -1175,6 +1190,7 @@ function scoreRelationship(answers) {
     assessmentTitle: assessment.title,
     title,
     typeCode: stateCode,
+    visualCode: relationshipVisualCode(strongest, secondStrongest),
     typeName: stateName,
     profileName: title,
     tags: balanced

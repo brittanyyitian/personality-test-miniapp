@@ -309,6 +309,24 @@ test('恋爱状态同时组合整体状态、支点和两处风险', () => {
   assert.match(result.insights[0].body, /冲突修复/);
 });
 
+test('恋爱状态按得分最高的两种关系资源选择对应主视觉', () => {
+  const assessment = assessments.relationship;
+  const expected = {
+    commitment_appreciation: ['commitment', 'appreciation'],
+    appreciation_response: ['appreciation', 'response'],
+    commitment_response: ['commitment', 'response'],
+    commitment_repair: ['commitment', 'repair']
+  };
+  Object.entries(expected).forEach(([visualCode, strongest]) => {
+    const answers = assessment.questions.map((question) => {
+      const target = strongest.includes(question.dimension) ? 5 : 3;
+      return question.reverse ? 6 - target : target;
+    });
+    const result = scoreAssessment('relationship', answers);
+    assert.equal(result.visualCode, visualCode);
+  });
+});
+
 test('SBTI 使用 24 道题且低分化答案不会被硬塞进某种人设', () => {
   assert.equal(assessments.social.questions.length, 24);
   const flat = scoreAssessment('social', assessments.social.questions.map(() => 4));

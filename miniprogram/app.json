@@ -15,6 +15,13 @@
       "pages": [
         "pages/result/index"
       ]
+    },
+    {
+      "root": "relationship-result-package",
+      "name": "relationship-results",
+      "pages": [
+        "pages/result/index"
+      ]
     }
   ],
   "window": {
