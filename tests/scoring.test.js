@@ -315,7 +315,10 @@ test('恋爱状态按得分最高的两种关系资源选择对应主视觉', ()
     commitment_appreciation: ['commitment', 'appreciation'],
     appreciation_response: ['appreciation', 'response'],
     commitment_response: ['commitment', 'response'],
-    commitment_repair: ['commitment', 'repair']
+    commitment_repair: ['commitment', 'repair'],
+    commitment_trust: ['commitment', 'trust'],
+    appreciation_repair: ['appreciation', 'repair'],
+    appreciation_trust: ['appreciation', 'trust']
   };
   Object.entries(expected).forEach(([visualCode, strongest]) => {
     const answers = assessment.questions.map((question) => {

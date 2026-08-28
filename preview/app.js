@@ -265,7 +265,7 @@ const storedResultVisualCode = (result) => {
     const ordered = keys.slice().sort((a, b) => Number(scores[b]) - Number(scores[a]));
     const pairOrder = ['commitment', 'appreciation', 'response', 'repair', 'trust'];
     const pair = ordered.slice(0, 2).sort((a, b) => pairOrder.indexOf(a) - pairOrder.indexOf(b)).join('_');
-    if (['commitment_appreciation', 'commitment_response', 'commitment_repair', 'appreciation_response'].includes(pair)) return pair;
+    if (['commitment_appreciation', 'commitment_response', 'commitment_repair', 'commitment_trust', 'appreciation_repair', 'appreciation_trust', 'appreciation_response'].includes(pair)) return pair;
     if (ordered.slice(0, 2).includes('repair')) return 'commitment_repair';
     if (ordered.slice(0, 2).includes('response')) return 'appreciation_response';
     return 'commitment_appreciation';
@@ -1334,7 +1334,7 @@ const boot = async () => {
     const previewIdMatch = String(id || '').match(/^preview-(cognitive|social)-([a-z0-9]+)$/i);
     const attachmentPreviewIdMatch = String(id || '').match(/^preview-attachment-(secure|anxious|avoidant|fearful-avoidant)$/i);
     const bigFivePreviewIdMatch = String(id || '').match(/^preview-bigfive-((?:energy|empathy|order|sensitivity|openness)-(?:low|mid|high))$/i);
-    const relationshipPreviewIdMatch = String(id || '').match(/^preview-relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair)$/i);
+    const relationshipPreviewIdMatch = String(id || '').match(/^preview-relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair|commitment-trust|appreciation-repair|appreciation-trust)$/i);
     const previewRaw = String(query.get('preview') || previewIdMatch?.[2]
       || (attachmentPreviewIdMatch ? `attachment-${attachmentPreviewIdMatch[1]}` : '')
       || (bigFivePreviewIdMatch ? `bigfive-${bigFivePreviewIdMatch[1]}` : '')
@@ -1347,7 +1347,7 @@ const boot = async () => {
     const attachmentPreviewType = attachmentPreviewMatch?.[1] || '';
     const bigFivePreviewMatch = previewRaw.toLowerCase().match(/^bigfive-((?:energy|empathy|order|sensitivity|openness)-(?:low|mid|high))$/);
     const bigFivePreviewType = bigFivePreviewMatch?.[1] || '';
-    const relationshipPreviewMatch = previewRaw.toLowerCase().match(/^relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair)$/);
+    const relationshipPreviewMatch = previewRaw.toLowerCase().match(/^relationship-(commitment-appreciation|appreciation-response|commitment-response|commitment-repair|commitment-trust|appreciation-repair|appreciation-trust)$/);
     const relationshipPreviewType = relationshipPreviewMatch?.[1]?.replaceAll('-', '_') || '';
     state.couplePartnerCode = query.get('code') || '';
     if (['result', 'share', 'poster'].includes(view) && previewAssessment && state.catalog.resultVisuals?.[previewAssessment]?.[previewType]) {

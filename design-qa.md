@@ -99,6 +99,37 @@ Interaction checks:
 
 final result: passed
 
+## 恋爱人格第二批素材接入验收（2026-08-28）
+
+### Source Visual Truth
+
+- `design-sources/relationship/commitment-trust.png` — “既站在一起，也保有边界”，1536 × 1024 RGBA。
+- `design-sources/relationship/appreciation-repair.png` — “有温度，也愿意把话说回来”，1536 × 1024 RGBA，帐篷构图正式素材。
+- `design-sources/relationship/appreciation-repair-sofa-alt.png` — 同一结果的沙发构图备选源图，1536 × 1024 RGBA，暂不进入分包。
+- `design-sources/relationship/appreciation-trust.png` — “欣赏彼此，也能安心做自己”，1536 × 1024 RGBA。
+
+### Current Implementation
+
+- `relationship-commitment-trust.webp`、`relationship-appreciation-repair.webp` 与 `relationship-appreciation-trust.webp` 已按 1120 × 747 RGBA WebP 接入恋爱结果分包。
+- 三个新视觉都已加入正式分数映射、旧缓存视觉推导、预览路由、四项特征、五种关系资源和六段独立分析。
+- Automated tests：81 passed, 0 failed。
+- Static package check：passed；7 个主包页面、2 个分包，主包 1.62 MB。
+
+### Blocking Evidence
+
+- 本地预览服务启动需要额外系统授权；本轮授权连接中断，服务未能启动。
+- 因此尚无浏览器渲染截图、同视口源图对照、交互检查或控制台错误检查，不能把静态测试替代为视觉验收。
+
+### Required Fidelity Surfaces
+
+- Fonts and typography：blocked，需在真实页面确认素材内手写标题与结果正文的首屏可读性。
+- Spacing and layout rhythm：blocked，需确认 3:2 主图进入现有移动端结果槽后没有多余留白或挤压。
+- Colors and visual tokens：blocked，需确认透明边缘与奶油页面底融合。
+- Image quality and asset fidelity：blocked，需确认 WebP 压缩后主体、透明通道与细节清晰。
+- Copy and content：静态内容完整，但仍需真实页面确认换行与密度。
+
+final result: blocked
+
 ## 恋爱模式新素材与人格底色旧缓存兼容复验（2026-08-28）
 
 ### Evidence
@@ -149,6 +180,14 @@ final result: passed
 - Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
 
 final result: passed
+
+## 当前分支最终门禁
+
+- 当前工作：恋爱人格第二批素材 `commitment_trust` 与 `appreciation_repair`。
+- 详细源图、实现与阻塞说明见“恋爱人格第二批素材接入验收（2026-08-28）”。
+- 浏览器渲染证据尚未生成，不能用静态测试代替视觉验收。
+
+final result: blocked
 
 ## 人格底色「开放想象」三档主视觉与五维素材完结验收
 
@@ -361,3 +400,11 @@ final result: passed
 - Static package check: passed；7 个主包页面，1 个分包，主包 1.69 MB。
 
 final result: passed
+
+## 当前分支最终门禁（恋爱人格第二批）
+
+- 详细源图、实现与阻塞说明见“恋爱人格第二批素材接入验收（2026-08-28）”。
+- 新增 `commitment_trust`、`appreciation_repair` 与 `appreciation_trust` 已通过 81 项自动化测试和包体检查。
+- 浏览器渲染证据尚未生成，不能用静态测试替代视觉验收。
+
+final result: blocked
